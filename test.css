@@ -258,6 +258,87 @@ body {
     transform: translateY(-2px);
 }
 
+/* עיצוב ייחודי לכרטיס הוספה */
+/* --- כרטיס הוספת פרופיל חדש (סופי וערוך) --- */
+
+/* --- כרטיס הוספת פרופיל (גרסה סופית למראה אחיד) --- */
+
+.add-new-card {
+    /* הופך אותו לזהה במידות לשאר הקארדים */
+    border: 2px dashed #2d74d7 !important;
+    background-color: rgba(45, 116, 215, 0.03) !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: none !important;
+    
+    /* ביטול הגובה הקשיח כדי שיתאים לאחרים */
+    min-height: 0 !important; 
+    height: auto !important;
+    
+    /* העתקת הפאדינג המדויק מהקארד הרגיל שלך */
+    padding: 25px 0 30px !important; 
+}
+
+.add-new-card:hover {
+    background-color: rgba(45, 116, 215, 0.08) !important;
+    transform: translateY(-5px);
+    border-style: solid !important;
+}
+
+/* עיצוב העיגול (זהה במידות ל-Picture המקורי) */
+.add-placeholder {
+    border: 4px dashed #2d74d7 !important;
+    background-color: #ffffff !important;
+    width: 130px !important;
+    height: 130px !important;
+    margin: 0 auto 25px !important; /* אותו מרווח כמו ב-BMW */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* תמונת הפלוס */
+.plus-img {
+    width: 50% !important;
+    height: 50% !important;
+    object-fit: contain !important;
+    transition: transform 0.4s ease;
+}
+
+.add-new-card:hover .plus-img {
+    transform: rotate(90deg);
+}
+
+/* התאמת התוכן למבנה של ה-BMW */
+.add-new-card .team-content {
+    margin-bottom: 20px !important; /* זהה ל-team-content המקורי */
+}
+
+.add-new-card .name {
+    font-size: 22px !important;
+    margin: 0 0 5px !important;
+    color: #333;
+}
+
+.add-desc {
+    display: block;
+    font-size: 15px;
+    color: #4e5052;
+    margin-bottom: 10px;
+}
+
+/* כפתור הוספה - שומר על גובה השורה */
+.add-btn {
+    margin-top: 10px !important;
+    pointer-events: none;
+}
+
+/* הסרת הפס התחתון למראה נקי */
+.add-new-card::after {
+    display: none !important;
+}
+
 /* --- 9. מובייל (Responsive) --- */
 @media (max-width: 768px) {
     .container {
@@ -273,6 +354,8 @@ body {
         padding: 10px 25px;
     }
 }
+
+
 
 /* --- 4. Footer & Extra --- */
 footer {
