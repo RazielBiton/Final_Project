@@ -3,38 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חיפוש רכב - מאגר ממשלתי</title>
+    <title>EasyCare - חיפוש רכב במאגר</title>
     <link rel="stylesheet" href="css/search.css">
 </head>
 <body>
     <div class="search-container">
         <div class="search-card">
+            
+            <a href="after_login.html" class="back-text-btn">חזור</a>
+
             <div class="search-header">
                 <div class="header-text">
                     <h1>חיפוש במאגר הממשלתי</h1>
                     <p>נתונים אמיתיים ממשרד התחבורה - data.gov.il</p>
                 </div>
             </div>
+
             <div class="search-content">
                 <form id="searchForm">
                     <label for="plateInput">מספר רישוי</label>
                     <div class="input-wrapper">
                         <button type="submit" class="search-btn">🔍</button>
-                        <input type="text" id="plateInput" placeholder="12-345-67" required>
+                        <input 
+                            type="tel" 
+                            id="plateInput" 
+                            placeholder="הזן מספר רכב (1-8 ספרות)" 
+                            required 
+                            maxlength="8" 
+                            pattern="\d{1,8}"
+                            oninput="this.value = this.value.replace(/\D/g, '')"
+                            title="נא להזין מספרים בלבד (1 עד 8 ספרות)"
+                        >
                     </div>
                 </form>
-                <div class="manual-entry">או הזן ידנית</div>
             </div>
         </div>
     </div>
 
+    <footer>
+        <p>
+            All Credits by EasyCare Team
+        </p>
+    </footer>
+
     <script>
+        // לוגיקת שליחת הטופס
         document.getElementById('searchForm').addEventListener('submit', function(e) {
+            // 1. מניעת שליחת ברירת מחדל כדי שנוכל לבדוק את הקלט
             e.preventDefault();
-            const plate = document.getElementById('plateInput').value.replace(/-/g, ''); // הסרת מקפים
-            // מעבר לדף התוצאות עם מספר הרכב ב-URL
-            window.location.href = `results.html?plate=${plate}`;
+            
+            // 2. ניקוי הקלט ושליפתו
+            const plateValue = document.getElementById('plateInput').value.trim();
+            
+            // 3. בדיקת תקינות סופית: רק מספרים, בין 1 ל-8 ספרות
+            const isNumeric = /^\d+$/.test(plateValue); // בודק שזה רק מספרים
+            const isValidLength = plateValue.length >= 1 && plateValue.length <= 8;
+
+            if (isNumeric && isValidLength) {
+                // אם הכל תקין - עוברים דף
+                window.location.href = `results.html?plate=${plateValue}`;
+            } else {
+                // אם משהו השתבש (למשל המשתמש ניסה לעקוף את המערכת)
+                alert("שגיאה: נא להזין מספר רכב תקין (1 עד 8 ספרות בלבד)");
+            }
         });
+
+        
     </script>
 </body>
 </html>

@@ -52,3 +52,16 @@ input { padding: 10px; border: 1px solid #eee; border-radius: 6px; background: #
     display: flex; justify-content: center; align-items: center;
     z-index: 1000; font-weight: bold;
 }
+
+footer {
+    background-color: #222;
+    color: #fff;
+    font-size: 14px;
+    bottom: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 999;
+    padding: 10px 0;
+}

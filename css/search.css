@@ -1,75 +1,148 @@
+/* --- הגדרות בסיס --- */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8fafb;
+    background-color: #f0f4f8;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
+/* --- כרטיס החיפוש (Container) --- */
 .search-card {
+    position: relative; /* מאפשר מיקום אבסולוטי של כפתור ה"חזור" בתוכו */
     width: 100%;
-    max-width: 650px;
+    max-width: 600px;
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
     overflow: hidden;
 }
 
+/* --- כפתור "חזור" טקסטואלי --- */
+.back-text-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #ffffff; /* לבן כדי לבלוט על רקע ה-Header הירוק */
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.15); /* רקע לבן שקוף עדין */
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.back-text-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* --- הדר (Header) --- */
 .search-header {
     background-color: #2d74d7;
     color: white;
-    padding: 25px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 45px 40px 35px;
+    text-align: center;
 }
 
-.search-header h1 { margin: 0; font-size: 22px; }
-.search-header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+.header-text h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+}
 
-.search-content { padding: 40px; text-align: center; }
+.header-text p {
+    margin: 10px 0 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* --- תוכן הטופס --- */
+.search-content {
+    padding: 50px 40px;
+}
 
 label {
     display: block;
     text-align: right;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: #333;
+    font-size: 16px;
 }
 
+/* --- עטיפת הקלט (Input Wrapper) --- */
 .input-wrapper {
     display: flex;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
     padding: 5px;
-    margin-bottom: 25px;
+    transition: all 0.3s ease;
+    background-color: #f9fbfe;
+}
+
+.input-wrapper:focus-within {
+    border-color: #2d74d7;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(94, 182, 141, 0.1);
 }
 
 #plateInput {
     flex: 1;
     border: none;
     padding: 15px;
-    font-size: 18px;
+    font-size: 20px;
     text-align: center;
     outline: none;
+    background: transparent;
+    color: #2c3e50;
+    font-weight: 600;
 }
 
+/* --- כפתור זכוכית מגדלת --- */
 .search-btn {
     background-color: #2d74d7;
     color: white;
     border: none;
-    padding: 0 20px;
-    border-radius: 8px;
+    padding: 0 25px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 20px;
+    transition: background 0.3s ease;
 }
 
-.manual-entry {
-    color: #5c6c84;
-    text-decoration: underline;
-    cursor: pointer;
-    font-size: 14px;
+.search-btn:hover {
+    background-color: #2d74d7;
 }
+
+footer {
+    background-color: #222;
+    color: #fff;
+    font-size: 14px;
+    bottom: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 999;
+    padding: 10px 0;
+}
+
+/* התאמה למובייל */
+@media (max-width: 480px) {
+    .search-card {
+        margin: 15px;
+    }
+    .search-header {
+        padding: 40px 20px 30px;
+    }
+    .search-content {
+        padding: 40px 25px;
+    }
+}
+
