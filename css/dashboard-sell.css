@@ -1,0 +1,76 @@
+/* --- SELL COMPONENT STYLES --- */
+.sell-hero-banner {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.sell-hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.action-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+    border-color: #0d6efd;
+}
+
+.action-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-icon-wrapper.pdf-icon {
+    background: #dc3545;
+    color: white !important;
+}
+
+.action-card:hover .action-icon-wrapper.qr-icon {
+    background: #212529;
+    color: white !important;
+}
+
+.pdf-icon {
+    color: #dc3545;
+}
+
+.qr-icon {
+    color: #212529;
+}

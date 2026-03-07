@@ -1,0 +1,212 @@
+<!-- 1. OVERVIEW SECTION -->
+<div id="overview-section" class="dashboard-section">
+    <div class="db-row my-2">
+        <div class="db-col-sm-6 db-col-lg-3 mb-3">
+            <div class="db-kpi-card highlight-card">
+                <div>
+                    <h3 class="m-0 fs-5" id="kpi-km">--</h3>
+                    <p class="text-muted m-0 fs-7">קילומטראז'</p>
+                </div>
+                <i class="fas fa-road primary-text border rounded-full secondary-bg p-3 kpi-icon"></i>
+            </div>
+        </div>
+
+        <div class="db-col-sm-6 db-col-lg-3 mb-3">
+            <div class="db-kpi-card highlight-card">
+                <div>
+                    <h3 class="m-0 fs-5" id="kpi-expense">0 ₪</h3>
+                    <p class="text-muted m-0 fs-7">הוצאות החודש</p>
+                </div>
+                <i class="fas fa-hand-holding-usd primary-text border rounded-full secondary-bg p-3 kpi-icon"></i>
+            </div>
+        </div>
+
+        <div class="db-col-sm-6 db-col-lg-3 mb-3">
+            <div class="db-kpi-card highlight-card">
+                <div>
+                    <h3 class="m-0 fs-5" id="kpi-test">--</h3>
+                    <p class="text-muted m-0 fs-7">תוקף טסט</p>
+                </div>
+                <i class="fas fa-calendar-check primary-text border rounded-full secondary-bg p-3"
+                    style="font-size: 1.5rem; border: 1px solid #dee2e6;"></i>
+            </div>
+        </div>
+
+        <div class="db-col-sm-6 db-col-lg-3 mb-3">
+            <div class="db-kpi-card highlight-card">
+                <div>
+                    <h3 class="m-0 fs-7" id="kpi-status">תקין</h3>
+                    <p class="text-muted m-0 fs-7">סטטוס רכב</p>
+                </div>
+                <i class="fas fa-shield-alt primary-text border rounded-full secondary-bg p-3 kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Row 1: Reliability & Alerts -->
+    <div class="db-row mb-4 align-items-stretch">
+        <!-- Reliability Score -->
+        <div class="db-col-lg-6 mb-3 d-flex">
+            <div class="db-card w-100 mb-0">
+                <div class="db-card-header">
+                    <h5 class="m-0"><i class="fas fa-medal text-warning me-2"></i> ציון אמינות רכב</h5>
+                    <span id="reliability-text" class="fw-bold text-muted fs-5">מתחבר...</span>
+                </div>
+                <div class="db-card-body">
+                    <div class="db-progress db-progress-lg">
+                        <div id="reliability-bar" class="db-progress-bar bg-secondary" role="progressbar"
+                            style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <span id="reliability-score" class="fw-bold ps-0">0%</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        <ul class="list-inline mb-0 p-0 d-flex gap-2 flex-wrap no-list-style">
+                            <li class="list-inline-item"><i class="fas fa-check text-success small"></i> טיפולים מתועדים
+                            </li>
+                            <li class="list-inline-item">•</li>
+                            <li class="list-inline-item"><i class="fas fa-check text-success small"></i> ביטוחים בתוקף
+                            </li>
+                            <li class="list-inline-item">•</li>
+                            <li class="list-inline-item"><i class="fas fa-check text-success small"></i> דוחות דלק</li>
+                            <li class="list-inline-item">•</li>
+                            <li class="list-inline-item"><i class="fas fa-check text-success small"></i> טסט בתוקף</li>
+                        </ul>
+                    </div>
+                    <div id="reliability-missing-container" class="d-none bg-light p-2 rounded mt-3">
+                        <h6 class="text-danger small fw-bold mb-1">מה חסר ל-100%?</h6>
+                        <ul class="d-flex justify-content-between align-items-center mb-0 no-list-style">
+                            <!-- JS Injected -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Alerts -->
+        <div class="db-col-lg-6 mb-3 d-flex">
+            <div class="db-card w-100 mb-0 flex-grow-1">
+                <div class="db-card-header">
+                    <h5 class="m-0"><i class="fas fa-bell text-primary-custom me-2"></i> התראות קרובות</h5>
+                </div>
+                <div class="db-card-body p-0 overflow-auto overview-alerts-container">
+                    <ul class="db-list-group m-0 rounded-0" id="alertsList">
+                        <!-- Alerts Injected via JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Row 2: Expense Breakdown -->
+    <div class="db-row mb-3 align-items-stretch">
+        <div class="db-col-12 mb-3 d-flex">
+            <div class="db-card w-100 mb-0">
+                <div class="db-card-header py-2">
+                    <h6 class="m-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i> פילוח הוצאות כולל</h6>
+                </div>
+                <div class="db-card-body p-4">
+                    <div class="row align-items-center m-0">
+                        <!-- Categories List -->
+                        <div class="col-md-6 order-md-1 order-2 mt-3 mt-md-0 px-2">
+                            <ul class="list-group shadow-sm mb-0 p-0"
+                                style="border-radius: 8px; border: 1px solid #dee2e6; overflow: hidden; padding-right: 0;">
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center bg-light px-3 py-1 border-0 border-bottom">
+                                    <span class="text-dark fs-7"><i class="fas fa-wrench text-danger me-0"
+                                            style="width:16px;"></i> טיפולים ותחזוקה</span>
+                                    <span class="fw-bold fs-7" id="exp-treatments">0 ₪</span>
+                                </li>
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center px-3 py-1 border-0 border-bottom">
+                                    <span class="text-dark fs-7"><i class="fas fa-shield-alt text-success me-0"
+                                            style="width:16px;"></i> ביטוח ורישוי</span>
+                                    <span class="fw-bold fs-7" id="exp-insurance">0 ₪</span>
+                                </li>
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center bg-light px-3 py-1 border-0 border-bottom">
+                                    <span class="text-dark fs-7"><i class="fas fa-gas-pump text-warning me-0"
+                                            style="width:16px;"></i> דלק</span>
+                                    <span class="fw-bold fs-7" id="exp-fuel">0 ₪</span>
+                                </li>
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center px-3 py-1 border-0 border-bottom">
+                                    <span class="text-dark fs-7"><i class="fas fa-car-crash me-0"
+                                            style="color:#fd7e14; width:16px;"></i> תאונות ונזקים</span>
+                                    <span class="fw-bold fs-7" id="exp-accidents">0 ₪</span>
+                                </li>
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center bg-light px-3 py-1 border-0 border-bottom">
+                                    <span class="text-dark fs-7"><i class="fas fa-file-invoice text-info me-0"
+                                            style="width:16px;"></i> דוחות וקנסות</span>
+                                    <span class="fw-bold fs-7" id="exp-reports">0 ₪</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center text-white px-3 py-2 border-0"
+                                    style="background: #2d74d7;">
+                                    <span class="fw-bold fs-7">סך הכל הוצאות</span>
+                                    <span class="fw-bold fs-6" id="exp-total">0 ₪</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- Chart Container -->
+                        <div class="col-md-6 order-md-2 order-1 chart-container-md">
+                            <canvas id="expensesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Row 3: Advanced Info -->
+    <div class="db-row mt-2 mb-4 align-items-stretch">
+        <div class="db-col-12 d-flex mb-2">
+            <div class="db-card w-100">
+                <div class="db-card-header py-2">
+                    <h6 class="m-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i> פרטים טכניים נוספים</h6>
+                </div>
+                <div class="db-card-body d-flex flex-column justify-content-center p-3">
+                    <div class="db-row text-center">
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <div class="car-spec-icon-round" id="car-color-preview"></div>
+                            <small class="text-muted fw-normal car-spec-label">צבע רכב</small>
+                            <span id="info-color" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <img id="fuel-type-icon" src="" alt="דלק" class="car-spec-icon" style="display: none;">
+                            <small class="text-muted fw-normal car-spec-label">סוג דלק</small>
+                            <span id="info-fuel" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <img id="front-tire-icon" src="images/icons/wheel.png" alt="צמיג קדמי"
+                                class="car-spec-icon">
+                            <small class="text-muted fw-normal car-spec-label">צמיג קדמי</small>
+                            <span id="info-tire-f" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <img id="rear-tire-icon" src="images/icons/wheel.png" alt="צמיג אחורי"
+                                class="car-spec-icon">
+                            <small class="text-muted fw-normal car-spec-label">צמיג אחורי</small>
+                            <span id="info-tire-r" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <img id="engine-size-icon" src="images/icons/engine.png" alt="מנוע" class="car-spec-icon">
+                            <small class="text-muted fw-normal car-spec-label">נפח מנוע</small>
+                            <span id="info-volume" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                        <div class="db-col-4 db-col-md-2 mb-3 d-flex flex-column align-items-center">
+                            <img id="hp-icon" src="images/icons/horse_power.png" alt="כוח סוס" class="car-spec-icon">
+                            <small class="text-muted fw-normal car-spec-label">כוח סוס</small>
+                            <span id="info-hp" class="fw-bold fs-7 mb-0">--</span>
+                        </div>
+                    </div>
+                    <div class="text-center mt-1 border-top pt-2">
+                        <span class="db-badge bg-secondary px-3 py-1 text-white shadow-sm rounded-pill"
+                            style="font-size: 0.8rem;" id="info-tag"><i class="fas fa-wheelchair me-1"></i> בדיקת תו
+                            נכה...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

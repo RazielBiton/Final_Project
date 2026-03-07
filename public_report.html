@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyCare - דוח רכב שקוף</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/global_footer.css">
+
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f4f7f6;
+            color: #2b2b2b;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 4rem 1rem 3rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
+        }
+
+        .report-header::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .car-logo-wrapper {
+            width: 110px;
+            height: 110px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 2;
+            padding: 10px;
+        }
+
+        .car-logo-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            color: #0d6efd;
+            font-weight: 700;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-left: 0.75rem;
+            background: #e9ecef;
+            color: #495057;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .stat-badge {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            height: 100%;
+        }
+
+        .stat-badge i {
+            font-size: 1.5rem;
+            color: #0d6efd;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-right: 30px;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            right: 7px;
+            top: 5px;
+            bottom: -1.5rem;
+            width: 2px;
+            background-color: #dee2e6;
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            right: 0;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #dee2e6;
+            z-index: 1;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .table-custom th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+        }
+
+        .report-footer {
+            text-align: center;
+            padding: 2rem;
+            color: #adb5bd;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+            margin-top: 3rem;
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading-screen"
+        style="position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+        <h4 class="text-muted fw-bold">טוען נתוני רכב שקופים...</h4>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div id="app-content" style="display: none;">
+
+        <div class="report-header">
+            <div class="container position-relative z-2">
+                <div class="car-logo-wrapper" id="pr-logo">
+                    <!-- Configured via JS -->
+                </div>
+                <h1 class="fw-bold mb-1" id="pr-title">טוען...</h1>
+                <p class="fs-5 opacity-75 mb-3" id="pr-subtitle">מספר רישוי: טוען...</p>
+
+                <div class="d-inline-block bg-white text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <i class="fas fa-shield-alt text-success me-2"></i> דוח אמינות רשמי - EasyCare
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-neg-5" style="margin-top: -30px; position:relative; z-index: 5;">
+
+            <!-- Key Stats Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="stat-badge shadow-sm">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <p class="stat-value" id="pr-km">--</p>
+                        <p class="stat-label">קילומטראז'</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-badge shadow-sm">
+                        <i class="fas fa-calendar-check text-success"></i>
+                        <p class="stat-value" id="pr-test">--</p>
+                        <p class="stat-label">טסט בתוקף</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-badge shadow-sm">
+                        <i class="fas fa-star text-warning"></i>
+                        <p class="stat-value" id="pr-reliability">--%</p>
+                        <p class="stat-label">ציון אמינות</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-badge shadow-sm">
+                        <i class="fas fa-wallet text-danger"></i>
+                        <p class="stat-value" id="pr-expenses">₪0</p>
+                        <p class="stat-label">השקעה ברכב (מתועד)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PUBLIC CAR PHOTO GALLERY -->
+            <div id="publicGalleryContainer" class="d-none mb-4">
+                <div class="report-card p-3 p-md-4">
+                    <h5 class="section-title"><i class="fas fa-camera"></i> גלריית תמונות הרכב</h5>
+                    <div id="publicGalleryGrid" class="row g-2 g-md-3">
+                        <!-- Populated by public_report.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Specs Section -->
+            <div class="report-card">
+                <h4 class="section-title"><i class="fas fa-cogs"></i> מפרט טכני</h4>
+                <div class="row text-center g-3" id="pr-tech-specs">
+                    <div class="col-6 col-md">
+                        <small class="text-muted d-block mb-1">כוח סוס (כ"ס)</small>
+                        <strong class="fs-6 d-block" id="pr-hp">--</strong>
+                    </div>
+                    <div class="col-6 col-md">
+                        <small class="text-muted d-block mb-1">נפח מנוע (סמ"ק)</small>
+                        <strong class="fs-6 d-block" id="pr-engine">--</strong>
+                    </div>
+                    <div class="col-6 col-md">
+                        <small class="text-muted d-block mb-1">צמיגים קדמיים</small>
+                        <strong class="fs-6 d-block" id="pr-tires-f">--</strong>
+                    </div>
+                    <div class="col-6 col-md">
+                        <small class="text-muted d-block mb-1">צמיגים אחוריים</small>
+                        <strong class="fs-6 d-block" id="pr-tires-r">--</strong>
+                    </div>
+                    <div class="col-6 col-md">
+                        <small class="text-muted d-block mb-1">סוג מנוע / דלק</small>
+                        <strong class="fs-6 d-block" id="pr-fuel-type">--</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treatments Section -->
+            <div class="report-card">
+                <h4 class="section-title"><i class="fas fa-tools"></i> ציר זמן טיפולים ותחזוקה</h4>
+                <div id="pr-treatments-timeline" class="mt-4">
+                    <div class="text-center text-muted py-3">אין נתונים מתועדים</div>
+                </div>
+            </div>
+
+            <!-- Insurance Section -->
+            <div class="report-card">
+                <h4 class="section-title"><i class="fas fa-file-contract"></i> מידע ביטוחי</h4>
+                <div id="pr-insurance-data">
+                    <div class="text-center text-muted py-3">אין מידע ביטוחי</div>
+                </div>
+            </div>
+
+            <!-- Reports/Fines Section -->
+            <div class="report-card">
+                <h4 class="section-title"><i class="fas fa-file-invoice-dollar"></i> קנסות ודוחות</h4>
+                <div id="pr-reports-data">
+                    <div class="text-center text-muted py-3">הרכב ללא דוחות מתועדים. (נקי)</div>
+                </div>
+            </div>
+
+            <!-- Fuel Logs Section -->
+            <div class="report-card">
+                <h4 class="section-title"><i class="fas fa-gas-pump"></i> היסטוריית תדלוקים (5 אחרונים)</h4>
+                <div id="pr-fuel-data">
+                    <div class="text-center text-muted py-3">אין נתונים מתועדים</div>
+                </div>
+            </div>
+
+            <!-- Accidents Section -->
+            <div class="report-card">
+                <h4 class="section-title text-danger"><i class="fas fa-car-crash bg-danger text-white"></i> היסטוריית
+                    תאונות מדווחות</h4>
+                <div id="pr-accidents-data">
+                    <div class="text-center text-muted py-3">הרכב ללא תאונות מדווחות. (נקי)</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Removed .report-footer to replace with .global-footer -->
+    </div>
+
+    <!-- Global Footer injected by JS -->
+    <footer class="global-footer"></footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/public_report.js"></script>
+    <script src="js/global_footer.js"></script>
+</body>
+
+</html>

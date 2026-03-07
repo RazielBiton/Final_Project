@@ -1,0 +1,43 @@
+/* --- FUEL COMPONENT STYLES --- */
+.fuel-stats-card {
+    border-radius: 12px;
+    box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .05);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.fuel-stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .25rem 2rem 0 rgba(58, 59, 69, .1);
+}
+
+.gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.gradient-success {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+#fuelHistoryContainer {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .05);
+}
+
+.db-list-group-flush .db-list-item {
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.25rem;
+    transition: background-color 0.2s;
+}
+
+.db-list-group-flush .db-list-item:hover {
+    background-color: #f8f9fc;
+}
+
+.db-list-group-flush .db-list-item:last-child {
+    border-bottom: none;
+}

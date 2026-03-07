@@ -1,70 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/login.css">
-    <title>login - form</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/login.css">
+	<link rel="stylesheet" href="css/global_footer.css">
+	<title>login - form</title>
 </head>
 
 <body class="homepage is-loading">
-    
-<div class="container" id="container">
-	<div class="form-container sign-up-container">
-		<form action="#">
-			<h1>צור משתמש</h1>
-			<div class="social-container">
-				<a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-				<a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-			</div>
-			<p>או</p>
-			<input type="text" class="first_name" placeholder="שם פרטי" />
-			<input type="text" class="last_name" placeholder="שם משפחה" />
-			<input type="email" class="email" placeholder="אימייל" />
-			<input type="password" class="password" placeholder="סיסמא" />
-			<button>הרשם</button>
-		</form>
-	</div>
-	<div class="form-container sign-in-container">
-		<form action="#">
-			<h1>התחברות</h1>
-			<div class="social-container">
-				<a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
-				<a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-			</div>
-			<p>או</p>
-			<input type="email" class="email" placeholder="אימייל" />
-			<input type="password" class="password" placeholder="סיסמא" />
-			<a href="#">?שכחתה את הסיסמא</a>
 
-			<button type="button" class="login_btn" data-href="after_login.html">התחברות</button>
-		</form>
-	</div>
-	<div class="overlay-container">
-		<div class="overlay">
-			<div class="overlay-panel overlay-left">
-				<img src="images/logo.png" alt="Logo" class="Logo_img">
-				<h1>!אורח יקר</h1>
-				<p>.הזן את הפרטים האישיים שלך והתחל את המסע שלך</p>
-				<button class="ghost" id="signIn">התחברות</button>
-			</div>
-			<div class="overlay-panel overlay-right">
-				<img src="images/logo.png" alt="Logo" class="Logo_img">
-				<h1>!היי</h1>
-				<p>.בכדי להתחבר למערכת, אנא הזן את פרטי המשתמש שלך</p>
-				<button class="ghost" id="signUp">הרשמה</button>
+	<div class="container" id="container">
+		<div class="form-container sign-up-container">
+			<form action="#">
+				<h1>צור משתמש</h1>
+				<div class="social-container">
+					<a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+					<a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+				</div>
+				<p>או</p>
+				<input type="text" class="first_name" placeholder="שם פרטי" />
+				<input type="text" class="last_name" placeholder="שם משפחה" />
+				<input type="email" class="email" placeholder="אימייל" />
+				<input type="password" class="password" placeholder="סיסמא" />
+				<button>הרשם</button>
+			</form>
+		</div>
+		<div class="form-container sign-in-container">
+			<form action="#">
+				<h1>התחברות</h1>
+				<div class="social-container">
+					<a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+					<a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+				</div>
+				<p>או</p>
+				<input type="email" class="email" placeholder="אימייל" />
+				<input type="password" class="password" placeholder="סיסמא" />
+				<a href="#">?שכחתה את הסיסמא</a>
+
+				<button type="button" class="login_btn" data-href="after_login.html">התחברות</button>
+			</form>
+		</div>
+		<div class="overlay-container">
+			<div class="overlay">
+				<div class="overlay-panel overlay-left">
+					<img src="images/logo.png" alt="Logo" class="Logo_img">
+					<h1>!אורח יקר</h1>
+					<p>.הזן את הפרטים האישיים שלך והתחל את המסע שלך</p>
+					<button class="ghost" id="signIn">התחברות</button>
+				</div>
+				<div class="overlay-panel overlay-right">
+					<img src="images/logo.png" alt="Logo" class="Logo_img">
+					<h1>!היי</h1>
+					<p>.בכדי להתחבר למערכת, אנא הזן את פרטי המשתמש שלך</p>
+					<button class="ghost" id="signUp">הרשמה</button>
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
-<footer>
-	<p>
-		All Credits by EasyCare Team
-	</p>
-</footer>
-    <script src="js/login.js"></script>
-  </body>
+	<footer class="global-footer"></footer>
+	<script src="js/login.js"></script>
+	<script src="js/global_footer.js"></script>
+</body>
 
 
 </html>

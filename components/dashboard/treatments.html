@@ -1,0 +1,43 @@
+<!-- 2. TREATMENTS SECTION -->
+<div id="treatments-section" class="dashboard-section d-none">
+    <div class="db-flex-between db-mb-3">
+        <h4 id="treatmentsCountTitle" class="m-0">היסטוריית טיפולים</h4>
+        <button class="db-btn db-btn-primary" data-bs-toggle="modal" data-bs-target="#addTreatmentModal">
+            <i class="fas fa-plus me-2"></i> הוסף טיפול
+        </button>
+    </div>
+
+    <div class="db-row db-mb-3">
+        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-3">
+            <div class="db-card p-3 shadow-sm border-0">
+                <small class="text-muted">סה"כ טיפולים</small>
+                <h3 id="stat-total-treatments" class="m-0">0</h3>
+            </div>
+        </div>
+        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-3">
+            <div class="db-card p-3 shadow-sm border-0">
+                <small class="text-muted">סה"כ עלות מצטברת</small>
+                <h3 id="stat-total-cost" class="m-0">0 ₪</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-card db-table-responsive">
+        <table class="db-table mb-0">
+            <thead>
+                <tr>
+                    <th>תאריך</th>
+                    <th>סוג טיפול</th>
+                    <th>מוסך</th>
+                    <th>ק"מ</th>
+                    <th>חשבונית</th>
+                    <th>מחיר</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="treatmentsTableBody">
+                <!-- JS Generated -->
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,157 @@
+<!-- 3. INSURANCE SECTION -->
+<div id="insurance-section" class="dashboard-section d-none">
+    <div class="db-flex-between db-mb-3 mb-4">
+        <h4 class="m-0">ביטוחים ורישוי</h4>
+    </div>
+
+    <div class="db-row">
+        <!-- Mandatory Insurance -->
+        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-4">
+            <div class="db-card h-100 shadow-sm border-0" id="card-ins-mandatory">
+                <div class="db-card-body text-center position-relative">
+                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3" id="status-mandatory">חסר</span>
+                    <i class="fas fa-shield-alt fa-3x text-primary mb-3 mt-2"></i>
+                    <h5 class="card-title fw-bold">ביטוח חובה</h5>
+                    <div class="text-muted small mb-3 insurance-details">
+                        <div class="mb-1">חברה: <span id="company-mandatory" class="fw-bold text-dark">--</span></div>
+                        <div class="mb-1">פוליסה: <span id="policy-mandatory" class="fw-bold text-dark">--</span></div>
+                        <div class="mb-1">עלות: <span id="cost-mandatory" class="fw-bold text-dark">--</span></div>
+                        <div>תוקף: <span id="date-mandatory" class="fw-bold text-dark">--</span></div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="db-btn db-btn-sm db-btn-outline-primary"
+                            onclick="openEditInsurance('mandatory')">
+                            <i class="fas fa-edit"></i> ערוך
+                        </button>
+                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-mandatory"
+                            onclick="viewInsuranceDoc('mandatory')">
+                            <i class="fas fa-file-image"></i> מסמך
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprehensive Insurance -->
+        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-4">
+            <div class="db-card h-100 shadow-sm border-0" id="card-ins-comprehensive">
+                <div class="db-card-body text-center position-relative">
+                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3"
+                        id="status-comprehensive">חסר</span>
+                    <i class="fas fa-car-crash fa-3x text-info mb-3 mt-2"></i>
+                    <h5 class="card-title fw-bold">ביטוח מקיף</h5>
+                    <div class="text-muted small mb-3 insurance-details">
+                        <div class="mb-1">חברה: <span id="company-comprehensive" class="fw-bold text-dark">--</span>
+                        </div>
+                        <div class="mb-1">פוליסה: <span id="policy-comprehensive" class="fw-bold text-dark">--</span>
+                        </div>
+                        <div class="mb-1">עלות: <span id="cost-comprehensive" class="fw-bold text-dark">--</span></div>
+                        <div>תוקף: <span id="date-comprehensive" class="fw-bold text-dark">--</span></div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="db-btn db-btn-sm db-btn-outline-info"
+                            onclick="openEditInsurance('comprehensive')">
+                            <i class="fas fa-edit"></i> ערוך
+                        </button>
+                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-comprehensive"
+                            onclick="viewInsuranceDoc('comprehensive')">
+                            <i class="fas fa-file-image"></i> מסמך
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Third Party Insurance -->
+        <div class="db-col-md-4 mb-4">
+            <div class="db-card h-100 shadow-sm border-0" id="card-ins-thirdparty">
+                <div class="db-card-body text-center position-relative">
+                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3" id="status-thirdparty">חסר</span>
+                    <i class="fas fa-user-shield fa-3x text-warning mb-3 mt-2"></i>
+                    <h5 class="card-title fw-bold">ביטוח צד ג'</h5>
+                    <div class="text-muted small mb-3 insurance-details">
+                        <div class="mb-1">חברה: <span id="company-thirdparty" class="fw-bold text-dark">--</span></div>
+                        <div class="mb-1">פוליסה: <span id="policy-thirdparty" class="fw-bold text-dark">--</span></div>
+                        <div class="mb-1">עלות: <span id="cost-thirdparty" class="fw-bold text-dark">--</span></div>
+                        <div>תוקף: <span id="date-thirdparty" class="fw-bold text-dark">--</span></div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="db-btn db-btn-sm db-btn-outline-warning"
+                            onclick="openEditInsurance('thirdparty')">
+                            <i class="fas fa-edit"></i> ערוך
+                        </button>
+                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-thirdparty"
+                            onclick="viewInsuranceDoc('thirdparty')">
+                            <i class="fas fa-file-image"></i> מסמך
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Insurance Modal -->
+<div class="modal fade" id="editInsuranceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editInsuranceModalTitle">עריכת ביטוח</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editInsuranceForm">
+                    <input type="hidden" id="insType">
+                    <div class="mb-3">
+                        <label class="form-label">חברת בטוח</label>
+                        <input type="text" class="db-form-control" id="insCompany" placeholder="לדוג': הראל, פניקס...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">מספר פוליסה</label>
+                        <input type="text" class="db-form-control" id="insPolicyNum">
+                    </div>
+                    <div class="db-row">
+                        <div class="db-col-6 mb-3">
+                            <label class="form-label">עלות שנתית (₪)</label>
+                            <input type="number" class="db-form-control" id="insCost">
+                        </div>
+                        <div class="db-col-6 mb-3">
+                            <label class="form-label">תוקף הביטוח</label>
+                            <input type="date" class="db-form-control" id="insDate" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">מסמך פוליסה (תמונה)</label>
+                        <input type="file" class="db-form-control" id="insDoc" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="db-btn db-btn-danger" id="insDeleteBtn" onclick="deleteInsurance()">מחק
+                    ביטוח זה</button>
+                <div>
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="db-btn db-btn-primary" onclick="saveInsurance()">שמור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insurance Doc Viewer Modal -->
+<div class="modal fade" id="insuranceDocModal" tabindex="-1">
+    <div class="modal-dialog text-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">מסמך ביטוח</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="insuranceDocPreview" src="" style="width:100%; height:auto;">
+            </div>
+        </div>
+    </div>
+</div>

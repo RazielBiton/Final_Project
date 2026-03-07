@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyCare - פרטי רכב</title>
     <link rel="stylesheet" href="css/results.css">
+    <link rel="stylesheet" href="css/global_footer.css">
 </head>
+
 <body>
     <div id="loading" class="loading-overlay">מתחבר למאגר הממשלתי...</div>
 
@@ -26,9 +29,15 @@
                 <div class="field"><label>תוקף רישיון רכב</label><input type="text" id="res_license"></div>
                 <div class="field"><label>קבוצת זיהום</label><input type="text" id="res_pollution" readonly></div>
                 <div class="field"><label>צמיג קדמי</label><input type="text" id="res_tire_f" readonly></div>
-                <div class="field"><label>קילומטראז' נוכחי</label><input type="text" id="res_km" placeholder="הכנס קילומטראז׳"></div>
+                <div class="field"><label>קילומטראז' נוכחי</label><input type="text" id="res_km"
+                        placeholder="הכנס קילומטראז׳" class="manual-input"></div>
                 <div class="field"><label>צמיג אחורי</label><input type="text" id="res_tire_r" readonly></div>
-                
+
+                <!-- Manual Fields for Specs (Edited) -->
+                <div class="field"><label>נפח מנוע (סמ״ק)</label><input type="text" id="manual_volume"
+                        class="manual-input"></div>
+                <div class="field"><label>כוח סוס</label><input type="text" id="manual_hp" class="manual-input"></div>
+
                 <div id="disabledTagBox" class="tag-status">
                     <span id="tagText">בודק זכאות לתו נכה...</span>
                 </div>
@@ -41,8 +50,11 @@
         </div>
     </div>
 
-    <footer><p>All Credits by EasyCare Team</p></footer>
+    <footer class="global-footer"></footer>
 
+    <script src="js/brand-map.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/global_footer.js"></script>
 </body>
+
 </html>

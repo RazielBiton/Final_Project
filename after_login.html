@@ -1,38 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/after_login.css" />
+    <link rel="stylesheet" href="css/after_login.css?v=3" />
+    <link rel="stylesheet" href="css/global_footer.css?v=3" />
+    <link rel="stylesheet" href="css/profile.css?v=3" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>EasyCare - Dashboard</title>
 </head>
+
 <body class="homepage is-loading">
-    <div class="container" id="mainContainer">
-        <div class="row justify-content-center" id="vehicleRow">
-            
-            <div class="col-12 col-sm-6 col-md-5 col-lg-3" id="addCardWrapper">
-                <div class="our-team add-new-card">
-                    <div class="picture add-placeholder">
-                        <img src="images/logos/add_new.png" class="plus-img">
+    <div class="layout-container">
+        <!-- Sidebar Navigation (Main Fleet Level) -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>EasyCare</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="after_login.html" class="sidebar-item active">
+                    <i class="fas fa-home"></i> לוח בקרה ראשי
+                </a>
+                <a href="profile.html" class="sidebar-item">
+                    <i class="fas fa-user-cog"></i> הגדרות ופרופיל אישי
+                </a>
+                <a href="login.html" class="sidebar-item text-danger mt-auto"
+                    onclick="localStorage.removeItem('userCars');">
+                    <i class="fas fa-sign-out-alt"></i> התנתקות
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content" style="padding-block: 2rem; max-width: 100%;">
+            <div class="container" id="mainContainer">
+                <div class="row justify-content-center" id="vehicleRow">
+
+                    <div class="col-12 col-sm-6 col-md-5 col-lg-3" id="addCardWrapper">
+                        <div class="our-team add-new-card">
+                            <div class="picture add-placeholder">
+                                <img src="images/logos/add_new.png" class="plus-img">
+                            </div>
+                            <div class="team-content">
+                                <h3 class="name">הוסף רכב חדש</h3>
+                                <div class="add-desc">לחץ כאן להזנת פרטי רכב</div>
+                                <br>
+                                <a href="search.html" class="btn_enter add-btn" style="text-decoration: none;">הוספה</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="team-content">
-                        <h3 class="name">הוסף רכב חדש</h3>
-                        <div class="add-desc">לחץ כאן להזנת פרטי רכב</div>
-                        <br>
-                        <a href="search.html" class="btn_enter add-btn" style="text-decoration: none;">הוספה</a>
-                    </div>
+
                 </div>
             </div>
+        </main>
+    </div>
 
+    <footer class="global-footer"></footer>
+
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת פרטי רכב</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editVehicleForm">
+                        <div class="mb-3">
+                            <label for="editBrand" class="form-label">שם יצרן (עברית)</label>
+                            <input type="text" class="form-control" id="editBrand" maxlength="15" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editModel" class="form-label">דגם</label>
+                            <input type="text" class="form-control" id="editModel" maxlength="15" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">לוגו רכב</label>
+                            <input type="file" class="form-control" id="editLogoInput" accept="image/*">
+                            <div class="mt-2 text-center">
+                                <img id="editLogoPreview" src="" class="rounded-circle border" width="80" height="80"
+                                    style="object-fit: cover;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" onclick="saveVehicleDetails()">שמור שינויים</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <footer>
-        <p>All Credits by EasyCare Team</p>
-    </footer>
-
-		<script src="js/after_login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/after_login.js"></script>
+    <script src="js/global_footer.js"></script>
 
 </body>
+
 </html>

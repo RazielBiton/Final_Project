@@ -1,7 +1,7 @@
 /* --- הגדרות בסיס --- */
-body { 
-    background-color: #f4f7f6; 
-    font-family: 'Tahoma', sans-serif;
+body {
+    background-color: #f4f7f6;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
     display: flex;
@@ -22,7 +22,7 @@ body {
     max-width: 850px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     margin: 20px 0;
 }
@@ -44,9 +44,25 @@ body {
     padding: 25px;
 }
 
-.field { display: flex; flex-direction: column; }
-label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
-input { padding: 12px; border: 1px solid #eee; border-radius: 6px; background: #fafafa; font-size: 16px; }
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+input {
+    padding: 12px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background: #fafafa;
+    font-size: 16px;
+}
 
 .tag-status {
     grid-column: span 2;
@@ -58,67 +74,58 @@ input { padding: 12px; border: 1px solid #eee; border-radius: 6px; background: #
     border: 1px solid #ddd;
 }
 
-.has-tag { background-color: #e8f5e9; color: #2d74d7; border-color: #2d74d7; }
-.no-tag { background-color: #c11717; color: #ffffff; }
-
-/* --- כפתורים בגודל שווה --- */
-.action-btns { 
-    padding: 20px 25px; 
-    display: flex; 
-    gap: 15px; 
+.has-tag {
+    background-color: #e8f5e9;
+    color: #2d74d7;
+    border-color: #2d74d7;
 }
 
-.btn-add, .btn-new { 
-    flex: 1; /* מחלק את השטח שווה בשווה */
-    padding: 15px; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    cursor: pointer; 
+.no-tag {
+    background-color: #c11717;
+    color: #ffffff;
+}
+
+/* --- כפתורים בגודל שווה --- */
+.action-btns {
+    padding: 20px 25px;
+    display: flex;
+    gap: 15px;
+}
+
+.btn-add,
+.btn-new {
+    flex: 1;
+    /* מחלק את השטח שווה בשווה */
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
     font-size: 16px;
     transition: 0.3s;
     text-align: center;
 }
 
-.btn-add { 
-    background: #2d74d7; 
-    color: white; 
-    border: none; 
+.btn-add {
+    background: #2d74d7;
+    color: white;
+    border: none;
 }
 
-.btn-new { 
-    background: white; 
-    border: 1px solid #ddd; 
+.btn-new {
+    background: white;
+    border: 1px solid #ddd;
     color: #333;
 }
 
-.btn-add:hover { background: #1a5bb8; }
-.btn-new:hover { background: #f8f9fa; }
-
-footer {
-    background-color: #222;
-    color: #fff;
-    font-size: 14px;
-    padding: 15px 0;
-    width: 100%;
-    
-    /* הפתרון למרכוז מושלם */
-    display: flex;             /* הופך את הפוטר לקונטיינר גמיש */
-    justify-content: center;   /* מרכוז אופקי */
-    align-items: center;       /* מרכוז אנכי */
-    text-align: center;        /* גיבוי למרכוז טקסט */
-
-    /* מיקום קבוע בתחתית */
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    z-index: 999;
+.btn-add:hover {
+    background: #1a5bb8;
 }
 
-/* איפוס שוליים של הטקסט בתוך הפוטר כדי שלא יהיו סטיות */
-footer p {
-    margin: 0;
-    padding: 0;
+.btn-new:hover {
+    background: #f8f9fa;
 }
+
+
 
 /* --- התאמות לנייד --- */
 @media (max-width: 600px) {
@@ -139,16 +146,39 @@ footer p {
         flex-direction: column;
     }
 
-    .btn-add, .btn-new {
+    .btn-add,
+    .btn-new {
         width: 100%;
-        flex: none; /* מבטל את ה-flex השווה בשביל ערימה אנכית */
+        flex: none;
+        /* מבטל את ה-flex השווה בשביל ערימה אנכית */
     }
 }
 
 /* מסך טעינה */
 .loading-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,255,255,0.9);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 1000; font-weight: bold;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-weight: bold;
+}
+
+/* --- Manual Input Highlight --- */
+.manual-input {
+    border: 2px solid #2d74d7 !important;
+    background-color: #f0f8ff !important;
+    /* Light AliceBlue */
+    font-weight: bold;
+    color: #333;
+}
+
+.manual-input::placeholder {
+    color: #2d74d7;
+    opacity: 0.7;
 }

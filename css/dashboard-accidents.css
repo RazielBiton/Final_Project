@@ -1,0 +1,23 @@
+/* --- ACCIDENTS MODULE STYLES --- */
+.accident-card {
+    transition: all 0.3s ease;
+}
+
+.accident-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+#accImagePreviewContainer img {
+    border: 3px solid #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#accImagePlaceholder {
+    transition: color 0.2s, transform 0.2s;
+}
+
+#accImagePlaceholder:hover {
+    color: var(--danger) !important;
+    transform: scale(1.05);
+}

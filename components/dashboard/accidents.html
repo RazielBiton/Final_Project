@@ -1,0 +1,195 @@
+<!-- 6. ACCIDENTS SECTION -->
+<div id="accidents-section" class="dashboard-section d-none">
+    <div class="db-flex-between db-mb-3">
+        <h4 class="m-0 fw-bold">תיק תאונות ונזקים</h4>
+        <button class="db-btn db-btn-danger shadow-sm fw-bold rounded-pill px-4" onclick="openAddAccidentModal()">
+            <i class="fas fa-camera me-2"></i> דיווח נזק חדש
+        </button>
+    </div>
+
+    <!-- Empty State -->
+    <div id="accidents-empty-state" class="db-row text-center mt-5">
+        <div class="db-col-12 py-5">
+            <div class="icon-lg-wrapper mx-auto mb-4"
+                style="background-color: #d1e7dd; color: #198754; width: 80px; height: 80px; font-size: 2rem;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h5 class="fw-bold text-dark">התיק נקי!</h5>
+            <p class="text-muted">לא דווחו תאונות או נזקים לרכב זה.</p>
+        </div>
+    </div>
+
+    <!-- Populated State: Grid for Damage Cards -->
+    <div id="accidents-populated-state" class="db-row d-none" style="gap: 1.5rem 0;">
+        <div id="accidents-list-container" class="db-col-12 w-100 db-row m-0" style="gap: 20px;">
+            <!-- Accident cards will be injected here dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Accident Modal -->
+<div class="modal fade" id="addAccidentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg my-4"
+            style="border-radius: 16px; overflow: hidden; max-height: 90vh;">
+            <div class="modal-header text-white"
+                style="background: linear-gradient(135deg, #e63946, #d90429); border-bottom: none;">
+                <h5 class="modal-title fw-bold" id="accidentModalTitle"><i class="fas fa-car-crash me-2"></i> דיווח נזק
+                    חדש</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                    style="position: absolute; left: 15px; margin: 0; top: 15px;"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="addAccidentForm">
+                    <input type="hidden" id="accidentId">
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-dark">כותרת הנזק/אירוע</label>
+                            <input type="text" class="form-control form-control-lg shadow-sm" id="accTitle" required
+                                placeholder="לדוג': שריטה בטמבון, תאונת פחחות...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-dark">עלות תיקון משוערת/בפועל (₪)</label>
+                            <input type="number" class="form-control form-control-lg shadow-sm" id="accCost" required
+                                placeholder="0">
+                        </div>
+
+                        <div class="col-md-4 col-12">
+                            <label class="form-label fw-bold text-dark">תאריך האירוע</label>
+                            <input type="date" class="form-control shadow-sm" id="accDate" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark">תיאור מפורט</label>
+                            <textarea class="form-control shadow-sm" id="accDescription" rows="3"
+                                placeholder="פרט כיצד קרה הנזק..." required></textarea>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold text-dark"><i class="fas fa-images text-danger me-2"></i>
+                                תיעוד מצולם (ניתן להעלות מספר תמונות)</label>
+                            <div class="card border-1 shadow-sm h-100">
+                                <div class="card-body text-center p-3 relative"
+                                    style="border: 2px dashed #ced4da; border-radius: 8px; background-color: #fafbfc;">
+                                    <input type="file" id="accImageInput" class="d-none" accept="image/*" multiple>
+                                    <div id="accImagePlaceholder" style="cursor: pointer;"
+                                        onclick="document.getElementById('accImageInput').click()">
+                                        <i class="fas fa-camera-retro fa-3x text-muted mb-2 mt-2"></i>
+                                        <p class="text-muted fw-bold m-0">לחץ להעלאת תמונות</p>
+                                    </div>
+                                    <div id="accImagePreviewsContainer" class="d-none mt-3">
+                                        <!-- Image previews injected here -->
+                                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="accImagesList">
+                                        </div>
+                                        <button type="button"
+                                            class="btn btn-outline-danger btn-sm mt-3 fw-bold rounded-pill shadow-sm"
+                                            onclick="document.getElementById('accImageInput').click()">
+                                            <i class="fas fa-plus me-1"></i> הוסף תמונות נוספות
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Involved Vehicle Section -->
+                        <div class="col-12 mt-4">
+                            <div class="card border-0 shadow-sm"
+                                style="background-color: #fff3f3; border-right: 4px solid #e63946 !important;">
+                                <div class="card-body">
+                                    <label class="form-label fw-bold text-dark d-block"><i
+                                            class="fas fa-car-side text-danger me-2"></i> רכב מעורב</label>
+
+                                    <div class="btn-group w-100 shadow-sm mb-3" role="group">
+                                        <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioNo"
+                                            value="no" checked onchange="toggleInvolvedVehicle()">
+                                        <label class="btn btn-outline-danger fw-bold" for="accRadioNo">ללא רכב מסד
+                                            א</label>
+
+                                        <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioYes"
+                                            value="yes" onchange="toggleInvolvedVehicle()">
+                                        <label class="btn btn-outline-danger fw-bold" for="accRadioYes">מעורב רכב צד
+                                            ג'</label>
+                                    </div>
+
+                                    <div id="involvedVehicleContainer" class="d-none">
+                                        <!-- Container for selected vehicles -->
+                                        <div id="selectedInvolvedVehiclesContainer"
+                                            class="mb-3 d-flex flex-column gap-2"></div>
+
+                                        <label class="form-label fw-bold text-dark d-block fs-7">חפש והוסף רכב
+                                            לרשימה:</label>
+                                        <div class="input-group shadow-sm mb-3" dir="ltr">
+                                            <button class="btn btn-danger text-white fw-bold px-4" type="button"
+                                                onclick="fetchInvolvedCarDetails()" id="btnFetchInvolved">
+                                                <i class="fas fa-search me-1"></i> חפש
+                                            </button>
+                                            <input type="text" class="form-control form-control-lg text-end"
+                                                id="accInvolvedPlate" placeholder="מספר רישוי" maxlength="8">
+                                            <span
+                                                class="input-group-text bg-warning text-dark fw-bold border-warning">IL
+                                                ישראל 🇮🇱</span>
+                                        </div>
+
+                                        <!-- API Result Display -->
+                                        <div id="involvedCarDetails"
+                                            class="d-none bg-white p-3 rounded border shadow-sm mt-3"
+                                            style="cursor: pointer; transition: all 0.2s;"
+                                            onclick="addInvolvedCarToList()">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="icon-lg-wrapper me-3 bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center"
+                                                        style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-car fs-4"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="fw-bold mb-1 text-dark" id="involvedCarTitle">--</h6>
+                                                        <small class="text-muted"><i class="fas fa-palette me-1"></i>
+                                                            <span id="involvedCarColor">--</span> | <i
+                                                                class="far fa-calendar-alt me-1"></i> <span
+                                                                id="involvedCarYear">--</span></small>
+                                                    </div>
+                                                </div>
+                                                <div class="text-success" style="font-size: 1.5rem;"
+                                                    title="לחץ להוספה לדיווח">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light" style="border-top: 1px solid #dee2e6;">
+                <button type="button" class="btn btn-light shadow-sm text-dark fw-bold px-4 rounded-pill border"
+                    data-bs-dismiss="modal">ביטול</button>
+                <button type="button" class="btn btn-danger shadow-sm text-white fw-bold px-5 rounded-pill"
+                    onclick="saveAccident()">
+                    <i class="fas fa-save me-2"></i> שמור דיווח
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Image Modal -->
+<div class="modal fade" id="accidentImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 bg-transparent shadow-none">
+            <div class="modal-header border-0 justify-content-end p-0 mb-2">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal"
+                    style="opacity: 1; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></button>
+            </div>
+            <div class="modal-body p-0 text-center">
+                <img id="accidentImageModalPreview" src="" class="img-fluid rounded shadow-lg"
+                    style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>

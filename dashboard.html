@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyCare - לוחי מחוונונים (Dashboard)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <!-- Component Specific CSS -->
+    <link rel="stylesheet" href="css/dashboard-overview.css">
+    <link rel="stylesheet" href="css/dashboard-treatments.css">
+    <link rel="stylesheet" href="css/dashboard-insurance.css">
+    <link rel="stylesheet" href="css/dashboard-reports.css">
+    <link rel="stylesheet" href="css/dashboard-fuel.css">
+    <link rel="stylesheet" href="css/dashboard-accidents.css">
+    <link rel="stylesheet" href="css/dashboard-sell.css">
+    <link rel="stylesheet" href="css/dashboard-alerts.css">
+    <link rel="stylesheet" href="css/dashboard-expenses.css">
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="css/global_footer.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <div id="wrapper" style="display: flex; width: 100%; overflow-x: hidden;">
+        <!-- הגדרת פלקס ראשית עבור תפריט צד ותוכן -->
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6;"> <!-- גבול ימני לתפריט -->
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase position-relative"
+                style="border-bottom: 1px solid #dee2e6;">
+                <i class="fas fa-car me-2"></i>EasyCare
+                <i class="fas fa-times d-md-none position-absolute" id="close-sidebar"
+                    style="left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #dc3545;"></i>
+            </div>
+            <div class="db-list-group my-3">
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text active"
+                    onclick="showSection('overview', this)">
+                    <i class="fas fa-tachometer-alt me-2"></i> מבט על
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('treatments', this)">
+                    <i class="fas fa-tools me-2"></i> טיפולים
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('insurance', this)">
+                    <i class="fas fa-file-contract me-2"></i> ביטוחים
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('reports', this)">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> דוחות וקנסות
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('fuel', this)">
+                    <i class="fas fa-gas-pump me-2"></i> מעקב דלק
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('accidents', this)">
+                    <i class="fas fa-car-crash me-2"></i> תיק תאונות
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('expenses', this)">
+                    <i class="fas fa-chart-pie me-2"></i> הוצאות וניתוחים
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('alerts', this)">
+                    <i class="fas fa-bell me-2"></i> התראות ותזכורות
+                </a>
+
+                <hr>
+
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                    onclick="showSection('sell', this)">
+                    <i class="fas fa-handshake me-2 text-primary"></i> דו״ח מכירה
+                </a>
+                <a href="after_login.html"
+                    class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-3">
+                    <i class="fas fa-sign-out-alt me-2"></i> יציאה לרכבים
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" style="flex: 1; min-width: 0; background: #f8f9fa;">
+
+
+            <!-- Top Nav -->
+            <nav class="db-navbar">
+                <div class="db-nav-content">
+                    <i class="fas fa-align-right primary-text fs-2 db-me-3" id="menu-toggle"
+                        style="cursor: pointer; font-size: 1.5rem;"></i>
+                    <h2 class="m-0" id="pageTitle" style="font-size: 1.5rem;">מבט על</h2>
+                </div>
+
+                <!-- Wrapper for Left Positioning -->
+                <div class="db-nav-content" style="margin-right: auto;"> <!-- דוחף לשמאל -->
+                    <button class="db-btn db-btn-outline-dark db-me-3" onclick="openEditModal()" title="ערוך פרטי רכב"
+                        style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+
+                    <div
+                        style="display: flex; align-items: center; background: #2d74d785; border-radius: 1rem; padding: 0.5rem; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); border: 2px solid #dee2e6;">
+                        <img src="" id="vehicleLogo" class="rounded-circle border ms-3" width="50" height="50"
+                            alt="Logo" style="object-fit: contain; background-color: #fff; padding: 4px;">
+                        <div class="text-end">
+                            <h7 class="m-0 fs-6 text-white" id="vehicleName">--</h7>
+                            <br>
+                            <small class="text-white" id="vehicleLicense">--</small>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="db-container-fluid px-4 py-4" id="dashboardContent">
+                <!-- SECTIONS LOADED MODULARLY VIA JS -->
+                <div id="loadingIndicator" class="text-center text-muted" style="padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                    <h5>טוען נתונים...</h5>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Treatment Modal -->
+    <!-- מחלקות של בוטסטראפ עבור המודל - לא לשנות (must translate: Bootstrap classes for the modal - Do not change) -->
+    <!-- הערה: הושארו מחלקות Bootstrap כגון modal, modal-fade, modal-dialog כי הקוד ב-JavaScript משתמש בהן לפתיחת החלון -->
+    <div class="modal fade" id="addTreatmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת טיפול חדש</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <!-- כפתור סגירה מובנה של בוטסטראפ -->
+                </div>
+                <div class="modal-body">
+                    <form id="addTreatmentForm">
+                        <div class="mb-3">
+                            <label class="form-label">סוג הטיפול</label>
+                            <!-- form-label נשמר לתאימות או ניתן להחליף אם יש CSS -->
+                            <input type="text" class="db-form-control" id="tName" required
+                                placeholder="לדוג': טיפול 10,000">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תאריך</label>
+                            <input type="date" class="db-form-control" id="tDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">שם המוסך</label>
+                            <input type="text" class="db-form-control" id="tGarage" required>
+                        </div>
+                        <div class="db-row">
+                            <div class="db-col-6 mb-3">
+                                <label class="form-label">קילומטראז'</label>
+                                <input type="number" class="db-form-control" id="tKm" required>
+                            </div>
+                            <div class="db-col-6 mb-3">
+                                <label class="form-label">עלות (₪)</label>
+                                <input type="number" class="db-form-control" id="tCost" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">צרף חשבונית (תמונה)</label>
+                            <input type="file" class="db-form-control" id="tInvoice" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="db-btn db-btn-primary" onclick="saveTreatment()">שמור טיפול</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Treatment Modal -->
+    <div class="modal fade" id="editTreatmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת טיפול קיים</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTreatmentForm">
+                        <input type="hidden" id="editTId">
+                        <div class="mb-3">
+                            <label class="form-label">סוג הטיפול</label>
+                            <input type="text" class="db-form-control" id="editTName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תאריך</label>
+                            <input type="date" class="db-form-control" id="editTDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">שם המוסך</label>
+                            <input type="text" class="db-form-control" id="editTGarage" required>
+                        </div>
+                        <div class="db-row">
+                            <div class="db-col-6 mb-3">
+                                <label class="form-label">קילומטראז'</label>
+                                <input type="number" class="db-form-control" id="editTKm" required>
+                            </div>
+                            <div class="db-col-6 mb-3">
+                                <label class="form-label">עלות (₪)</label>
+                                <input type="number" class="db-form-control" id="editTCost" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">החלף חשבונית (השאר ריק אם אין שינוי)</label>
+                            <input type="file" class="db-form-control" id="editTInvoice" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="db-btn db-btn-primary" onclick="updateTreatment()">עדכן טיפול</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <!-- הערה: מחלקות בוטסטראפ נשמרו לפונקציונליות -->
+    <div class="modal fade" id="qrModal" tabindex="-1">
+        <div class="modal-dialog modal-sm text-center">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">QR לרכב</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="qrcode" class="d-flex justify-content-center my-3"
+                        style="display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1rem;"></div>
+                    <p class="text-muted small">סרוק את הקוד כדי להגיע לדף נחיתה עם פרטי הרכב</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Preview Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1">
+        <div class="modal-dialog text-center">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <img id="invoicePreviewImg" src="" style="width:100%; height:auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת פרטי רכב</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editVehicleForm">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">שם יצרן</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editBrand" maxlength="15"
+                                    required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">דגם רכב</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editModel" maxlength="15"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">שנת ייצור</label>
+                                <input type="number" class="db-form-control form-control-sm" id="editYear">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">צבע</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editColor">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">מד אוץ (ק"מ)</label>
+                                <input type="number" class="db-form-control form-control-sm" id="editKm">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">תוקף טסט</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editTestDate"
+                                    placeholder="DD/MM/YYYY">
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mt-4 mb-3 border-bottom pb-2" style="font-size: 0.9rem;">מפרט טכני</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">סוג דלק</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editFuel">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">כוח סוס</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editHP">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label text-muted small mb-1">נפח מנוע (סמ"ק)</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editEngine">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">צמיגים קדמיים</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editTireF">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">צמיגים אחוריים</label>
+                                <input type="text" class="db-form-control form-control-sm" id="editTireR">
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mt-4 mb-3 border-bottom pb-2" style="font-size: 0.9rem;">תמונת לוגו</h6>
+                        <div class="mb-3">
+                            <label class="form-label">לוגו רכב</label>
+                            <input type="file" class="db-form-control" id="editLogoInput" accept="image/*">
+                            <div class="mt-2 text-center">
+                                <img id="editLogoPreview" src="" class="rounded-circle border" width="80" height="80"
+                                    style="object-fit: cover;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="db-btn db-btn-primary" onclick="saveVehicleDetails()">שמור
+                        שינויים</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Alert Modal -->
+    <div class="modal fade" id="addAlertModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת התראה אישית</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-alert-form" onsubmit="event.preventDefault(); saveAlert();">
+                        <div class="mb-3">
+                            <label class="form-label">תיאור התזכורת</label>
+                            <input type="text" class="db-form-control" id="alertTitle" required
+                                placeholder="לדוג': להחליף מגבים">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תאריך יעד</label>
+                            <input type="date" class="db-form-control" id="alertDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">רמת דחיפות</label>
+                            <select class="db-form-control" id="alertPriority" required>
+                                <option value="gray" selected>רגיל</option>
+                                <option value="warning">חשוב</option>
+                                <option value="danger">קריטי</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תדירות התראה</label>
+                            <select class="db-form-control" id="alertFrequency" required>
+                                <option value="once" selected>חד פעמית</option>
+                                <option value="daily">יומית</option>
+                                <option value="weekly">שבועית</option>
+                                <option value="monthly">חודשית</option>
+                                <option value="yearly">שנתית</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" form="add-alert-form" class="db-btn db-btn-primary">שמור התראה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Alert Modal -->
+    <div class="modal fade" id="editAlertModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת התראה אישית</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-alert-form" onsubmit="event.preventDefault(); updateAlert();">
+                        <input type="hidden" id="editAlertId">
+                        <div class="mb-3">
+                            <label class="form-label">תיאור התזכורת</label>
+                            <input type="text" class="db-form-control" id="editAlertTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תאריך יעד</label>
+                            <input type="date" class="db-form-control" id="editAlertDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">רמת דחיפות</label>
+                            <select class="db-form-control" id="editAlertPriority" required>
+                                <option value="gray">רגיל</option>
+                                <option value="warning">חשוב</option>
+                                <option value="danger">קריטי</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תדירות התראה</label>
+                            <select class="db-form-control" id="editAlertFrequency" required>
+                                <option value="once">חד פעמית</option>
+                                <option value="daily">יומית</option>
+                                <option value="weekly">שבועית</option>
+                                <option value="monthly">חודשית</option>
+                                <option value="yearly">שנתית</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" form="edit-alert-form" class="db-btn db-btn-primary">עדכן התראה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal fade" id="addExpenseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת הוצאה חדשה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-expense-form" onsubmit="event.preventDefault(); saveExpense();">
+                        <div class="mb-3">
+                            <label class="form-label">סוג הוצאה</label>
+                            <select class="db-form-control" id="expenseType" required
+                                onchange="toggleOtherExpenseInput()">
+                                <option value="" disabled selected>-- בחר סוג הוצאה --</option>
+                                <option value="test">טסט (רישוי שנתי)</option>
+                                <option value="cosmetics">קוסמטיקה וטיפוח</option>
+                                <option value="wash">שטיפה</option>
+                                <option value="other">אחר</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="otherExpenseDiv">
+                            <label class="form-label">פרט סוג הוצאה</label>
+                            <input type="text" class="db-form-control" id="expenseTypeOther"
+                                placeholder="לדוג': אביזרים לרכב">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">סכום (₪)</label>
+                            <input type="number" class="db-form-control" id="expenseAmount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">תאריך</label>
+                            <input type="date" class="db-form-control" id="expenseDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">הערות (אופציונלי)</label>
+                            <input type="text" class="db-form-control" id="expenseNotes">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" form="add-expense-form" class="db-btn db-btn-primary">שמור הוצאה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Fuel Modal -->
+    <div class="modal fade" id="addFuelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFuelModalTitle">הוספת תדלוק/טעינה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-fuel-form" onsubmit="event.preventDefault(); saveFuel();">
+
+                        <!-- Energy Type Selector (For Hybrids) -->
+                        <div class="mb-4 text-center d-none" id="energyTypeSelector">
+                            <label class="form-label d-block text-muted small fw-bold">סוג אנרגיה</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="energyType" id="energyPetrol" value="fuel"
+                                    autocomplete="off" checked onchange="toggleEnergyFields()">
+                                <label class="btn btn-outline-warning fw-bold d-flex flex-column align-items-center"
+                                    for="energyPetrol">
+                                    <i class="fas fa-gas-pump mb-1"></i> בנזין
+                                </label>
+
+                                <input type="radio" class="btn-check" name="energyType" id="energyElectric"
+                                    value="electricity" autocomplete="off" onchange="toggleEnergyFields()">
+                                <label class="btn btn-outline-success fw-bold d-flex flex-column align-items-center"
+                                    for="energyElectric">
+                                    <i class="fas fa-charging-station mb-1"></i> חשמל
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Hidden field for Edit Mode -->
+                        <input type="hidden" id="editFuelId">
+
+                        <div class="mb-3">
+                            <label class="form-label">תאריך ושעה</label>
+                            <input type="datetime-local" class="db-form-control" id="fDate" required>
+                        </div>
+
+                        <!-- Dynamic Fields Component -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-8" id="fuelAmountDiv">
+                                <label class="form-label text-muted small mb-1" id="fAmountLabel">כמות ליטרים
+                                    (אופציונלי)</label>
+                                <input type="number" step="0.01" class="db-form-control" id="fAmount"
+                                    placeholder="לדוג': 25" oninput="calculateTotalFuelCost()">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label text-muted small mb-1" id="fPriceLabel">מחיר ליחידה</label>
+                                <input type="number" step="0.0001" class="db-form-control" id="fPricePerUnit"
+                                    placeholder="לדוג': 7.02" oninput="calculateTotalFuelCost()">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-primary fw-bold">עלות כוללת (₪)</label>
+                            <input type="number" step="0.01" class="db-form-control border-primary bg-light" id="fCost"
+                                required placeholder="לדוג': 150" oninput="calculatePricePerUnit()">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" form="add-fuel-form" class="db-btn db-btn-primary" id="saveFuelSubmitBtn">שמור
+                        תדלוק</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Footer -->
+    <footer class="global-footer"></footer>
+
+
+    <!-- Scripts -->
+    <script src="js/global_footer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/brand-map.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/dashboard-overview.js"></script>
+    <script src="js/dashboard-treatments.js"></script>
+    <script src="js/dashboard-insurance.js"></script>
+    <script src="js/dashboard-reports.js"></script>
+    <script src="js/dashboard-fuel.js"></script>
+    <script src="js/dashboard-accidents.js"></script>
+    <script src="js/dashboard-sell.js"></script>
+    <script src="js/dashboard-alerts.js"></script>
+    <script src="js/dashboard-expenses.js"></script>
+    <script>
+        // Toggle Sidebar
+        var el = document.getElementById("wrapper");
+        var toggleButton = document.getElementById("menu-toggle");
+        var closeButton = document.getElementById("close-sidebar");
+
+        toggleButton.onclick = function () {
+            el.classList.toggle("toggled");
+        };
+
+        if (closeButton) {
+            closeButton.onclick = function () {
+                el.classList.remove("toggled");
+            };
+        }
+    </script>
+
+    <!-- Chatbot Widget -->
+    <button class="chat-widget-btn" id="chatWidgetBtn" title="דבר עם המוסכניק החכם">
+        <img src="images/icons/chatbot.png" alt="chatbot">
+    </button>
+    <div class="chat-widget-window" id="chatWidgetWindow">
+        <div class="chat-header">
+            <span>🤖 המוסכניק החכם</span>
+            <div class="chat-controls">
+                <button id="minimizeChat" title="מזער">−</button>
+                <button id="closeChat" title="סגור">×</button>
+            </div>
+        </div>
+        <div class="chat-box" id="chatBox">
+            <div class="chat-message ai-msg">
+                היי! אני העוזר של המוסך הווירטואלי EasyCare.<br>
+                ראיתי את נתוני הרכב שלך. איך אפשר לעזור היום?
+            </div>
+        </div>
+        <div class="typing-indicator" id="typing">מעבד תשובה...</div>
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="הקלד כאן..." autocomplete="off">
+            <button id="sendBtn">➔</button>
+        </div>
+    </div>
+
+    <script src="js/chatbot.js"></script>
+</body>
+
+</html>

@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyCare - חיפוש רכב במאגר</title>
     <link rel="stylesheet" href="css/search.css">
+    <link rel="stylesheet" href="css/global_footer.css">
 </head>
+
 <body>
     <div class="search-container">
         <div class="search-card">
-            
+
             <a href="after_login.html" class="back-text-btn">חזור</a>
 
             <div class="search-header">
@@ -24,27 +27,19 @@
                     <label for="plateInput">מספר רישוי</label>
                     <div class="input-wrapper">
                         <button type="submit" class="search-btn">🔍</button>
-                        <input 
-                            type="tel" 
-                            id="plateInput" 
-                            inputmode="numeric"
-                            placeholder="הזן מספר רכב" 
-                            required 
-                            maxlength="8" 
-                            pattern="\d{1,8}"
-                            oninput="this.value = this.value.replace(/\D/g, '')"
-                            title="נא להזין מספרים בלבד (1 עד 8 ספרות)"
-                        >
+                        <input type="tel" id="plateInput" inputmode="numeric" placeholder="הזן מספר רכב" required
+                            maxlength="8" pattern="\d{1,8}" oninput="this.value = this.value.replace(/\D/g, '')"
+                            title="נא להזין מספרים בלבד (1 עד 8 ספרות)">
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <footer>
-        <p>All Credits by EasyCare Team</p>
-    </footer>
+    <footer class="global-footer"></footer>
 
     <script src="js/search.js"></script>
+    <script src="js/global_footer.js"></script>
 </body>
+
 </html>

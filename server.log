@@ -1,0 +1,6 @@
+
+> final_project@1.0.0 start
+> node server.js
+
+[dotenv@17.3.1] injecting env (1) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+🚀 Chatbot Server is running on http://localhost:3000

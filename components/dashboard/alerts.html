@@ -1,0 +1,21 @@
+<div id="alerts-section" class="dashboard-section d-none">
+    <div class="db-row mb-4">
+        <div class="db-col-12">
+            <div class="db-card primary-bg text-white p-4" style="border-radius: 12px;">
+                <div class="d-flex flex-column align-items-start" style="gap: 1.25rem;">
+                    <div>
+                        <h4 class="fw-bold mb-1">ניהול התראות אישיות</h4>
+                        <p class="m-0 opacity-75" id="alertsSummaryText">טוען נתונים...</p>
+                    </div>
+                    <button class="db-btn-add-alert" onclick="openAddAlertModal()">
+                        <i class="fas fa-plus"></i> הוסף התראה אישית
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-row" id="alertsGrid">
+        <!-- JS renders here -->
+    </div>
+</div>

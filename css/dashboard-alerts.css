@@ -1,0 +1,52 @@
+/* --- CUSTOM ALERTS STYLES --- */
+.db-btn-add-alert {
+    background: #ffffff;
+    color: var(--main-bg-color);
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.db-btn-add-alert:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    color: var(--main-bg-color);
+}
+
+#alertsGrid .db-card {
+    transition: all 0.2s ease-in-out;
+}
+
+#alertsGrid .db-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+#alertsGrid .border-danger {
+    background-color: rgba(220, 53, 69, 0.05);
+    /* very light red tint */
+}
+
+.text-decoration-line-through {
+    text-decoration: line-through;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.opacity-75 {
+    opacity: 0.75;
+}
+
+.opacity-25 {
+    opacity: 0.25;
+}

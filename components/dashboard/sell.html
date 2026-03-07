@@ -1,0 +1,89 @@
+<!-- 6. SELL SECTION (COMPREHENSIVE) -->
+<div id="sell-section" class="dashboard-section d-none">
+
+
+
+    <!-- ADMIN HERO SECTION -->
+    <div class="row">
+        <div class="col-12">
+            <div class="sell-hero-banner text-center">
+                <div class="position-relative z-1 mb-3">
+                    <div class="d-inline-flex justify-content-center align-items-center bg-white text-primary rounded-circle mb-3"
+                        style="width: 70px; height: 70px; font-size: 2rem;">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">דוח שקיפות מלא למכירת רכב</h2>
+                    <p class="fs-6 opacity-75 mx-auto" style="max-width: 700px;">
+                        מכירת רכב בפן קצת אחר ממה שהכרתם:
+                        הפיקו דוח היסטוריה מקיף הכולל טיפולים, הוצאות, ביטוחים, תאונות, קנסות ודיווחי דלק.
+                        תוכלו ליצור מדבקת QR להדפסה וההדבקה על הרכב, כך קונים פוטנציאליים יוכלו לקבל את פרטי הרכב בקלות
+                        ונוחות.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERATOR CARDS -->
+    <div class="row g-4 mt-1 mb-5">
+        <!-- PDF Report Card -->
+        <div class="col-md-6">
+            <div class="action-card" onclick="window.generateFullPDFReport()" style="cursor: pointer;">
+                <div class="action-icon-wrapper pdf-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <h4 class="fw-bold mb-2">דוח PDF מקיף</h4>
+                <p class="text-muted small mb-4">
+                    הפקת מסמך רשמי להדפסה או שליחה בוואטסאפ המכיל את כל המידע המתועד: טיפולים, קילומטראז', ציון אמינות
+                    והיסטוריה מלאה.
+                </p>
+                <button class="btn btn-outline-danger rounded-pill px-4 fw-bold w-100"
+                    onclick="event.stopPropagation(); window.generateFullPDFReport();">
+                    <i class="fas fa-download me-2"></i> הפק דוח עכשיו
+                </button>
+            </div>
+        </div>
+
+        <!-- QR Sticker Card -->
+        <div class="col-md-6">
+            <div class="action-card" data-bs-toggle="modal" data-bs-target="#qrModal"
+                onclick="window.generateStickerQR()" style="cursor: pointer;">
+                <div class="action-icon-wrapper qr-icon">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <h4 class="fw-bold mb-2">מדבקת חלון חכמה (QR)</h4>
+                <p class="text-muted small mb-4">
+                    הפקת ברקוד לסריקה שמוביל ישירות לדף נחיתה אטרקטיבי עם נתוני הרכב. הדפס והדבק על חלון הרכב כדי למשוך
+                    קונים.
+                </p>
+                <button class="btn btn-outline-dark rounded-pill px-4 fw-bold w-100">
+                    <i class="fas fa-print me-2"></i> צור מדבקת סריקה
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAR PHOTO GALLERY ADMIN SECTION -->
+    <div class="row mt-4 pb-5 mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="fw-bold text-primary mb-1"><i class="fas fa-images me-2"></i> גלריית תמונות הרכב</h4>
+                    <p class="text-muted small mb-0">הוסף תמונות של הרכב שיוצגו בדף השקיפות הפומבי עבור הקונים.</p>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">העלאת תמונות מרובות</label>
+                        <input class="form-control" type="file" id="sellGalleryUpload" accept="image/*" multiple
+                            onchange="window.handleGalleryUpload(event)">
+                    </div>
+
+                    <div id="sellGalleryGrid" class="row g-3">
+                        <!-- Thumbnails injected dynamically via dashboard-sell.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

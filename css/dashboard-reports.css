@@ -1,0 +1,49 @@
+/* --- REPORTS COMPONENT STYLES --- */
+.icon-lg-wrapper {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.upload-area {
+    border: 2px dashed #ced4da;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    background-color: #e2e6ea !important;
+}
+
+.report-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Custom Colors matching the white/blue/yellow theme */
+.text-primary-custom {
+    color: #0d6efd;
+}
+
+.bg-primary-custom {
+    background-color: #0d6efd;
+}
+
+.btn-warning-custom {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #fff;
+}
+
+.btn-warning-custom:hover {
+    background-color: #ffca2c;
+    border-color: #ffc720;
+    color: #fff;
+}

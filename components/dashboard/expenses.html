@@ -1,0 +1,68 @@
+<div id="expenses-section" class="dashboard-section d-none">
+    <!-- Top KPIs & Add Button -->
+    <div class="db-row mb-4">
+        <div class="db-col-lg-4 db-col-md-6 mb-3">
+            <div class="db-card db-kpi-card p-3 h-100 border-radius-premium hover-lift">
+                <div>
+                    <h6 class="text-muted fw-bold mb-1">סך הוצאות השנה</h6>
+                    <h3 class="m-0 primary-text fw-bold" id="totalYearlyExpenses">0 ₪</h3>
+                </div>
+                <div class="icon-lg-wrapper bg-primary text-white"
+                    style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="fas fa-shekel-sign"></i>
+                </div>
+            </div>
+        </div>
+        <div class="db-col-lg-4 db-col-md-6 mb-3">
+            <div class="db-card db-kpi-card p-3 h-100 border-radius-premium hover-lift">
+                <div>
+                    <h6 class="text-muted fw-bold mb-1">ממוצע הוצאה חודשי</h6>
+                    <h3 class="m-0 text-success fw-bold" id="avgMonthlyExpense">0 ₪</h3>
+                </div>
+                <div class="icon-lg-wrapper bg-success text-white"
+                    style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+        <div class="db-col-lg-4 db-col-12 mb-3">
+            <div class="db-card primary-bg text-white h-100 db-flex-center justify-content-center p-3 border-radius-premium hover-lift"
+                style="cursor: pointer;" onclick="openAddExpenseModal()" title="הוסף הוצאה חדשה">
+                <div class="text-center">
+                    <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                    <h5 class="m-0 fw-bold">הוספת הוצאה חדשה</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="db-row">
+        <!-- Right Column: Chart (5 parts) -->
+        <div class="db-col-lg-5 mb-4">
+            <div class="db-card h-100 border-radius-premium hover-lift">
+                <div class="db-card-header bg-white border-bottom">
+                    <h5 class="m-0 fw-bold primary-text"><i class="fas fa-chart-pie me-2"></i> התפלגות הוצאות</h5>
+                </div>
+                <div class="db-card-body d-flex justify-content-center align-items-center"
+                    style="min-height: 300px; position: relative;">
+                    <canvas id="expensesDistributionChart" style="max-height: 280px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left Column: List (7 parts) -->
+        <div class="db-col-lg-7 mb-4">
+            <div class="db-card h-100 border-radius-premium hover-lift">
+                <div class="db-card-header bg-white border-bottom db-flex-between">
+                    <h5 class="m-0 fw-bold primary-text"><i class="fas fa-list me-2"></i> הוצאות אחרונות (שונות)</h5>
+                </div>
+                <div class="db-card-body p-0" style="max-height: 350px; overflow-y: auto;">
+                    <div id="custom-expenses-list">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
