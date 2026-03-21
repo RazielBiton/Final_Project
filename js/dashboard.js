@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const vehicleId = urlParams.get('id');
 
+    // Build Global AutoComplete logic
+    try {
+        const vRes = await fetch('/api/vehicles/all');
+        if (vRes.ok) {
+            const allV = await vRes.json();
+            attachAutocomplete('globalSearchInput', 'globalAutocompleteList', allV || []);
+        }
+    } catch(e) { console.warn("Failed to build autocomplete list", e); }
+
     if (!vehicleId) {
         alert('לא נבחר רכב. חוזר למסך הראשי.');
         window.location.href = 'after_login.html';
@@ -17,9 +26,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.openEditModal = openEditModal;
     window.saveVehicleDetails = saveVehicleDetails;
 
-    // 2. Fetch Data
-    savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
-    currentCar = savedCars.find(c => c.id == vehicleId);
+    // 2. Fetch Data from Azure DB first (fallback to LocalStorage)
+    try {
+        const res = await fetch(`/api/vehicles/sync/${vehicleId}`);
+        if (res.ok) {
+            currentCar = await res.json();
+            // initialize savedCars so saveToLocalStorage fallback still works
+            savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+        } else {
+            savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+            currentCar = savedCars.find(c => c.id == vehicleId);
+        }
+    } catch(e) {
+        console.error("API Fetch failed, using LocalStorage fallback", e);
+        savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+        currentCar = savedCars.find(c => c.id == vehicleId);
+    }
 
     if (!currentCar) {
         alert('הרכב לא נמצא במערכת.');
@@ -188,11 +210,22 @@ window.isDateFuture = function (dateStr) {
     return d >= today;
 }
 
-window.saveToLocalStorage = function () {
-    const index = savedCars.findIndex(c => c.id === currentCar.id);
+window.saveToLocalStorage = async function () {
+    const index = savedCars.findIndex(c => parseInt(c.id) === parseInt(currentCar.id));
     if (index !== -1) {
         savedCars[index] = currentCar;
         localStorage.setItem('userCars', JSON.stringify(savedCars));
+    }
+    
+    try {
+        await fetch(`/api/vehicles/sync/${currentCar.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentCar)
+        });
+        console.log("Successfully synced Vehicle Data to Azure DB.");
+    } catch(e) {
+        console.error("Azure DB Sync failed", e);
     }
 }
 
@@ -270,6 +303,8 @@ function openEditModal() {
     document.getElementById('editColor').value = currentCar.color || '';
     document.getElementById('editKm').value = currentCar.km || '';
     document.getElementById('editTestDate').value = currentCar.testDate !== 'אין נתונים' ? (currentCar.testDate || '') : '';
+    document.getElementById('editStatus').value = currentCar.status || 'פעיל';
+    document.getElementById('editReliabilityScore').value = currentCar.reliabilityScore !== undefined ? currentCar.reliabilityScore : 100;
 
     document.getElementById('editFuel').value = currentCar.fuelType || '';
     document.getElementById('editHP').value = currentCar.horsePower || '';
@@ -292,6 +327,8 @@ function saveVehicleDetails() {
     const newColor = document.getElementById('editColor').value;
     const newKm = document.getElementById('editKm').value;
     const newTestDate = document.getElementById('editTestDate').value;
+    const newStatus = document.getElementById('editStatus').value;
+    const newReliabiliy = document.getElementById('editReliabilityScore').value;
     const newFuel = document.getElementById('editFuel').value;
     const newHP = document.getElementById('editHP').value;
     const newEngine = document.getElementById('editEngine').value;
@@ -309,6 +346,9 @@ function saveVehicleDetails() {
         if (newColor) currentCar.color = newColor;
         if (newKm) currentCar.km = parseInt(newKm);
         if (newTestDate) currentCar.testDate = newTestDate;
+        
+        currentCar.status = newStatus || 'פעיל';
+        currentCar.reliabilityScore = newReliabiliy ? parseInt(newReliabiliy) : 100;
 
         if (newFuel) currentCar.fuelType = newFuel;
         if (newHP) currentCar.horsePower = newHP;
@@ -384,4 +424,47 @@ function saveVehicleDetails() {
         // No file, no brand change
         saveDetails(null);
     }
+}
+
+function attachAutocomplete(inputId, listId, allVehiclesArr) {
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    if(!input || !list) return;
+
+    input.addEventListener('input', function() {
+        const val = this.value.trim().toLowerCase();
+        list.innerHTML = '';
+        if (!val) {
+            list.classList.add('d-none');
+            return;
+        }
+
+        const matches = allVehiclesArr.filter(v => {
+            const plate = (v.LicensePlate || '');
+            const brandHeb = (v.BrandHeb || '').toLowerCase();
+            const brandEn = (v.Brand || '').toLowerCase();
+            return plate.startsWith(val) || brandHeb.startsWith(val) || brandEn.startsWith(val);
+        });
+
+        if (matches.length > 0) {
+            matches.slice(0, 8).forEach(v => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item list-group-item-action fw-bold';
+                li.style.cursor = 'pointer';
+                li.innerHTML = `<span class="text-primary">${v.LicensePlate}</span> - <span class="text-muted fw-normal">${v.BrandHeb || ''} ${v.Model || ''}</span>`;
+                li.onmousedown = () => {
+                    input.value = v.LicensePlate;
+                    list.classList.add('d-none');
+                    window.location.href = 'search_results.html?q=' + encodeURIComponent(v.LicensePlate);
+                };
+                list.appendChild(li);
+            });
+            list.classList.remove('d-none');
+        } else {
+            list.classList.add('d-none');
+        }
+    });
+
+    input.addEventListener('blur', () => { setTimeout(() => list.classList.add('d-none'), 150); });
+    input.addEventListener('focus', function() { if(this.value && list.innerHTML !== '') list.classList.remove('d-none'); });
 }

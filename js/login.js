@@ -4,14 +4,14 @@ const signInButton = document.getElementById('signIn');
 const container = document.getElementById('container');
 
 signUpButton.addEventListener('click', () => {
-	container.classList.add("right-panel-active");
+    container.classList.add("right-panel-active");
 });
 
 signInButton.addEventListener('click', () => {
-	container.classList.remove("right-panel-active");
+    container.classList.remove("right-panel-active");
 });
 
-(function() {
+(function () {
     "use strict";
 
     // 1. ברגע שהדף נטען - Fade In
@@ -19,31 +19,87 @@ signInButton.addEventListener('click', () => {
         document.body.classList.remove('is-loading');
     });
 
-    // 2. בחירת כל הלינקים וגם את הכפתורים עם הקלאס הספציפי
-    // הסלקטור בוחר את כל ה-a וגם כל אלמנט עם הקלאס .login_btn
-    const navElements = document.querySelectorAll('a, .login_btn');
+    // === REGISTRATION FLOW ===
+    const signUpForm = document.querySelector('.sign-up-container form');
+    const registerBtn = signUpForm.querySelector('button');
 
-    navElements.forEach(element => {
-        element.addEventListener('click', function(e) {
-            // שליפת היעד: בודק href ללינקים, או data-href לכפתורים
-            const href = this.getAttribute('href') || this.getAttribute('data-href');
-            const target = this.getAttribute('target');
+    registerBtn.addEventListener('click', async (e) => {
+        e.preventDefault(); // Prevent page reload
+        const firstName = signUpForm.querySelector('.first_name').value.trim();
+        const lastName = signUpForm.querySelector('.last_name').value.trim();
+        const email = signUpForm.querySelector('.email').value.trim();
+        const password = signUpForm.querySelector('.password').value;
 
-            // אם אין כתובת יעד או שזה לינק פנימי (#), אל תפעיל את האנימציה
-            if (!href || href.startsWith('#') || href.includes('http') || target === '_blank') {
-                return;
+        if (!firstName || !lastName || !email || !password) {
+            alert('אנא מלא את כל השדות להרשמה!');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firstName, lastName, email, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('הרשמה בוצעה בהצלחה! אנא התחבר.');
+                // Clear fields
+                signUpForm.reset();
+                // Switch to login view
+                container.classList.remove("right-panel-active");
+            } else {
+                alert(data.error || 'שגיאה בהרשמה.');
             }
-
-            // מניעת הפעולה הדיפולטיבית
-            e.preventDefault();
-
-            // הפעלת ה-Fade Out
-            document.body.classList.add('is-loading');
-
-            // מעבר דף לאחר חצי שנייה
-            setTimeout(() => {
-                window.location.href = href;
-            }, 500);
-        });
+        } catch (err) {
+            console.error('Register err:', err);
+            alert('שגיאת תקשורת מול השרת.');
+        }
     });
+
+    // === LOGIN FLOW ===
+    const signInForm = document.querySelector('.sign-in-container form');
+    const loginBtn = signInForm.querySelector('.login_btn');
+
+    loginBtn.addEventListener('click', async (e) => {
+        e.preventDefault(); // Prevent default link/button action
+
+        const email = signInForm.querySelector('.email').value.trim();
+        const password = signInForm.querySelector('.password').value;
+
+        if (!email || !password) {
+            alert('אנא הזן אימייל וסיסמה!');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // שמירת המזהה של המשתמש לסשן
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('userName', data.fullName);
+
+                // הפעלת ה-Fade Out
+                document.body.classList.add('is-loading');
+
+                // מעבר דף לאחר חצי שנייה
+                setTimeout(() => {
+                    window.location.href = loginBtn.getAttribute('data-href') || 'after_login.html';
+                }, 500);
+            } else {
+                alert(data.error || 'אימייל או סיסמה שגויים!');
+            }
+        } catch (err) {
+            console.error('Login err:', err);
+            alert('שגיאת תקשורת מול השרת.');
+        }
+    });
+
 })();

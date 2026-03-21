@@ -91,7 +91,7 @@
         </div>
 
         <!-- Page Content -->
-        <div id="page-content-wrapper" style="flex: 1; min-width: 0; background: #f8f9fa;">
+        <div id="page-content-wrapper" style="flex: 1; min-width: 0;">
 
 
             <!-- Top Nav -->
@@ -100,6 +100,15 @@
                     <i class="fas fa-align-right primary-text fs-2 db-me-3" id="menu-toggle"
                         style="cursor: pointer; font-size: 1.5rem;"></i>
                     <h2 class="m-0" id="pageTitle" style="font-size: 1.5rem;">מבט על</h2>
+                </div>
+
+                <!-- Global Search Bar -->
+                <div class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
+                    <form class="d-flex position-relative w-100" style="max-width: 400px;" onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
+                        <input type="text" id="globalSearchInput" autocomplete="off" class="form-control rounded-pill pe-4" placeholder="חיפוש לפי יצרן או מספר רישוי..." style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important;">
+                        <i class="fas fa-search position-absolute top-50 translate-middle-y text-primary fs-5" style="left: 18px; cursor: pointer;" onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);"></i>
+                        <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none" style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; text-align: right; border-radius: 12px; font-size: 0.9rem;"></ul>
+                    </form>
                 </div>
 
                 <!-- Wrapper for Left Positioning -->
@@ -305,6 +314,21 @@
                                     placeholder="DD/MM/YYYY">
                             </div>
                         </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">סטטוס רכב</label>
+                                <select class="db-form-control form-control-sm" id="editStatus">
+                                    <option value="פעיל">פעיל</option>
+                                    <option value="במוסך">במוסך</option>
+                                    <option value="נמכר">נמכר</option>
+                                    <option value="מושבת">מושבת</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">ציון אמינות (0-100)</label>
+                                <input type="number" min="0" max="100" class="db-form-control form-control-sm" id="editReliabilityScore" placeholder="לדוג': 85">
+                            </div>
+                        </div>
 
                         <h6 class="text-primary mt-4 mb-3 border-bottom pb-2" style="font-size: 0.9rem;">מפרט טכני</h6>
                         <div class="row g-2 mb-3">
@@ -457,7 +481,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-expense-form" onsubmit="event.preventDefault(); saveExpense();">
+                    <form id="add-expense-form" onsubmit="event.preventDefault(); saveCustomExpense();">
                         <div class="mb-3">
                             <label class="form-label">סוג הוצאה</label>
                             <select class="db-form-control" id="expenseType" required

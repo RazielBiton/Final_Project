@@ -3,7 +3,7 @@ let expensesChartInst = null;
 
 function loadExpenses() {
     // 1. Calculate sums
-    let totalTreatments = currentCar.treatments.reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
+    let totalTreatments = currentCar.treatments ? currentCar.treatments.reduce((sum, t) => sum + (Number(t.cost) || 0), 0) : 0;
 
     // Insurance Sum (Compulsory + Comprehensive/Third-party)
     let totalInsurance = 0;
@@ -14,7 +14,7 @@ function loadExpenses() {
     }
 
     // Fuel Sum
-    let totalFuel = currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0);
+    let totalFuel = currentCar.fuelLog ? currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0) : 0;
 
     // Custom Expenses Sum
     let totalCustom = currentCar.expenses ? currentCar.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) : 0;
@@ -99,8 +99,9 @@ function loadExpenses() {
             plugins: [{
                 id: 'textCenter',
                 beforeDraw: function (chart) {
+                    if (!chart.chartArea) return; // Prevent crash if chart is hidden or initializing
                     var width = chart.width, height = chart.height, ctx = chart.ctx;
-                    ctx.restore();
+                    ctx.save();
                     var text = "₪" + new Intl.NumberFormat('he-IL').format(grandTotal);
 
                     // Responsive text based on width and text length
@@ -117,7 +118,7 @@ function loadExpenses() {
                     var textY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
 
                     if (grandTotal > 0) ctx.fillText(text, textX, textY);
-                    ctx.save();
+                    ctx.restore();
                 }
             }]
         });

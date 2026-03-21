@@ -520,6 +520,7 @@ body.dashboard-body {
 
 #page-content-wrapper {
     min-width: 100vw;
+    background-color: #e1ebf6 !important;
 }
 
 /* Sidebar Links */
