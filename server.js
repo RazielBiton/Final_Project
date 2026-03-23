@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 app.use(cors());
@@ -88,6 +93,89 @@ app.post('/api/login', async (req, res) => {
         res.json({ success: true, userId: user.Id, fullName: user.FullName });
     } catch (err) {
         console.error('Login error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Forgot Password - Send OTP
+app.post('/api/auth/send-otp', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
+        const pool = await poolPromise;
+        const check = await pool.request()
+            .input('Email', sql.NVarChar, email)
+            .query('SELECT Id FROM Users WHERE Email = @Email');
+        
+        if (check.recordset.length === 0) {
+            return res.status(404).json({ error: 'משתמש עם אימייל זה לא נמצא במערכת.' });
+        }
+
+        // Send OTP via Supabase (creating a mock user in Supabase auth if they don't exist there, strictly for email OTP)
+        const { data, error } = await supabase.auth.signInWithOtp({
+            email: email,
+            options: { shouldCreateUser: true }
+        });
+
+        if (error) {
+            console.error('Supabase OTP Error:', error);
+            return res.status(500).json({ error: 'שגיאה בשליחת קוד לאימייל. ודא שהגדרות ה-Supabase תקינות.' });
+        }
+
+        res.json({ success: true, message: 'OTP sent successfully' });
+    } catch (err) {
+        console.error('OTP send error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Forgot Password - Verify OTP & Reset
+app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+        if (!email || !token || !newPassword) return res.status(400).json({ error: 'Missing parameters' });
+
+        // Verify OTP via Supabase
+        const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: 'email'
+        });
+
+        if (error) {
+            console.error('OTP Verify Error:', error);
+            return res.status(400).json({ error: 'קוד OTP שגוי או פג תוקף.' });
+        }
+
+        // OTP Valid! Update password in Azure SQL database
+        const pool = await poolPromise;
+        await pool.request()
+            .input('Email', sql.NVarChar, email)
+            .input('PasswordHash', sql.NVarChar, newPassword)
+            .query('UPDATE Users SET PasswordHash = @PasswordHash WHERE Email = @Email');
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('OTP verify error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get Logged-in User Info
+app.get('/api/user/me', async (req, res) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('Id', sql.Int, req.userId)
+            .query('SELECT Email, FullName FROM Users WHERE Id = @Id');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({ success: true, user: result.recordset[0] });
+    } catch (err) {
+        console.error('Fetch user error:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -599,22 +687,34 @@ app.post('/api/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
         const carContext = req.body.carContext || 'אין נתונים זמינים לרכב זה כרגע.';
+        const historyContext = req.body.history || [];
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const fullPrompt = `
-        הוראות מערכת: אתה מוסכניק מומחה ועוזר וירטואלי של מערכת EasyCare.
-        ${carContext}
-        
-        חוקי הברזל שלך לתשובה:
-        1. קצר מאוד וקריא: מקסימום 3-4 נקודות קצרות. אל תכתוב פסקאות ארוכות.
-        2. אל תעשה רווחים גדולים בין השורות. שמור על טקסט צפוף וקריא.
-        3. השתמש באימוג'י אחד או שניים כדי להחיות את הטקסט.
-        
-        שאלת המשתמש: ${userMessage}
-        `;
+        let historyFormatted = [];
+        historyFormatted.push({
+            role: "user",
+            parts: [{ text: `הוראות מערכת: אתה מוסכניק מומחה ועוזר וירטואלי של מערכת EasyCare ויש לך ידע נרחב ברכבים.\n\nלהלן כלל פרטי הרכב והמשתמש המלאים כולל הכל (אסור לך לשכוח כלום, זהו מידע קריטי):\n${carContext}\n\nחוקי הברזל שלך לתשובה:\n1. קצר מאוד וקריא: מקסימום 3-4 נקודות קצרות. אל תכתוב פסקאות ארוכות.\n2. אל תעשה רווחים גדולים בין השורות. שמור על טקסט צפוף וקריא.\n3. השתמש באימוג'י אחד או שניים כדי להחיות את הטקסט.\n\nהאם הבנת את ההוראות ואת נתוני המשתמש והרכב?` }]
+        });
+        historyFormatted.push({
+            role: "model",
+            parts: [{ text: "הבנתי, קראתי את כלל נתוני המשתמש והרכב השלמים ואני מוכן לעזור על פיהם. תשובותיי יהיו קצרות וקריאות עם אימוג'י כמבוקש." }]
+        });
 
-        const result = await model.generateContent(fullPrompt);
+        if (historyContext.length > 0) {
+            historyContext.forEach(msg => {
+                historyFormatted.push({
+                    role: msg.sender === 'user' ? 'user' : 'model',
+                    parts: [{ text: msg.text }]
+                });
+            });
+        }
+
+        const chat = model.startChat({
+            history: historyFormatted
+        });
+
+        const result = await chat.sendMessage(userMessage);
         const responseText = result.response.text();
 
         res.json({ reply: responseText });

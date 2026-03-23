@@ -4,6 +4,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const minimizeChat = document.getElementById('minimizeChat');
     const closeChat = document.getElementById('closeChat');
     const chatHeader = document.querySelector('.chat-header');
+    
+    let userData = null;
+    let chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
+
+    // Fetch user details
+    async function fetchUserData() {
+        const userId = localStorage.getItem('userId') || '1';
+        try {
+            const res = await fetch('/api/user/me', {
+                headers: { 'userid': userId }
+            });
+            const data = await res.json();
+            if (data.success) {
+                userData = data.user;
+            }
+        } catch (e) {
+            console.error('Failed to fetch user data', e);
+        }
+    }
+    fetchUserData();
 
     // Draggability for the window
     let isDraggingWindow = false;
@@ -119,9 +139,35 @@ document.addEventListener('DOMContentLoaded', () => {
     minimizeChat.addEventListener('click', hideChat);
     closeChat.addEventListener('click', hideChat);
 
+    const clearChatBtn = document.getElementById('clearChat');
+    if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm('האם אתה בטוח שברצונך לאפס את השיחה הזו?')) {
+                chatHistory = [];
+                sessionStorage.removeItem('chatHistory');
+                chatBox.innerHTML = `
+                    <div class="chat-message ai-msg">
+                        היי! אני העוזר של המוסך הווירטואלי EasyCare.<br>
+                        ראיתי את נתוני הרכב שלך. איך אפשר לעזור היום?
+                    </div>`;
+            }
+        });
+    }
+
     // Context Extractor for AI
     function getCarContextForAI() {
-        if (!window.currentCar) return "אין כרגע רכב שנבחר. עליך לעזור כללית.";
+        let ctx = '';
+        if (userData) {
+            ctx += `פרטי המשתמש השואל: השם המלא הוא ${userData.FullName}, והאימייל שלו הוא ${userData.Email}.\n\n`;
+        } else {
+            ctx += `פרטי המשתמש לא זמינים כרגע. עזור כרגיל.\n\n`;
+        }
+
+        if (!window.currentCar) {
+            ctx += "אין כרגע רכב שנבחר.";
+            return ctx;
+        }
+
         const c = window.currentCar;
 
         // Sanitize huge Base64 images from the payload so we don't crash the LLM token limits
@@ -134,11 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (sanitizedCar.accidents) sanitizedCar.accidents.forEach(a => delete a.image);
 
-        let ctx = `המשתמש שואל במיוחד אודות הרכב הרשום בפרופיל שלו. זה יצרן ודגם: ${c.brandHeb || c.brand} ${c.model || ''}. `;
-        if (c.year) ctx += `שנת ייצור: ${c.year}. `;
-        if (c.licensePlate) ctx += `מספר רישוי: ${c.licensePlate}. `;
-        if (c.km) ctx += `קילומטראז' נוכחי: ${c.km}. `;
-        if (c.testDate) ctx += `טסט בתוקף עד: ${c.testDate}. `;
+        let carInfoCtx = `המשתמש שואל במיוחד אודות הרכב הרשום בפרופיל שלו. זה יצרן ודגם: ${c.brandHeb || c.brand} ${c.model || ''}. `;
+        if (c.year) carInfoCtx += `שנת ייצור: ${c.year}. `;
+        if (c.licensePlate) carInfoCtx += `מספר רישוי: ${c.licensePlate}. `;
+        if (c.km) carInfoCtx += `קילומטראז' נוכחי: ${c.km}. `;
+        if (c.testDate) carInfoCtx += `טסט בתוקף עד: ${c.testDate}. `;
+        ctx += carInfoCtx;
         if (c.color) ctx += `צבע: ${c.color}. `;
         if (c.fuelType) ctx += `סוג דלק: ${c.fuelType}. `;
         if (c.engineVolume) ctx += `נפח מנוע: ${c.engineVolume} סמ"ק. `;
@@ -183,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendBtn');
     const typingIndicator = document.getElementById('typing');
 
-    function addMessage(text, sender) {
+    function addMessage(text, sender, saveToHistory = true) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `chat-message ${sender === 'user' ? 'user-msg' : 'ai-msg'}`;
 
@@ -196,28 +243,40 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.innerHTML = formattedText;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+        
+        if (saveToHistory) {
+            chatHistory.push({ text: text, sender: sender });
+            sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+        }
+    }
+
+    // Render existing history
+    if (chatHistory.length > 0) {
+        chatBox.innerHTML = '';
+        chatHistory.forEach(msg => addMessage(msg.text, msg.sender, false));
     }
 
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
-        addMessage(text, 'user');
+        addMessage(text, 'user', true);
         userInput.value = '';
         typingIndicator.style.display = 'block';
 
         const carContext = getCarContextForAI();
 
         try {
-            const response = await fetch('http://localhost:3000/api/chat', {
+            const sentHistory = chatHistory.slice(0, -1);
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, carContext: carContext })
+                body: JSON.stringify({ message: text, carContext: carContext, history: sentHistory })
             });
 
             const data = await response.json();
             typingIndicator.style.display = 'none';
-            addMessage(data.reply, 'ai');
+            addMessage(data.reply, 'ai', true);
 
         } catch (error) {
             console.error(error);
