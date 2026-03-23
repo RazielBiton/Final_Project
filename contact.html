@@ -27,18 +27,21 @@
       </div>
       <div class="right-container">
         <div class="right-inner-container">
-          <form action="#">
+          <form id="contactForm">
             <h2 class="lg-view">צור קשר</h2>
             <h2 class="sm-view">צור קשר</h2>
 
-            <input type="text" placeholder="שם מלא" />
-            <input type="email" placeholder="אימייל" />
-            <input type="phone" placeholder="מספר טלפון" />
-            <textarea rows="4" placeholder="אנא הכנס הודעתך"></textarea>
-            <button>שלח</button>
+            <input type="text" id="contactName" placeholder="שם מלא" required />
+            <input type="email" id="contactEmail" placeholder="אימייל" required />
+            <input type="tel" id="contactPhone" placeholder="מספר טלפון" required />
+            <textarea rows="4" id="contactMessage" placeholder="אנא הכנס הודעתך" required></textarea>
+            
+            <button type="submit" id="contactSubmitBtn">שלח</button>
+            <p id="contactFeedback" style="display: none; margin-top: 10px; font-weight: bold;"></p>
+
             <br class="sm-view">
             <br class="sm-view">
-            <a class="sm-view" class="btn_home" href="index.html">חזור לדף הבית</a>
+            <a class="sm-view btn_home" href="index.html">חזור לדף הבית</a>
           </form>
         </div>
       </div>
@@ -47,6 +50,7 @@
 
   <footer class="global-footer"></footer>
   <script src="js/global_footer.js"></script>
+  <script src="js/contact.js"></script>
 </body>
 
 </html>

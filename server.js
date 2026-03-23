@@ -2,11 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { createClient } = require('@supabase/supabase-js');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+    }
+});
 
 const app = express();
 app.use(cors());
@@ -31,7 +41,7 @@ app.use((req, res, next) => {
         req.userId = parseInt(userId);
     } else {
         // Fallback for development (e.g., from old api.js logic)
-        req.userId = 1; 
+        req.userId = 1;
     }
     next();
 });
@@ -49,7 +59,7 @@ app.post('/api/register', async (req, res) => {
         }
 
         const pool = await poolPromise;
-        
+
         // Basic check if exists
         const check = await pool.request().input('Email', sql.NVarChar, email).query('SELECT Id FROM Users WHERE Email = @Email');
         if (check.recordset.length > 0) {
@@ -107,7 +117,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         const check = await pool.request()
             .input('Email', sql.NVarChar, email)
             .query('SELECT Id FROM Users WHERE Email = @Email');
-        
+
         if (check.recordset.length === 0) {
             return res.status(404).json({ error: 'משתמש עם אימייל זה לא נמצא במערכת.' });
         }
@@ -191,14 +201,14 @@ app.get('/api/vehicles', async (req, res) => {
         const result = await pool.request()
             .input('UserId', sql.Int, req.userId)
             .query('SELECT * FROM Vehicles WHERE UserId = @UserId');
-        
+
         // Let's also fetch related data (treatments, fuel, etc) to mimic the old `userCars` structure
         // For simplicity right now, we will return just the cars.
         const vehicles = result.recordset;
 
         // In the future we will loop over vehicles and fetch their Treatments, Expenses, etc.
         // so the frontend receives the same object structure.
-        
+
         res.json(vehicles);
     } catch (err) {
         console.error('Failed to get vehicles:', err);
@@ -222,7 +232,7 @@ app.post('/api/vehicles', async (req, res) => {
     try {
         const car = req.body;
         const pool = await poolPromise;
-        
+
         const result = await pool.request()
             .input('UserId', sql.Int, req.userId)
             .input('LicensePlate', sql.NVarChar, car.licensePlate)
@@ -250,7 +260,7 @@ app.post('/api/vehicles', async (req, res) => {
                 VALUES
                 (@UserId, @LicensePlate, @BrandHeb, @Model, @Year, @Color, @FuelType, @TestDate, @LicenseExpiry, @Pollution, @TireFront, @TireRear, @EngineVolume, @HorsePower, @Km, @Status, @ReliabilityScore, @HasDisabledTag, @Logo)
             `);
-            
+
         res.json({ success: true, vehicleId: result.recordset[0].Id });
     } catch (err) {
         console.error('Failed to add vehicle:', err);
@@ -264,7 +274,7 @@ app.put('/api/vehicles/:id', async (req, res) => {
         const { id } = req.params;
         const { brandHeb, model, logo, status, reliabilityScore } = req.body;
         const pool = await poolPromise;
-        
+
         await pool.request()
             .input('Id', sql.Int, id)
             .input('UserId', sql.Int, req.userId)
@@ -278,7 +288,7 @@ app.put('/api/vehicles/:id', async (req, res) => {
                 SET BrandHeb = @BrandHeb, Model = @Model, Logo = @Logo, Status = @Status, ReliabilityScore = @ReliabilityScore
                 WHERE Id = @Id AND UserId = @UserId
             `);
-            
+
         res.json({ success: true });
     } catch (err) {
         console.error('Failed to update vehicle:', err);
@@ -291,12 +301,12 @@ app.delete('/api/vehicles/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const pool = await poolPromise;
-        
+
         await pool.request()
             .input('Id', sql.Int, id)
             .input('UserId', sql.Int, req.userId)
             .query('DELETE FROM Vehicles WHERE Id = @Id AND UserId = @UserId');
-            
+
         res.json({ success: true });
     } catch (err) {
         console.error('Failed to delete vehicle:', err);
@@ -330,7 +340,7 @@ app.post('/api/fines', async (req, res) => {
             .input('Date', sql.Date, date)
             .input('LastPaymentDate', sql.Date, lastPaymentDate)
             .input('Location', sql.NVarChar, location)
-            .input('Amount', sql.Decimal(10,2), amount)
+            .input('Amount', sql.Decimal(10, 2), amount)
             .input('Points', sql.Int, points)
             .input('DocumentBase64', sql.NVarChar, documentBase64)
             .input('IsHandled', sql.Bit, isHandled ? 1 : 0)
@@ -396,7 +406,7 @@ app.post('/api/treatments', async (req, res) => {
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date)
             .input('Type', sql.NVarChar, type).input('Description', sql.NVarChar, description)
-            .input('Cost', sql.Decimal(10,2), cost).input('GarageName', sql.NVarChar, garageName)
+            .input('Cost', sql.Decimal(10, 2), cost).input('GarageName', sql.NVarChar, garageName)
             .input('Odometer', sql.Int, odometer).input('DocumentBase64', sql.NVarChar, documentBase64)
             .query(`INSERT INTO Treatments (VehicleId, Date, Type, Description, Cost, GarageName, Odometer, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Type, @Description, @Cost, @GarageName, @Odometer, @DocumentBase64)`);
@@ -420,8 +430,8 @@ app.post('/api/fuellogs', async (req, res) => {
         const { vehicleId, date, time, liters, pricePerLiter, totalCost, odometer, documentBase64 } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date).input('Time', sql.Time, time)
-            .input('Liters', sql.Decimal(8,2), liters).input('PricePerLiter', sql.Decimal(8,2), pricePerLiter)
-            .input('TotalCost', sql.Decimal(10,2), totalCost).input('Odometer', sql.Int, odometer)
+            .input('Liters', sql.Decimal(8, 2), liters).input('PricePerLiter', sql.Decimal(8, 2), pricePerLiter)
+            .input('TotalCost', sql.Decimal(10, 2), totalCost).input('Odometer', sql.Int, odometer)
             .input('DocumentBase64', sql.NVarChar, documentBase64)
             .query(`INSERT INTO FuelLogs (VehicleId, Date, Time, Liters, PricePerLiter, TotalCost, Odometer, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Time, @Liters, @PricePerLiter, @TotalCost, @Odometer, @DocumentBase64)`);
@@ -445,7 +455,7 @@ app.post('/api/expenses', async (req, res) => {
         const { vehicleId, date, category, amount, description, documentBase64 } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date).input('Category', sql.NVarChar, category)
-            .input('Amount', sql.Decimal(10,2), amount).input('Description', sql.NVarChar, description)
+            .input('Amount', sql.Decimal(10, 2), amount).input('Description', sql.NVarChar, description)
             .input('DocumentBase64', sql.NVarChar, documentBase64)
             .query(`INSERT INTO Expenses (VehicleId, Date, Category, Amount, Description, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Category, @Amount, @Description, @DocumentBase64)`);
@@ -470,7 +480,7 @@ app.post('/api/accidents', async (req, res) => {
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Title', sql.NVarChar, title).input('Date', sql.Date, date)
             .input('Description', sql.NVarChar, description).input('DamageDetails', sql.NVarChar, damageDetails)
-            .input('EstimatedCost', sql.Decimal(10,2), estimatedCost).input('Cost', sql.Decimal(10,2), cost)
+            .input('EstimatedCost', sql.Decimal(10, 2), estimatedCost).input('Cost', sql.Decimal(10, 2), cost)
             .input('DocumentBase64', sql.NVarChar, documentBase64).input('ThirdPartyInvolved', sql.Bit, thirdPartyInvolved ? 1 : 0)
             .input('IsHandled', sql.Bit, isHandled ? 1 : 0)
             .query(`INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, Cost, DocumentBase64, ThirdPartyInvolved, IsHandled) 
@@ -520,7 +530,7 @@ app.post('/api/insurance', async (req, res) => {
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('CompanyName', sql.NVarChar, companyName)
             .input('PolicyNumber', sql.NVarChar, policyNumber).input('ExpiryDate', sql.Date, expiryDate)
-            .input('Type', sql.NVarChar, type).input('Cost', sql.Decimal(10,2), cost)
+            .input('Type', sql.NVarChar, type).input('Cost', sql.Decimal(10, 2), cost)
             .input('DocumentBase64', sql.NVarChar, documentBase64)
             .query(`INSERT INTO Insurance (VehicleId, CompanyName, PolicyNumber, ExpiryDate, Type, Cost, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @CompanyName, @PolicyNumber, @ExpiryDate, @Type, @Cost, @DocumentBase64)`);
@@ -536,10 +546,10 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
         const vehicleId = parseInt(req.params.id);
         const pool = await poolPromise;
         const vRes = await pool.request().input('Id', sql.Int, vehicleId).query('SELECT * FROM Vehicles WHERE Id = @Id');
-        if (vRes.recordset.length === 0) return res.status(404).json({error: 'Not found'});
-        
+        if (vRes.recordset.length === 0) return res.status(404).json({ error: 'Not found' });
+
         const car = vRes.recordset[0];
-        
+
         car.treatments = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Treatments WHERE VehicleId=@Vid')).recordset;
         car.fuelLog = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM FuelLogs WHERE VehicleId=@Vid')).recordset;
         car.expenses = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Expenses WHERE VehicleId=@Vid')).recordset;
@@ -570,16 +580,16 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             reliabilityScore: car.ReliabilityScore,
             hasDisabledTag: car.HasDisabledTag,
             logo: car.Logo,
-            
+
             treatments: car.treatments.map(t => ({ id: t.Id, date: t.Date, type: t.Type || t.Description, garage: t.GarageName, km: t.Odometer, cost: t.Cost, invoice: t.DocumentBase64 })),
             fuelLog: car.fuelLog.map(f => ({ id: f.Id, date: f.Date, amount: f.Liters, cost: f.TotalCost, energyType: f.Liters ? 'fuel' : 'electricity' })),
             expenses: car.expenses.map(e => ({ id: e.Id, type: e.Category, date: e.Date, amount: e.Amount, notes: e.Description })),
             accidents: car.accidents.map(a => ({ id: a.Id, date: a.Date, description: a.Description, repairCost: a.EstimatedCost || a.Cost })),
             alerts: car.alerts.map(a => ({ id: a.Id, title: a.Title, date: a.Date, isActive: a.IsActive, urgency: a.Urgency, frequency: a.Frequency })),
             insurance: car.insurance.length > 0 ? {
-                mandatory: (() => { const i=car.insurance.find(x=>x.Type==='חובה'); return i ? {company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64} : null; })(),
-                comprehensive: (() => { const i=car.insurance.find(x=>x.Type==='מקיף'); return i ? {company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64} : null; })(),
-                thirdparty: (() => { const i=car.insurance.find(x=>x.Type==='צד ג'); return i ? {company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64} : null; })()
+                mandatory: (() => { const i = car.insurance.find(x => x.Type === 'חובה'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })(),
+                comprehensive: (() => { const i = car.insurance.find(x => x.Type === 'מקיף'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })(),
+                thirdparty: (() => { const i = car.insurance.find(x => x.Type === 'צד ג'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })()
             } : {},
             gallery: car.gallery.map(g => g.ImageBase64),
             reports: car.reports.map(r => ({ id: r.Id, offenseType: r.OffenseType, date: r.Date, amount: r.Amount, points: r.Points, location: r.Location, isHandled: r.IsHandled }))
@@ -618,36 +628,36 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             for (let t of car.treatments) {
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, t.date || new Date())
                     .input('Type', sql.NVarChar, t.type || 'Treatment').input('Description', sql.NVarChar, t.type || '')
-                    .input('Garage', sql.NVarChar, t.garage || '').input('Cost', sql.Decimal(10,2), t.cost || 0).input('Km', sql.Int, t.km || 0).input('Doc', sql.NVarChar, t.invoice || '')
+                    .input('Garage', sql.NVarChar, t.garage || '').input('Cost', sql.Decimal(10, 2), t.cost || 0).input('Km', sql.Int, t.km || 0).input('Doc', sql.NVarChar, t.invoice || '')
                     .query('INSERT INTO Treatments (VehicleId, Date, Type, Description, GarageName, Cost, Odometer, DocumentBase64) VALUES (@Vid, @Date, @Type, @Description, @Garage, @Cost, @Km, @Doc)');
             }
         }
         if (car.fuelLog && car.fuelLog.length) {
             for (let f of car.fuelLog) {
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, f.date || new Date())
-                    .input('Liters', sql.Decimal(8,2), f.amount || 0).input('Cost', sql.Decimal(10,2), f.cost || 0).input('Price', sql.Decimal(8,2), 0)
+                    .input('Liters', sql.Decimal(8, 2), f.amount || 0).input('Cost', sql.Decimal(10, 2), f.cost || 0).input('Price', sql.Decimal(8, 2), 0)
                     .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost) VALUES (@Vid, @Date, @Liters, @Price, @Cost)');
             }
         }
         if (car.expenses && car.expenses.length) {
             for (let e of car.expenses) {
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, e.date || new Date())
-                    .input('Cat', sql.NVarChar, e.type || e.typeOther || '').input('Amt', sql.Decimal(10,2), e.amount || 0).input('Desc', sql.NVarChar, e.notes || '')
+                    .input('Cat', sql.NVarChar, e.type || e.typeOther || '').input('Amt', sql.Decimal(10, 2), e.amount || 0).input('Desc', sql.NVarChar, e.notes || '')
                     .query('INSERT INTO Expenses (VehicleId, Date, Category, Amount, Description) VALUES (@Vid, @Date, @Cat, @Amt, @Desc)');
             }
         }
         if (car.accidents && car.accidents.length) {
             for (let a of car.accidents) {
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, a.date || new Date())
-                    .input('Desc', sql.NVarChar, a.description || '').input('Cost', sql.Decimal(10,2), a.repairCost || 0)
+                    .input('Desc', sql.NVarChar, a.description || '').input('Cost', sql.Decimal(10, 2), a.repairCost || 0)
                     .query('INSERT INTO Accidents (VehicleId, Date, Description, EstimatedCost) VALUES (@Vid, @Date, @Desc, @Cost)');
             }
         }
         if (car.reports && car.reports.length) {
             for (let r of car.reports) {
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, r.date || new Date())
-                    .input('Type', sql.NVarChar, r.offenseType || '').input('Amt', sql.Decimal(10,2), r.amount || 0)
-                    .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, r.isHandled ? 1:0)
+                    .input('Type', sql.NVarChar, r.offenseType || '').input('Amt', sql.Decimal(10, 2), r.amount || 0)
+                    .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, r.isHandled ? 1 : 0)
                     .query('INSERT INTO Fines (VehicleId, Date, OffenseType, Amount, Location, Points, IsHandled) VALUES (@Vid, @Date, @Type, @Amt, @Loc, @Pts, @Han)');
             }
         }
@@ -665,7 +675,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                 if (ins && ins.date) {
                     await pool.request().input('Vid', sql.Int, vehicleId).input('Type', sql.NVarChar, typeHebrew)
                         .input('Comp', sql.NVarChar, ins.company || '').input('Pol', sql.NVarChar, ins.policyNum || '').input('Exp', sql.NVarChar, ins.date || '')
-                        .input('Cost', sql.Decimal(10,2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || '')
+                        .input('Cost', sql.Decimal(10, 2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || '')
                         .query('INSERT INTO Insurance (VehicleId, Type, Company, PolicyNumber, ExpiryDate, Cost, DocumentBase64) VALUES (@Vid, @Type, @Comp, @Pol, @Exp, @Cost, @Doc)');
                 }
             }
@@ -722,6 +732,83 @@ app.post('/api/chat', async (req, res) => {
     } catch (error) {
         console.error("API Error:", error);
         res.status(500).json({ reply: "אופס! נתקלתי בבעיה. נסה שוב בעוד רגע." });
+    }
+});
+
+// ========================
+// API ROUTES FOR CONTACT FORM
+// ========================
+
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { name, email, phone, message } = req.body;
+
+        if (!name || !email || !message) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: process.env.GMAIL_USER,
+            replyTo: email,
+            subject: `התקבלה פנייה חדשה מ - ${name} דרך אתר EasyCare`,
+            html: `
+          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background-color: #ffffff;">
+            
+            <div style="background-color: #007bff; color: white; padding: 25px; text-align: center;">
+              <h2 style="margin: 0; font-size: 22px; font-weight: 600;">התקבלה פנייה חדשה באתר</h2>
+              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">EasyCare - Lead Management System</p>
+            </div>
+
+            <div style="padding: 30px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666; width: 35%;"><strong>שם הלקוח:</strong></td>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #333; font-weight: 500;">${name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666;"><strong>אימייל לחזרה:</strong></td>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
+                    <a href="mailto:${email}" style="color: #007bff; text-decoration: none; font-weight: 500;">${email}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666;"><strong>מספר טלפון:</strong></td>
+                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #333; font-weight: 500;">${phone || 'לא הוזן'}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding: 20px 12px 10px 12px; color: #666;"><strong>תוכן ההודעה:</strong></td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding: 15px; color: #444; line-height: 1.6; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
+                    ${message.replace(/\\n/g, '<br>')}
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="padding: 25px; background-color: #fdfdfd; text-align: center; border-top: 1px solid #f0f0f0;">
+              <a href="mailto:${email}" style="background-color: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">השב ללקוח במייל</a>
+              <div style="margin-top: 20px; font-size: 12px; color: #999;">
+                <p style="margin: 0;">נשלח באופן אוטומטי דרך EasyCare</p>
+                <p style="margin: 5px 0 0 0;">${new Date().toLocaleString('he-IL')}</p>
+              </div>
+            </div>
+
+          </div>
+            `
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Nodemailer Error:', error);
+                return res.status(500).json({ error: 'תקלה בשליחת האימייל. נסה שוב מאוחר יותר.' });
+            }
+            res.json({ success: true, message: 'Message sent successfully.' });
+        });
+    } catch (err) {
+        console.error('Contact endpoint error:', err);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
