@@ -69,7 +69,7 @@
 
 .chart-container-md {
     position: relative;
-    height: 200px;
+    min-height: 280px;
 }
 
 .no-list-style {

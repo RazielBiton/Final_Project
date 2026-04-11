@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { createClient } = require('@supabase/supabase-js');
 const nodemailer = require('nodemailer');
@@ -20,12 +22,15 @@ const transporter = nodemailer.createTransport({
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static directory where dashboard.html exists
 app.use(express.static(__dirname));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const GEMINI_MODEL = "gemini-2.5-flash"; 
+
 
 // Initialize DB Connection
 const { sql, poolPromise } = require('./db');
@@ -526,16 +531,23 @@ app.get('/api/insurance/:vehicleId', async (req, res) => {
 });
 app.post('/api/insurance', async (req, res) => {
     try {
-        const { vehicleId, companyName, policyNumber, expiryDate, type, cost, documentBase64 } = req.body;
+        const { vehicleId, companyName, policyNumber, expiryDate, type, cost, documentBase64,
+                towing, replacement, glass, agentName, agentPhone, driverLimit, deductible, protection } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('CompanyName', sql.NVarChar, companyName)
             .input('PolicyNumber', sql.NVarChar, policyNumber).input('ExpiryDate', sql.Date, expiryDate)
             .input('Type', sql.NVarChar, type).input('Cost', sql.Decimal(10, 2), cost)
             .input('DocumentBase64', sql.NVarChar, documentBase64)
-            .query(`INSERT INTO Insurance (VehicleId, CompanyName, PolicyNumber, ExpiryDate, Type, Cost, DocumentBase64) 
-                    OUTPUT INSERTED.Id VALUES (@VehicleId, @CompanyName, @PolicyNumber, @ExpiryDate, @Type, @Cost, @DocumentBase64)`);
+            .input('Towing', sql.NVarChar, towing).input('Replacement', sql.NVarChar, replacement)
+            .input('Glass', sql.NVarChar, glass).input('AgentName', sql.NVarChar, agentName)
+            .input('AgentPhone', sql.NVarChar, agentPhone).input('DriverLimit', sql.NVarChar, driverLimit)
+            .input('Deductible', sql.NVarChar, deductible).input('Protection', sql.NVarChar, protection)
+            .query(`INSERT INTO Insurance (VehicleId, CompanyName, PolicyNumber, ExpiryDate, Type, Cost, DocumentBase64, 
+                                          TowingService, ReplacementCar, GlassCoverage, AgentName, AgentPhone, DriverLimit, Deductible, ProtectionMeasures) 
+                    OUTPUT INSERTED.Id VALUES (@VehicleId, @CompanyName, @PolicyNumber, @ExpiryDate, @Type, @Cost, @DocumentBase64,
+                                              @Towing, @Replacement, @Glass, @AgentName, @AgentPhone, @DriverLimit, @Deductible, @Protection)`);
         res.json({ success: true, id: result.recordset[0].Id });
-    } catch (err) { res.status(500).json({ error: 'Database error' }); }
+    } catch (err) { console.error(err); res.status(500).json({ error: 'Database error' }); }
 });
 
 // ========================
@@ -587,12 +599,53 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             accidents: car.accidents.map(a => ({ id: a.Id, date: a.Date, description: a.Description, repairCost: a.EstimatedCost || a.Cost })),
             alerts: car.alerts.map(a => ({ id: a.Id, title: a.Title, date: a.Date, isActive: a.IsActive, urgency: a.Urgency, frequency: a.Frequency })),
             insurance: car.insurance.length > 0 ? {
-                mandatory: (() => { const i = car.insurance.find(x => x.Type === 'חובה'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })(),
-                comprehensive: (() => { const i = car.insurance.find(x => x.Type === 'מקיף'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })(),
-                thirdparty: (() => { const i = car.insurance.find(x => x.Type === 'צד ג'); return i ? { company: i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64 } : null; })()
+                mandatory: (() => { 
+                    const i = car.insurance.find(x => x.Type === 'חובה'); 
+                    return i ? { 
+                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                    } : null; 
+                })(),
+                comprehensive: (() => { 
+                    const i = car.insurance.find(x => x.Type === 'מקיף'); 
+                    return i ? { 
+                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                    } : null; 
+                })(),
+                thirdparty: (() => { 
+                    const i = car.insurance.find(x => x.Type === 'צד ג'); 
+                    return i ? { 
+                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                    } : null; 
+                })()
             } : {},
             gallery: car.gallery.map(g => g.ImageBase64),
-            reports: car.reports.map(r => ({ id: r.Id, offenseType: r.OffenseType, date: r.Date, amount: r.Amount, points: r.Points, location: r.Location, isHandled: r.IsHandled }))
+            reports: car.reports.map(r => {
+                let typeVal = r.OffenseType || 'other';
+                let title = '';
+                if (typeVal === 'parking') title = 'חניה במקום אסור';
+                else if (typeVal === 'speeding') title = 'מהירות מופרזת';
+                else if (typeVal === 'phone') title = 'שימוש בטלפון נייד';
+                else title = typeVal.startsWith('other:') ? typeVal.substring(6) : typeVal;
+
+                return {
+                    id: r.Id,
+                    typeVal: typeVal,
+                    title: title,
+                    date: r.Date,
+                    dueDate: r.LastPaymentDate,
+                    amount: r.Amount,
+                    points: r.Points,
+                    location: r.Location,
+                    status: r.IsHandled ? 'paid' : 'unpaid',
+                    images: r.DocumentBase64 ? [r.DocumentBase64] : []
+                };
+            })
         };
 
         res.json(frontendCar);
@@ -655,10 +708,13 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         }
         if (car.reports && car.reports.length) {
             for (let r of car.reports) {
+                const reportType = r.typeVal || r.offenseType || '';
+                const isPaid = (r.status === 'paid' || r.isHandled === true);
                 await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, r.date || new Date())
-                    .input('Type', sql.NVarChar, r.offenseType || '').input('Amt', sql.Decimal(10, 2), r.amount || 0)
-                    .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, r.isHandled ? 1 : 0)
-                    .query('INSERT INTO Fines (VehicleId, Date, OffenseType, Amount, Location, Points, IsHandled) VALUES (@Vid, @Date, @Type, @Amt, @Loc, @Pts, @Han)');
+                    .input('Type', sql.NVarChar, reportType).input('Amt', sql.Decimal(10, 2), r.amount || 0)
+                    .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, isPaid ? 1 : 0)
+                    .input('Doc', sql.NVarChar, (r.images && r.images.length ? r.images[0] : ''))
+                    .query('INSERT INTO Fines (VehicleId, Date, OffenseType, Amount, Location, Points, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Type, @Amt, @Loc, @Pts, @Han, @Doc)');
             }
         }
         if (car.alerts && car.alerts.length) {
@@ -672,11 +728,25 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             const insMap = { 'mandatory': 'חובה', 'comprehensive': 'מקיף', 'thirdparty': 'צד ג' };
             for (let [key, typeHebrew] of Object.entries(insMap)) {
                 let ins = car.insurance[key];
-                if (ins && ins.date) {
+                if (ins && (ins.date || ins.expiryDate)) {
+                    const expiry = ins.date || ins.expiryDate;
                     await pool.request().input('Vid', sql.Int, vehicleId).input('Type', sql.NVarChar, typeHebrew)
-                        .input('Comp', sql.NVarChar, ins.company || '').input('Pol', sql.NVarChar, ins.policyNum || '').input('Exp', sql.NVarChar, ins.date || '')
-                        .input('Cost', sql.Decimal(10, 2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || '')
-                        .query('INSERT INTO Insurance (VehicleId, Type, Company, PolicyNumber, ExpiryDate, Cost, DocumentBase64) VALUES (@Vid, @Type, @Comp, @Pol, @Exp, @Cost, @Doc)');
+                        .input('Comp', sql.NVarChar, ins.company || ins.companyName || '')
+                        .input('Pol', sql.NVarChar, ins.policyNum || ins.policyNumber || '')
+                        .input('Exp', sql.Date, expiry ? 
+                            (String(expiry).includes('/') ? String(expiry).split('/').reverse().join('-') : expiry) : null)
+                        .input('Cost', sql.Decimal(10, 2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || ins.documentBase64 || '')
+                        .input('Towing', sql.NVarChar, ins.towing || ins.towingService || '')
+                        .input('Replacement', sql.NVarChar, ins.replacement || ins.replacementCar || '')
+                        .input('Glass', sql.NVarChar, ins.glass || ins.glassCoverage || '')
+                        .input('AgentName', sql.NVarChar, ins.agentName || '')
+                        .input('AgentPhone', sql.NVarChar, ins.agentPhone || '')
+                        .input('DriverLimit', sql.NVarChar, ins.driverLimit || '')
+                        .input('Deductible', sql.NVarChar, ins.deductible || '')
+                        .input('Protection', sql.NVarChar, ins.protection || ins.protectionMeasures || '')
+                        .query(`INSERT INTO Insurance (VehicleId, Type, CompanyName, PolicyNumber, ExpiryDate, Cost, DocumentBase64,
+                                                      TowingService, ReplacementCar, GlassCoverage, AgentName, AgentPhone, DriverLimit, Deductible, ProtectionMeasures) 
+                                VALUES (@Vid, @Type, @Comp, @Pol, @Exp, @Cost, @Doc, @Towing, @Replacement, @Glass, @AgentName, @AgentPhone, @DriverLimit, @Deductible, @Protection)`);
                 }
             }
         }
@@ -699,7 +769,7 @@ app.post('/api/chat', async (req, res) => {
         const carContext = req.body.carContext || 'אין נתונים זמינים לרכב זה כרגע.';
         const historyContext = req.body.history || [];
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
         let historyFormatted = [];
         historyFormatted.push({
@@ -809,6 +879,130 @@ app.post('/api/contact', async (req, res) => {
     } catch (err) {
         console.error('Contact endpoint error:', err);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// --- AI INSURANCE PARSING ---
+app.post('/api/ai/parse-insurance', async (req, res) => {
+    try {
+        const { mimeType, base64Data, insuranceType } = req.body;
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+
+        // Build a type-specific prompt for better extraction accuracy
+        let typeContext = '';
+        if (insuranceType === 'mandatory') {
+            typeContext = `זהו ביטוח חובה (RCA) ישראלי. שים לב: החברה המנפיקה עשויה להיות "קרנית", ישיר, מנורה, הפניקס, כלל וכד'. 
+            השדות הקריטיים לביטוח חובה הם: company (שם החברה/קרן), policyNum (מספר פוליסה/אסמכתא), 
+            cost (פרמיה שנתית), date (תוקף הפוליסה), agentName (שם הסוכן או מוקד שירות), agentPhone (טלפון).`;
+        } else if (insuranceType === 'comprehensive') {
+            typeContext = `זהו ביטוח מקיף לרכב. השדות הקריטיים הם: company, policyNum, cost, date,
+            towing (גרירה/סיוע דרך), replacement (רכב חלופי), glass (שמשות/זכוכיות),
+            agentName, agentPhone, driverLimit (מגבלת גיל נהגים), deductible (השתתפות עצמית), protection (מיגון נדרש).`;
+        } else if (insuranceType === 'thirdparty') {
+            typeContext = `זהו ביטוח צד ג' לרכב. השדות הקריטיים הם: company, policyNum, cost, date,
+            agentName, agentPhone, driverLimit (מגבלת גיל נהגים), deductible (השתתפות עצמית).`;
+        } else {
+            typeContext = `ביטוח רכב כללי.`;
+        }
+
+        const prompt = `אתה מערכת חכמה לפענוח פוליסות ביטוח רכב בישראל.
+        
+${typeContext}
+
+צרפתי מסמך ביטוח. חלץ ממנו את הפרטים ב-JSON בלבד.
+
+חוקים מחייבים:
+1. "date" = תאריך תפוגה/תוקף הפוליסה בלבד (לא תאריך הנפקה/כתיבה) - בפורמט DD/MM/YYYY. חפש מונחים כמו: "תוקף הפוליסה", "בתוקף עד", "valid until", "expiry", "תאריך סיום".
+2. "cost" = פרמיה שנתית סופית לתשלום - מספרים בלבד ללא ₪ או פסיקים.
+3. אל תמציא נתונים. אם שדה לא קיים במסמך = ערך ריק "".
+
+{
+  "company": "",
+  "policyNum": "",
+  "cost": "",
+  "date": "",
+  "towing": "",
+  "replacement": "",
+  "glass": "",
+  "agentName": "",
+  "agentPhone": "",
+  "driverLimit": "",
+  "deductible": "",
+  "protection": ""
+}`;
+
+        const result = await model.generateContent([
+            prompt,
+            { inlineData: { data: base64Data, mimeType: mimeType } }
+        ]);
+
+        let text = result.response.text().trim();
+        // Clean JSON formatting
+        text = text.replace(/```json|```/g, '').trim();
+        // Find the JSON object if there's extra text
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('No valid JSON in response');
+        
+        const data = JSON.parse(jsonMatch[0]);
+        res.json({ success: true, data: data });
+    } catch (err) {
+        console.error("Insurance parsing error:", err.message);
+        res.status(500).json({ success: false, error: "Failed to parse document", details: err.message });
+    }
+});
+
+// --- ENERGY PRICE CACHING ---
+const CACHE_FILE = path.join(__dirname, 'fuel_cache.json');
+const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+
+let isFetchingAI = false;
+
+app.get('/api/current-fuel-ai', async (req, res) => {
+    let cache = { fuel95: "8.05", fuel98: "9.80", elecKwh: "0.6186", lastFetch: 0 };
+    
+    // 1. Try to load from file
+    if (fs.existsSync(CACHE_FILE)) {
+        try {
+            const data = fs.readFileSync(CACHE_FILE, 'utf8');
+            cache = JSON.parse(data);
+        } catch (e) { console.error("Cache read error", e); }
+    }
+
+    const now = Date.now();
+    // 2. If valid cache exists, return it
+    if (now - cache.lastFetch < CACHE_DURATION && cache.lastFetch !== 0) {
+        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+    }
+
+    // 3. If already fetching, return current cache to avoid concurrency issues
+    if (isFetchingAI) {
+        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+    }
+
+    // 4. Fetch fresh data from Gemini
+    isFetchingAI = true;
+    try {
+        console.log("Fetching fresh Energy Prices from Gemini...");
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+        const prompt = `אתה עוזר מידע ישראלי המשיב רק ב-JSON. מהו המחיר הרשמי המעודכן בישראל (נכון להיום אפריל 2026) עבור בנזין 95, 98 וקוט"ש חשמל. {"fuel95": "8.05", "fuel98": "9.80", "elecKwh": "0.6186"}`;
+        const result = await model.generateContent(prompt);
+        const text = (await result.response).text().trim().replace(/```json|```/g, '').trim();
+        const newPrices = JSON.parse(text);
+        
+        cache = { ...newPrices, lastFetch: now };
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
+        console.log("Gemini Price Cache updated successfully.");
+        res.json(newPrices);
+    } catch (error) {
+        if (error.message.includes('429')) {
+            console.log("Gemini Quota Exceeded for prices - Serving cached data silently.");
+        } else {
+            console.error("Gemini Energy Price Error:", error.message);
+        }
+        // On error, return old cache but don't update lastFetch so we try again next time (or keep current)
+        res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+    } finally {
+        isFetchingAI = false;
     }
 });
 

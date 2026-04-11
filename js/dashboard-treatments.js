@@ -29,7 +29,7 @@ window.loadTreatments = function () {
         }
 
         tr.innerHTML = `
-            <td>${t.date}</td>
+            <td>${window.formatDate(t.date)}</td>
             <td>${t.type}</td>
             <td>${t.garage}</td>
             <td>${t.km.toLocaleString()}</td>
@@ -136,7 +136,7 @@ window.openEditTreatmentModal = function (tId) {
 
     document.getElementById('editTId').value = t.id;
     document.getElementById('editTName').value = t.type;
-    document.getElementById('editTDate').value = t.date;
+    document.getElementById('editTDate').value = window.toInputDate(t.date);
     document.getElementById('editTGarage').value = t.garage;
     document.getElementById('editTKm').value = t.km;
     document.getElementById('editTCost').value = t.cost;

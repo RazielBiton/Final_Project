@@ -85,6 +85,14 @@ signInButton.addEventListener('click', () => {
                 // שמירת המזהה של המשתמש לסשן
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('userName', data.fullName);
+                localStorage.setItem('userEmail', email);
+
+                // Initialize Profile Object for Sidebar and Settings
+                localStorage.setItem('loggedInUser', JSON.stringify({
+                    id: data.userId,
+                    fullName: data.fullName,
+                    email: email
+                }));
 
                 // הפעלת ה-Fade Out
                 document.body.classList.add('is-loading');

@@ -52,20 +52,25 @@
 
 @media (max-width: 768px) {
     .global-footer {
-        position: relative !important;
-        margin-top: 50px !important;
-        flex-direction: column !important;
-        gap: 15px !important;
-        padding: 20px 15px !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        margin-top: 0 !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        gap: 10px !important;
+        padding: 10px 15px !important;
     }
 
     .global-footer p {
-        font-size: 13px !important;
-        line-height: 1.5 !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        text-align: right !important;
     }
 
     .global-footer .footer-contact {
         margin: 0 !important;
-        font-size: 13px !important;
+        font-size: 11px !important;
+        padding: 5px 10px !important;
+        white-space: nowrap !important;
     }
 }

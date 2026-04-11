@@ -45,6 +45,7 @@ window.onclick = function (event) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
+    loadUserProfile();
     const row = document.getElementById('vehicleRow');
     const addWrapper = document.getElementById('addCardWrapper');
     
@@ -88,9 +89,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="card-menu">
                         <button class="menu-btn" onclick="toggleMenu(this)">⋮</button>
                         <div class="dropdown-content">
-                            <a href="#" onclick="previewCar(${car.id})">Preview</a>
-                            <a href="#" onclick="editCar(${car.id})">Edit</a>
-                            <a href="#" onclick="deleteCar(${car.id})" class="delete">Delete</a>
+                            <a href="javascript:void(0)" onclick="previewCar(${car.id})">Preview</a>
+                            <a href="javascript:void(0)" onclick="editCar(${car.id})">Edit</a>
+                            <a href="javascript:void(0)" onclick="deleteCar(${car.id})" class="delete">Delete</a>
                         </div>
                     </div>
                     <div class="picture">
@@ -222,5 +223,68 @@ async function saveVehicleDetails() {
     } catch (err) {
         console.error(err);
         alert('שגיאת תקשורת.');
+    }
+}
+
+function loadUserProfile() {
+    try {
+        let userStr = localStorage.getItem('loggedInUser');
+        if (!userStr && localStorage.getItem('userId')) {
+            // Backward compatibility for existing sessions
+            const fallbackUser = {
+                id: localStorage.getItem('userId'),
+                fullName: localStorage.getItem('userName') || 'משתמש',
+                email: localStorage.getItem('userEmail') || ''
+            };
+            userStr = JSON.stringify(fallbackUser);
+            localStorage.setItem('loggedInUser', userStr);
+        }
+
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            const nameEl = document.getElementById('sidebarUserName');
+            const imgEl = document.getElementById('sidebarUserImg');
+            
+            if (nameEl) nameEl.textContent = user.fullName || user.email || 'משתמש לא ידוע';
+            if (imgEl) {
+                if (user.avatar) {
+                    imgEl.src = user.avatar;
+                } else {
+                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.fullName || user.email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                }
+            }
+            
+            // Sync with DB
+            if (user.id) {
+                fetch('/api/user/me', { headers: { 'userid': user.id } })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.user) {
+                            const u = data.user;
+                            if (nameEl) nameEl.textContent = u.FullName || u.Email || 'משתמש לא ידוע';
+                            if (imgEl) {
+                                if (u.Avatar) {
+                                    imgEl.src = u.Avatar;
+                                } else {
+                                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.FullName || u.Email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                                }
+                            }
+                            
+                            // Keep LocalStorage fresh
+                            let localUser = JSON.parse(userStr);
+                            localUser.fullName = u.FullName;
+                            localUser.email = u.Email;
+                            localUser.phone = u.Phone;
+                            localUser.avatar = u.Avatar;
+                            localStorage.setItem('loggedInUser', JSON.stringify(localUser));
+                        }
+                    }).catch(err => console.warn("Background profile sync failed", err));
+            }
+        } else {
+            document.getElementById('sidebarUserName').textContent = 'אורח';
+            document.getElementById('sidebarUserImg').src = 'https://ui-avatars.com/api/?name=Guest&background=bbbec5&color=fff&rounded=true';
+        }
+    } catch(e) {
+        console.error("Failed to load user profile:", e);
     }
 }

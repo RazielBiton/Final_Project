@@ -24,10 +24,7 @@ window.loadAccidents = function () {
     const sortedAccidents = [...currentCar.accidents].sort((a, b) => {
         if (a.status === 'resolved' && b.status !== 'resolved') return 1;
         if (a.status !== 'resolved' && b.status === 'resolved') return -1;
-
-        const da = a.date.split('/').reverse().join('-');
-        const db = b.date.split('/').reverse().join('-');
-        return new Date(db) - new Date(da);
+        return (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0);
     });
 
     sortedAccidents.forEach(acc => {
@@ -105,7 +102,7 @@ window.loadAccidents = function () {
                         ${badgeHtml}
                     </div>
                     <h6 class="card-subtitle mb-3 text-muted">
-                        <i class="far fa-calendar-alt me-1"></i> ${acc.date} &nbsp;|&nbsp; 
+                        <i class="far fa-calendar-alt me-1"></i> ${window.formatDate(acc.date)} &nbsp;|&nbsp; 
                         <i class="fas fa-shekel-sign me-1"></i> ${parseInt(acc.cost).toLocaleString()}
                     </h6>
                     <p class="card-text text-secondary mb-3 flex-grow-1" style="font-size: 0.95rem;">${acc.description}</p>

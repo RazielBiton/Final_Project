@@ -1,179 +1,194 @@
-<!-- 4. REPORTS SECTION -->
+<!-- 7. REPORTS SECTION (UPGRADED - UNIFIED DESIGN) -->
 <div id="reports-section" class="dashboard-section d-none">
-
-
-
-    <div class="db-flex-between db-mb-3 mb-4">
-        <h4 class="m-0 fw-bold">דוחות וקנסות</h4>
-        <button class="db-btn btn-warning-custom fw-bold shadow-sm rounded-pill px-4 py-2 border-0"
-            onclick="openAddReportModal()">
+    
+    <!-- Header with vibrant title and button -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; background:linear-gradient(to right, #ffffff, #f8fafc); padding:1.5rem; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border:1px solid #e2e8f0; flex-wrap: wrap; gap: 15px; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -20px; left: -20px; width: 100px; height: 100px; background: rgba(245, 158, 11, 0.05); border-radius: 50%;"></div>
+        <div style="display:flex; align-items:center; gap:15px; position: relative; z-index: 1;">
+            <div style="width:50px; height:50px; background:linear-gradient(135deg, #f59e0b, #d97706); border-radius:15px; display:flex; justify-content:center; align-items:center; box-shadow:0 8px 16px rgba(245, 158, 11, 0.3);">
+                <i class="fas fa-file-invoice-dollar" style="color:white; font-size:1.4rem;"></i>
+            </div>
+            <div>
+                <h4 id="reportsCountTitle" style="margin:0; font-weight:900; color:#0f172a; font-size:1.4rem; letter-spacing: -0.5px;">דוחות, קנסות ונקודות</h4>
+                <div style="font-size:0.9rem; color:#64748b; margin-top: 2px; font-weight: 500;">ניהול עבירות תנועה, מעקב נקודות פעיל ותשלומים</div>
+            </div>
+        </div>
+        <button class="db-btn" onclick="openAddReportModal()" style="background:linear-gradient(135deg, #1e3a5f, #2d74d7); color:white; border:none; padding:10px 22px; border-radius:12px; font-weight:600; font-size:0.95rem; box-shadow:0 4px 15px rgba(45, 116, 215, 0.25); transition:all 0.2s; white-space: nowrap;">
             <i class="fas fa-plus me-2"></i> הוסף דוח ידני
         </button>
     </div>
 
     <!-- Empty State -->
-    <div id="reports-empty-state" class="alert alert-info border-0 shadow-sm"
-        style="background-color: #cff4fc; color: #055160; padding: 1rem; border-radius: 0.25rem;">
-        <i class="fas fa-info-circle me-2"></i> אין דוחות פתוחים או היסטוריים להצגה. סע בזהירות!
+    <div id="reports-empty-state" class="d-none text-center py-5" style="background:#fff; border-radius:16px; border:1px solid #f1f5f9;">
+        <i class="fas fa-shield-alt fa-3x text-light mb-3"></i>
+        <h5 class="text-muted">נהג למופת! אין דוחות רשומים במערכת</h5>
     </div>
 
-    <!-- Populated State -->
+    <!-- Populated State Container (REQUIRED BY JS) -->
     <div id="reports-populated-state" class="d-none">
-        <!-- Mandatory Courses Alerts Container -->
-        <div id="mandatory-courses-container" class="mb-3 d-none">
-            <!-- JS Injected -->
-        </div>
-
-        <!-- Top Summary Widgets -->
-        <div class="row mb-4">
-            <!-- Total Debt -->
-            <div class="col-md-6 mb-3 mb-md-0">
-                <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
-                    <div class="card-body d-flex align-items-center p-4">
-                        <div class="icon-lg-wrapper me-4" style="background-color: #fff3cd; color: #ffc107;">
-                            <i class="fas fa-shekel-sign fa-xl"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1 fw-bold">סה"כ לתשלום (פעילים)</h6>
-                            <h3 class="m-0 fw-bold text-dark" id="total-amount">₪ 0</h3>
-                        </div>
+        
+        <!-- Stats Row -->
+        <div class="db-row mb-4">
+            <!-- Total Debt Card -->
+            <div class="db-col-md-4 mb-3">
+                <div style="background:linear-gradient(135deg, #ffffff, #fff5f5); border:1px solid #fee2e2; border-radius:24px; padding:1.5rem; display:flex; align-items:center; justify-content:space-between; box-shadow:0 10px 25px rgba(239, 68, 68, 0.05); height: 100%; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(239, 68, 68, 0.03); border-radius: 50%;"></div>
+                    <div style="position: relative; z-index: 1;">
+                        <h3 id="total-amount" style="margin:0; font-weight:900; font-size:2.2rem; color:#ef4444; line-height:1; letter-spacing: -1px;">₪ 0</h3>
+                        <div style="font-size:0.9rem; color:#64748b; font-weight:700; margin-top:8px;">יתרת קנסות לתשלום</div>
+                        <a href="https://www.gov.il/he/service/police_fine_payment" target="_blank" style="display:inline-block; margin-top:10px; font-size:0.8rem; color:#ef4444; font-weight:800; text-decoration:none; background: #fff1f2; padding: 4px 12px; border-radius: 8px;">
+                            <i class="fas fa-external-link-alt me-1"></i> שלם עכשיו
+                        </a>
+                    </div>
+                    <div style="width:54px; height:54px; border-radius:16px; background:#fff1f2; display:flex; align-items:center; justify-content:center; border:1px solid #fecaca; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1);">
+                        <i class="fas fa-hand-holding-usd" style="color:#ef4444; font-size:1.4rem;"></i>
                     </div>
                 </div>
             </div>
-            <!-- Traffic Points Gauge -->
-            <div class="col-md-6">
-                <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
-                    <div class="card-body d-flex align-items-center p-4">
-                        <div class="icon-lg-wrapper me-4" style="background-color: #d1e7dd; color: #198754;"
-                            id="points-icon-wrapper">
-                            <i class="fas fa-tachometer-alt fa-xl" id="points-icon"></i>
+
+            <!-- Points Card -->
+            <div class="db-col-md-4 mb-3">
+                <div style="background:linear-gradient(135deg, #ffffff, #fefce8); border:1px solid #fef08a; border-radius:24px; padding:1.5rem; display:flex; align-items:center; justify-content:space-between; box-shadow:0 10px 25px rgba(245, 158, 11, 0.05); height: 100%; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(245, 158, 11, 0.03); border-radius: 50%;"></div>
+                    <div style="flex:1; position: relative; z-index: 1;">
+                        <div style="display:flex; align-items:baseline; gap:5px;">
+                            <h3 id="total-points" style="margin:0; font-weight:900; font-size:2.2rem; color:#854d0e; line-height:1; letter-spacing: -1px;">0</h3>
+                            <span style="font-size:1rem; color:#94a3b8; font-weight:700;">/ 36</span>
                         </div>
-                        <div>
-                            <h6 class="text-muted mb-1 fw-bold">נקודות תעבורה (פעילים)</h6>
-                            <h3 class="m-0 fw-bold text-success" id="total-points">0 <span
-                                    class="fs-6 text-muted fw-normal">/ 35</span>
-                            </h3>
+                        <div id="points-status-badge" style="display:inline-block; margin-top:8px; font-size:0.8rem; font-weight:800; padding:4px 12px; border-radius:8px; background:#fef9c3; color:#854d0e; border:1px solid #fde047;">סטטוס: נקי</div>
+                        <div class="progress mt-3" style="height:8px; background:#fef9c3; border-radius:10px; border: 1px solid rgba(253, 224, 71, 0.3);">
+                            <div id="points-progress-bar" class="progress-bar bg-warning shadow-sm" style="width:0%; border-radius: 10px;"></div>
                         </div>
                     </div>
+                    <div style="width:54px; height:54px; border-radius:16px; background:#fef9c3; display:flex; align-items:center; justify-content:center; border:1px solid #fef08a; margin-inline-start: 15px; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.1);">
+                        <i class="fas fa-tachometer-alt" style="color:#f59e0b; font-size:1.4rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Safety Insight -->
+            <div class="db-col-md-4 mb-3">
+                <div style="background:linear-gradient(135deg, #ffffff, #eff6ff); border:1px solid #dbeafe; border-radius:24px; padding:1.5rem; display:flex; flex-direction:column; justify-content:center; box-shadow:0 10px 25px rgba(59, 130, 246, 0.05); height: 100%; position:relative; overflow:hidden;">
+                    <h6 style="margin:0 0 10px 0; font-weight:900; font-size:0.9rem; color:#1e40af; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-robot animate-bounce" style="font-size: 1.1rem;"></i> תובנות בטיחות AI
+                    </h6>
+                    <div id="safety-insight-text" style="font-size:0.9rem; color:#1e3a8a; line-height:1.5; font-weight:600; font-style: italic;">
+                        המערכת מנתחת נתוני נהיגה...
+                    </div>
+                    <i class="fas fa-brain" style="position:absolute; bottom:-15px; left:-10px; font-size:4rem; color:#3b82f6; opacity:0.07;"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Active Reports List -->
-        <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-            <h5 class="m-0 fw-bold"><i class="fas fa-list-ul me-2 text-muted"></i> היסטוריית דוחות</h5>
+        <!-- Mandatory Courses Notification Area -->
+        <div id="mandatory-courses-container" class="mb-4"></div>
+
+        <!-- Events List Area -->
+        <div style="background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); border:1px solid #f1f5f9; padding: 1.2rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.2rem;">
+                <h5 style="margin:0; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-history text-muted"></i> היסטוריית אירועים
+                </h5>
+                <div class="dropdown">
+                    <button class="db-btn btn-sm bg-white border text-secondary px-3 py-1" id="reportFilterBtn" data-bs-toggle="dropdown" style="border-radius:8px; font-size:0.85rem; font-weight:600;">
+                        <i class="fas fa-filter me-1"></i> הכל
+                    </button>
+                    <ul class="dropdown-menu shadow-sm">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterReports('all')">הכל</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterReports('unpaid')">רק פתוחים</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterReports('paid')">שולמו בעבר</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="reports-list-container" style="display:flex; flex-direction:column; gap:12px;"></div>
         </div>
-
-        <!-- Container for dynamically added reports -->
-        <div id="reports-list-container"></div>
-
     </div>
-</div>
 
-<!-- Add Report Modal -->
-<div class="modal fade" id="addReportModal" tabindex="-1" aria-labelledby="addReportModalLabel" aria-hidden="true"
-    dir="rtl">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg my-4" style="border-radius: 16px; max-height: 90vh;">
-            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 position-relative">
-                <h5 class="modal-title fw-bold fs-4 text-dark">הוסף דוח חדש</h5>
-                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"
-                    style="position: absolute; left: 15px; top: 15px; z-index: 10;"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="add-report-form" onsubmit="saveReport(event)">
-                    <input type="hidden" id="reportIdField">
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold mb-1">סוג עבירה</label>
-                        <select id="report-type-select" class="form-select rounded-3 py-2 shadow-sm border-0 bg-light"
-                            style="cursor: pointer;" onchange="toggleCustomType(this.value)" required>
-                            <option value="" selected disabled>בחר סוג עבירה...</option>
-                            <option value="parking">חניה</option>
-                            <option value="speeding">מהירות</option>
-                            <option value="phone">טלפון</option>
-                            <option value="other">אחר</option>
-                        </select>
-                    </div>
-
-                    <!-- Custom input when "other" is selected -->
-                    <div class="mb-3" id="custom-type-container" style="display: none;">
-                        <label class="form-label text-muted small fw-bold mb-1">פרט סוג עבירה</label>
-                        <input type="text" id="report-type-custom"
-                            class="form-control rounded-3 py-2 shadow-sm border-0 bg-light"
-                            placeholder="הכנס תיאור עבירה...">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold mb-1">תאריך העבירה</label>
-                            <input type="date" id="report-date"
-                                class="form-control rounded-3 py-2 shadow-sm border-0 bg-light" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold mb-1">תאריך אחרון לתשלום</label>
-                            <input type="date" id="report-due-date"
-                                class="form-control rounded-3 py-2 shadow-sm border-0 bg-light" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold mb-1">מיקום העבירה</label>
-                        <input type="text" id="report-location"
-                            class="form-control rounded-3 py-2 shadow-sm border-0 bg-light"
-                            placeholder='לדוגמה: כביש 4, ק"מ 12' required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold mb-1">סכום הדוח (₪)</label>
-                            <input type="number" id="report-amount-input"
-                                class="form-control rounded-3 py-2 shadow-sm border-0 bg-light" placeholder="0" min="0"
-                                required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold mb-1">מספר נקודות</label>
-                            <input type="number" id="report-points-input"
-                                class="form-control rounded-3 py-2 shadow-sm border-0 bg-light" min="0" max="10"
-                                placeholder="0" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-4 mt-2">
-                        <label class="form-label text-muted small fw-bold mb-1">צילום הדוח</label>
-                        <div id="reportUploadPlaceholder" class="upload-area rounded-3 p-4 text-center bg-light"
-                            onclick="document.getElementById('reportImageInput').click()">
-                            <i class="fas fa-cloud-upload-alt fa-2x text-primary-custom mb-2"></i>
-                            <h6 class="mb-1 fw-bold text-dark">לחץ או גרור קובץ לכאן</h6>
-                            <small class="text-muted">ניתן להעלות מספר תמונות</small>
-                        </div>
-                        <input type="file" id="reportImageInput" class="d-none" multiple accept="image/*">
-
-                        <!-- Images Preview Container -->
-                        <div id="reportImagesPreviewContainer"
-                            class="d-none mt-3 p-3 bg-white rounded border shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-secondary small fw-bold"><i class="fas fa-images me-1"></i>תמונות
-                                    שהועלו</span>
-                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill"
-                                    onclick="clearReportImages()" style="font-size: 0.75rem;">
-                                    נקה הכל
-                                </button>
+    <!-- MODAL: ADD REPORT -->
+    <div class="modal fade" id="addReportModal" tabindex="-1" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+                <div class="modal-header py-4 border-0" style="background:linear-gradient(135deg, #1e3a5f, #2d74d7);">
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-plus-circle me-2"></i>הוספת דוח תנועה חדש</h5>
+                    <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form id="add-report-form">
+                        <input type="hidden" id="reportIdField">
+                        
+                        <!-- Event Details -->
+                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:1rem;">
+                            <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">פרטי האירוע</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">סוג עבירה</label>
+                                    <select id="report-type-select" class="form-select" onchange="toggleCustomType(this.value)" required style="border-radius:10px;">
+                                        <option value="" selected disabled>בחר סוג עבירה...</option>
+                                        <option value="parking">חניה</option>
+                                        <option value="speeding">מהירות</option>
+                                        <option value="phone">טלפון</option>
+                                        <option value="other">אחר (פרט...)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="custom-type-container" style="display: none;">
+                                        <label class="form-label fw-bold small">פרט סוג עבירה</label>
+                                        <input type="text" id="report-type-custom" class="form-control" placeholder="לדוגמה: אי ציות לתמרור" style="border-radius:10px;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">תאריך העבירה</label>
+                                    <input type="date" id="report-date" class="form-control" required style="border-radius:10px;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">מיקום העבירה</label>
+                                    <input type="text" id="report-location" class="form-control" placeholder='עיר, רחוב או צומת' required style="border-radius:10px;">
+                                </div>
                             </div>
-                            <!-- Flex wrap container for thumbnails -->
-                            <div id="reportImagesList" class="d-flex flex-wrap gap-2"></div>
+                        </div>
 
-                            <button type="button" class="btn btn-sm btn-outline-primary d-block w-100 mt-2 dashed-btn"
-                                onclick="document.getElementById('reportImageInput').click()">
-                                <i class="fas fa-plus me-1"></i> הוסף תמונות נוספות
+                        <!-- Fines and Points -->
+                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #fed7aa; margin-bottom:1rem;">
+                            <h6 class="fw-bold mb-3 text-warning border-bottom pb-2">תשלום ונקודות</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small">סכום הקנס (₪)</label>
+                                    <input type="number" id="report-amount-input" class="form-control" placeholder="0" min="0" required style="border-radius:10px;">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small">מספר נקודות</label>
+                                    <input type="number" id="report-points-input" class="form-control" min="0" max="36" placeholder="0" required style="border-radius:10px;">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small">תאריך אחרון לתשלום</label>
+                                    <input type="date" id="report-due-date" class="form-control" required style="border-radius:10px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reference Upload -->
+                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #e2e8f0;">
+                            <h6 class="fw-bold mb-3 text-muted border-bottom pb-2">צילומי דוחות (אופציונלי)</h6>
+                            <div id="reportUploadPlaceholder" class="p-4 text-center rounded-3 border-dashed" style="border:2px dashed #cbd5e1; background:#f8fafc; cursor:pointer;" onclick="document.getElementById('reportImageInput').click()">
+                                <i class="fas fa-camera fa-2x text-muted mb-2"></i>
+                                <h6 class="fw-bold m-0 text-muted">לחץ להעלאת צילום הדוח</h6>
+                            </div>
+                            <input type="file" id="reportImageInput" class="d-none" multiple accept="image/*">
+                            <div id="reportImagesPreviewContainer" class="d-none mt-3">
+                                <div id="reportImagesList" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="db-btn flex-grow-1 py-3 fw-bold" style="background:linear-gradient(135deg, #1e3a5f, #2d74d7); color:white; border:none; border-radius:12px; box-shadow: 0 4px 12px rgba(30, 58, 95, 0.2);">שמור דוח במערכת</button>
+                            <button type="button" class="btn btn-outline-secondary flex-grow-1 py-3 fw-bold shadow-sm" data-bs-dismiss="modal" 
+                                style="border-radius:12px; border: 2px solid #cbd5e1; background: white; color: #64748b; transition: all 0.2s;">
+                                <i class="fas fa-times me-2"></i> ביטול
                             </button>
                         </div>
-                    </div>
-
-                    <button type="submit"
-                        class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm bg-primary-custom border-0 fs-6 mt-2">
-                        שמור דוח
-                    </button>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

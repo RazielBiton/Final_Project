@@ -1,5 +1,3 @@
-// --- MODULE: REPORTS ---
-
 const offenseIcons = {
     'parking': 'fa-parking',
     'speeding': 'fa-tachometer-alt',
@@ -10,546 +8,403 @@ const offenseIcons = {
 const offenseTitles = {
     'parking': 'חניה במקום אסור',
     'speeding': 'מהירות מופרזת',
-    'phone': 'שימוש בטלפון נייד בעת נהיגה',
-    'other': 'עבירה אחרת'
-};
-
-let currentBase64ReportImages = [];
-
-window.compressImage = function (dataUrl, maxWidth, quality, callback) {
-    const img = new window.Image();
-    img.src = dataUrl;
-    img.onload = function () {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-            height = Math.round(height * maxWidth / width);
-            width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        callback(compressedDataUrl);
-    };
-    img.onerror = function () {
-        callback(dataUrl);
-    };
-};
-
-window.attachReportImageListener = function () {
-    const rImageInput = document.getElementById('reportImageInput');
-    if (!rImageInput) return;
-
-    rImageInput.onchange = function (e) {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    window.compressImage(event.target.result, 800, 0.7, function (compressed) {
-                        currentBase64ReportImages.push(compressed);
-                        window.renderReportImagesPreview();
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-    };
-};
-
-window.renderReportImagesPreview = function () {
-    const container = document.getElementById('reportImagesPreviewContainer');
-    const list = document.getElementById('reportImagesList');
-    const placeholder = document.getElementById('reportUploadPlaceholder');
-    if (!container || !list || !placeholder) return;
-
-    list.innerHTML = '';
-
-    if (currentBase64ReportImages.length > 0) {
-        placeholder.classList.add('d-none');
-        container.classList.remove('d-none');
-
-        currentBase64ReportImages.forEach((imgSrc, index) => {
-            const imgHtml = `
-            <div class="position-relative d-inline-block">
-                <img src="${imgSrc}" class="img-fluid rounded shadow-sm" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff;">
-                <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="removeReportImage(${index})" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%);">
-                    <i class="fas fa-times" style="font-size: 10px;"></i>
-                </button>
-            </div>`;
-            list.insertAdjacentHTML('beforeend', imgHtml);
-        });
-    } else {
-        placeholder.classList.remove('d-none');
-        container.classList.add('d-none');
-    }
-};
-
-window.removeReportImage = function (index) {
-    currentBase64ReportImages.splice(index, 1);
-    window.renderReportImagesPreview();
-};
-
-window.clearReportImages = function () {
-    currentBase64ReportImages = [];
-    const input = document.getElementById('reportImageInput');
-    if (input) input.value = '';
-    window.renderReportImagesPreview();
-};
-
-window.viewReportImage = function (reportId, imageIdx) {
-    const report = (currentCar.reports || []).find(r => r.id == reportId);
-    if (!report) return;
-    const imgSrc = report.images[imageIdx];
-    if (imgSrc) {
-        const modalImg = document.getElementById('invoicePreviewImg');
-        if (modalImg) modalImg.src = imgSrc;
-        new bootstrap.Modal(document.getElementById('invoiceModal')).show();
-    }
-};
-
-window.openAddReportModal = function () {
-    const typeSelect = document.getElementById('report-type-select');
-    if (typeSelect) typeSelect.value = '';
-    window.toggleCustomType('');
-
-    const form = document.getElementById('add-report-form');
-    if (form) form.reset();
-
-    const idField = document.getElementById('reportIdField');
-    if (idField) idField.value = '';
-
-    window.clearReportImages();
-    window.attachReportImageListener();
-    new bootstrap.Modal(document.getElementById('addReportModal')).show();
+    'phone': 'שימוש בטלפון נייד',
+    'other': 'עבירת תנועה'
 };
 
 window.loadReports = function () {
-    if (!currentCar.reports) currentCar.reports = [];
-
     const container = document.getElementById('reports-list-container');
     if (!container) return;
+
     container.innerHTML = '';
+    const reports = currentCar.reports || [];
 
-    // Sort: unpaid first, then by date descending
-    const sortedReports = [...currentCar.reports].sort((a, b) => {
-        if (a.status === 'paid' && b.status !== 'paid') return 1;
-        if (a.status !== 'paid' && b.status === 'paid') return -1;
-
-        const da = a.date.split('/').reverse().join('-');
-        const db = b.date.split('/').reverse().join('-');
-        return new Date(db) - new Date(da);
-    });
+    const sortedReports = [...reports].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     sortedReports.forEach(report => {
-        const isPaid = (report.status === 'paid');
-        const iconClass = offenseIcons[report.typeVal] || 'fa-file-invoice';
-
-        // Calculate days left
-        const today = new Date();
-        const dueDate = new Date(report.dueDate);
-        const timeDiff = dueDate.getTime() - today.getTime();
-        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-        const dateStr = report.date.split('-').reverse().join('/');
-        const dueDateStr = report.dueDate.split('-').reverse().join('/');
-
-        let statusText = 'נותרו ' + daysLeft + ' ימים לתשלום';
-        let statusClass = 'text-primary-custom';
-        let progressClass = 'bg-primary-custom';
-        let progressBg = '#e9ecef';
-        let progressPercent = 50;
-
-        if (daysLeft < 0) {
-            statusText = 'פג תוקף! איחור של ' + Math.abs(daysLeft) + ' ימים';
-            statusClass = 'text-danger';
-            progressClass = 'bg-danger';
-            progressBg = '#fee2e2';
-            progressPercent = 100;
-        } else if (daysLeft <= 3) {
-            statusText = 'נותרו ' + daysLeft + ' ימים לתשלום!';
-            statusClass = 'text-danger';
-            progressClass = 'bg-danger';
-            progressBg = '#fee2e2';
-            progressPercent = 90;
-        } else if (daysLeft > 30) {
-            progressPercent = 10;
+        const isPaid = report.status === 'paid';
+        
+        // Robust date parsing
+        const dateStr = window.formatDate(report.date);
+        const dueDateStr = window.formatDate(report.dueDate);
+        
+        let statusText = 'אין מועד תשלום מוגדר';
+        let statusClass = 'text-muted';
+        let progressClass = 'bg-secondary';
+        let progressPercent = 0;
+        
+        const dDate = report.dueDate ? new Date(report.dueDate) : null;
+        if (dDate && !isNaN(dDate.getTime())) {
+            const now = new Date();
+            const diffDays = Math.ceil((dDate - now) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) {
+                statusText = 'חלף מועד התשלום!';
+                statusClass = 'text-danger';
+                progressClass = 'bg-danger';
+                progressPercent = 100;
+            } else {
+                statusText = `נותרו ${diffDays} ימים לתשלום`;
+                progressPercent = Math.max(10, 100 - (diffDays * 2)); // Dynamic bar
+                if (diffDays <= 7) {
+                    statusClass = 'text-warning';
+                    progressClass = 'bg-warning';
+                } else {
+                    statusClass = 'text-success';
+                    progressClass = 'bg-success';
+                }
+            }
         }
 
-        if (isPaid) {
-            statusText = 'שולם בהצלחה';
-            statusClass = 'text-success fw-bold';
-            progressPercent = 100;
-            progressClass = 'bg-success';
-        }
-
-        const pointsBadgeClass = parseInt(report.points) > 0 ? 'bg-danger' : 'bg-secondary';
-        const cardBgClass = isPaid ? 'bg-light' : 'bg-white';
-        const filterStyle = isPaid ? 'filter: grayscale(80%) opacity(0.8);' : '';
-
+        const iconClass = offenseIcons[report.typeVal] || offenseIcons['other'];
+        
         let imageHtml = '';
         if (report.images && report.images.length > 0) {
-            let imgsHtml = report.images.map((img, idx) => `
-                <img src="${img}" class="img-fluid rounded shadow-sm m-1" style="height: 60px; width: 60px; object-fit: cover; cursor: pointer; display: inline-block; filter: ${isPaid ? 'grayscale(80%) opacity(0.8)' : 'none'};" onclick="viewReportImage('${report.id}', ${idx})" title="לחץ להגדלה">
-            `).join('');
-            imageHtml = `<div class="mt-3 text-start border-top pt-2">${imgsHtml}</div>`;
+            imageHtml = `
+                <div class="d-flex gap-2 mt-3 overflow-auto pb-2">
+                    ${report.images.map(img => `
+                        <img src="${img}" style="height: 60px; border-radius: 8px; cursor: pointer; border: 1px solid #e2e8f0;" 
+                             onclick="window.open('${img}')">
+                    `).join('')}
+                </div>`;
         }
 
         const cardHtml = `
-        <div class="card report-card border-0 shadow-sm mb-3 report-item" id="${report.id}" data-status="${report.status}" style="border-radius: 12px; overflow: hidden; background-color: ${isPaid ? '#e9ecef' : '#ffffff'}; ${filterStyle}">
-            <div class="card-body p-0">
-                <div class="d-flex align-items-center p-3 border-bottom ${cardBgClass} report-header">
-                    <div class="icon-lg-wrapper me-3" style="background-color: #e9ecef; color: #495057; width: 48px; height: 48px;">
-                        <i class="fas ${iconClass} fa-lg"></i>
+        <div class="db-card border-0 shadow-sm mb-3 report-item" id="report-${report.id}" data-id="${report.id}" data-status="${report.status}" 
+             style="border-radius: 14px; overflow: hidden; border:1px solid #f1f5f9; transition:all 0.3s; 
+             ${isPaid ? 'background:#f8fafc; opacity:0.85;' : 'background:#fff;'}">
+            <div class="p-3">
+                <div class="row align-items-center g-3 text-end" dir="rtl">
+                    <div class="col-md-5">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:48px; height:48px; min-width:48px; border-radius:12px; 
+                                 background:${isPaid ? '#f1f5f9' : '#fff7ed'}; 
+                                 display:flex; justify-content:center; align-items:center; border:1px solid ${isPaid ? '#e2e8f0' : '#fed7aa'};">
+                                <i class="fas ${iconClass}" style="color:${isPaid ? '#94a3b8' : '#f59e0b'}; font-size:1.2rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="m-0 fw-bold ${isPaid ? 'text-muted' : 'text-dark'}">${report.title || 'עבירת תנועה'}</h6>
+                                <div class="small mt-1" style="color:#64748b;">
+                                    <i class="fas fa-map-marker-alt ms-1"></i> ${report.location || 'מיקום לא צוין'}
+                                    <span class="mx-2 opacity-50">|</span>
+                                    <i class="far fa-calendar-alt ms-1"></i> ${dateStr}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 fw-bold text-dark">${report.title}</h6>
-                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                            <i class="fas fa-map-marker-alt ms-1 text-secondary"></i> ${report.location}
-                            <span class="mx-2 text-light">|</span>
-                            <i class="far fa-calendar-alt ms-1 text-secondary"></i> ${dateStr}
-                        </p>
+                    
+                    <div class="col-md-3 text-md-center">
+                        <div class="d-flex flex-md-column justify-content-center align-items-center gap-2">
+                            <div style="background:${isPaid ? '#f1f5f9' : '#fff5f5'}; padding:4px 12px; border-radius:8px;">
+                                <span class="fw-bold ${isPaid ? 'text-muted' : 'text-danger'}">₪${report.amount || 0}</span>
+                            </div>
+                            <div style="background:${isPaid ? '#f1f5f9' : '#fefce8'}; padding:4px 10px; border-radius:8px;">
+                                <span class="fw-bold ${isPaid ? 'text-muted' : 'text-warning'}" style="font-size:0.85rem;">${report.points || 0} נקודות</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-start ms-3">
-                        <div class="d-flex flex-column align-items-end">
-                            <div class="fw-bold fs-5 text-dark mb-1 report-amount" data-amount="${report.amount}">₪ ${report.amount}</div>
-                            <div class="badge ${pointsBadgeClass} rounded-pill px-2 py-1 fw-normal shadow-sm report-points"
-                                data-points="${report.points}">${report.points} נקודות</div>
+
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                             ${isPaid ?
+                `<div class="text-success fw-bold small me-2"><i class="fas fa-check-circle me-1"></i>שולמה</div>`
+                :
+                `<button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="markAsPaid('${report.id}')">סימון כשולם</button>
+                 <a href="https://www.gov.il/he/service/police_fine_payment" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">שלם</a>`
+            }
+                            <div style="width:1px; height:20px; background:#e2e8f0; margin:0 5px;"></div>
+                            <button class="btn btn-sm text-primary p-1" onclick="editReport('${report.id}')"><i class="fas fa-pen fa-xs"></i></button>
+                            <button class="btn btn-sm text-danger p-1" onclick="deleteReport('${report.id}')"><i class="fas fa-trash fa-xs"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex flex-column p-3 report-footer" style="background-color: ${isPaid ? '#e9ecef' : '#fcfcfc'};">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="flex-grow-1 me-4">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span class="${statusClass} payment-status-text">${statusText}</span>
-                                <span class="text-muted dead-line-text">לתשלום עד: ${dueDateStr}</span>
-                            </div>
-                            <div class="progress shadow-sm report-progress-container" style="height: 6px; border-radius: 10px; background-color: ${progressBg}; display: ${isPaid ? 'none' : 'flex'};">
-                                <div class="progress-bar ${progressClass} report-progress-bar" role="progressbar" style="width: ${progressPercent}%"></div>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2 ms-3 actions-container">
-                            ${isPaid ?
-                `<span class="badge bg-success rounded-pill px-3 py-2 fw-bold d-flex align-items-center"><i class="fas fa-check me-1"></i> שולם</span>`
-                :
-                `<button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold mark-paid-btn" onclick="markAsPaid('${report.id}')">סמן כשולם</button>
-                                 <a href="https://www.gov.il/he/service/police_fine_payment" target="_blank" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold bg-primary-custom border-0 shadow-sm pay-now-btn">שלם עכשיו</a>`
-            }
-                        </div>
+                ${!isPaid ? `
+                <div class="mt-3 pt-3 border-top" style="border-top-style: dashed !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-1 small fw-bold">
+                        <span class="${statusClass}">${statusText}</span>
+                        <span class="text-muted">לתשלום עד: ${dueDateStr}</span>
                     </div>
-                    ${imageHtml}
-                    <!-- Edit/Delete Buttons row -->
-                    <div class="d-flex align-items-center justify-content-end mt-2">
-                        <button class="btn btn-light btn-sm text-primary rounded-circle shadow-sm me-1" onclick="editReport('${report.id}')" title="ערוך">
-                            <i class="fas fa-pen"></i>
-                        </button>
-                        <button class="btn btn-light btn-sm text-danger rounded-circle shadow-sm" onclick="deleteReport('${report.id}')" title="מחק">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                     </div>
+                    <div class="progress" style="height: 6px; border-radius: 10px; background-color: #f1f5f9;">
+                         <div class="progress-bar ${progressClass}" style="width: ${progressPercent}%"></div>
+                    </div>
                 </div>
+                ` : ''}
+
+                ${imageHtml}
             </div>
         </div>`;
 
         container.insertAdjacentHTML('beforeend', cardHtml);
     });
 
-    updateVisibilityAndTotals();
+    setTimeout(() => {
+        updateVisibilityAndTotals();
+        generateSafetyInsights();
+    }, 150);
 }
 
-window.saveReport = function (e) {
-    if (e) e.preventDefault();
+window.updateVisibilityAndTotals = function () {
+    const emptyState = document.getElementById('reports-empty-state');
+    const populatedState = document.getElementById('reports-populated-state');
+    if (!emptyState || !populatedState) return;
 
-    const idField = document.getElementById('reportIdField').value;
-    const typeSelect = document.getElementById('report-type-select');
-    const customTypeInput = document.getElementById('report-type-custom');
-
-    // Gather inputs
-    const typeVal = typeSelect.value;
-    const customTitle = customTypeInput.value.trim();
-    const dateVal = document.getElementById('report-date').value;
-    const dueDateVal = document.getElementById('report-due-date').value;
-    const locationVal = document.getElementById('report-location').value;
-    const amountVal = document.getElementById('report-amount-input').value;
-    const pointsVal = document.getElementById('report-points-input').value;
-
-    const parsedPoints = parseInt(pointsVal) || 0;
-
-    // --- POINTS CAP VALIDATION ---
-    // Sum existing points (ignoring the report being edited)
-    let totalOtherPoints = 0;
-    if (currentCar.reports) {
-        currentCar.reports.forEach(r => {
-            if (idField && r.id == idField) return; // Skip currently edited report
-            totalOtherPoints += (parseInt(r.points) || 0);
-        });
-    }
-
-    if (totalOtherPoints + parsedPoints > 35) {
-        alert('לא ניתן לשמור דוח זה: חריגה מהמגבלה המקסימלית של 35 נקודות.\n(סה"כ נקודות אחרות: ' + totalOtherPoints + ')');
+    const reports = currentCar.reports || [];
+    if (reports.length === 0) {
+        emptyState.classList.remove('d-none');
+        populatedState.classList.add('d-none');
         return;
     }
-    // -----------------------------
 
-    let finalTitle = offenseTitles[typeVal];
-    if (typeVal === 'other' && customTitle !== '') {
-        finalTitle = customTitle;
+    emptyState.classList.add('d-none');
+    populatedState.classList.remove('d-none');
+
+    let totalAmount = 0;
+    let totalPoints = 0;
+
+    reports.forEach(r => {
+        totalPoints += (parseInt(r.points) || 0);
+        if (r.status !== 'paid') {
+            totalAmount += (parseInt(r.amount) || 0);
+        }
+    });
+
+    const amountEl = document.getElementById('total-amount');
+    if (amountEl) amountEl.textContent = '₪' + new Intl.NumberFormat('he-IL').format(totalAmount);
+
+    const pointsEl = document.getElementById('total-points');
+    const statusBadge = document.getElementById('points-status-badge');
+    const pointsProg = document.getElementById('points-progress-bar');
+
+    if (pointsEl) {
+        pointsEl.textContent = totalPoints;
+        let progWidth = Math.min((totalPoints / 36) * 100, 100);
+        if (pointsProg) {
+            pointsProg.style.width = progWidth + '%';
+            pointsProg.className = 'progress-bar ' + (totalPoints >= 24 ? 'bg-danger' : totalPoints >= 12 ? 'bg-warning' : 'bg-success');
+        }
+        
+        if (statusBadge) {
+            if (totalPoints === 0) {
+                statusBadge.textContent = 'סטטוס: נקי';
+                statusBadge.style.background = '#f0fdf4';
+                statusBadge.style.color = '#15803d';
+            } else if (totalPoints < 12) {
+                statusBadge.textContent = 'סטטוס: מעקב';
+                statusBadge.style.background = '#fefce8';
+                statusBadge.style.color = '#854d0e';
+            } else if (totalPoints < 24) {
+                statusBadge.textContent = 'סטטוס: אזהרה';
+                statusBadge.style.background = '#fff7ed';
+                statusBadge.style.color = '#9a3412';
+            } else {
+                statusBadge.textContent = 'סטטוס: קריטי';
+                statusBadge.style.background = '#fff1f2';
+                statusBadge.style.color = '#991b1b';
+            }
+        }
     }
+
+    const courseContainer = document.getElementById('mandatory-courses-container');
+    if (courseContainer) {
+        courseContainer.innerHTML = '';
+        if (totalPoints >= 12) {
+            const courseText = totalPoints >= 36 ? 'פסילת רישיון ל-3 חודשים' : 
+                               totalPoints >= 24 ? 'קורס נהיגה מונעת מתקדם' : 'קורס נהיגה נכונה בסיסי';
+            courseContainer.innerHTML = `
+                <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-3" style="border-radius:12px;">
+                    <i class="fas fa-exclamation-circle fa-lg"></i>
+                    <div><strong>שים לב:</strong> עקב צבירת ${totalPoints} נקודות, הנך נדרש ל:${courseText}.</div>
+                </div>`;
+        }
+    }
+}
+
+window.generateSafetyInsights = function () {
+    const textEl = document.getElementById('safety-insight-text');
+    if (!textEl) return;
+
+    const reports = currentCar.reports || [];
+    if (reports.length === 0) {
+        textEl.textContent = 'נהג למופת! המשך לשמור על חוקי התנועה.';
+        return;
+    }
+
+    const types = reports.reduce((acc, r) => {
+        acc[r.typeVal] = (acc[r.typeVal] || 0) + 1;
+        return acc;
+    }, {});
+
+    if (types['speeding']) {
+        const plural = types['speeding'] > 1 ? 'נרשמו מספר עבירות מהירות' : 'נרשמה עבירת מהירות';
+        textEl.textContent = `${plural}. מומלץ להשתמש בבקרת שיוט בכבישים מהירים לגילוי מוקדם של מצלמות.`;
+    } else if (types['phone']) {
+        const plural = types['phone'] > 1 ? 'נרשמו עבירות שימוש בנייד' : 'נרשמה עבירת שימוש בנייד';
+        textEl.textContent = `${plural}. התקן דיבורית איכותית ברכב כדי למנוע היסח דעת וקנסות כבדים.`;
+    } else if (types['parking']) {
+        textEl.textContent = 'נרשמו עבירות חניה. שים לב לשילוט עירוני והשתמש באפליקציות חניה חכמות.';
+    } else {
+        textEl.textContent = 'המערכת מנתחת את היסטוריית הנהיגה שלך... סע בזהירות!';
+    }
+}
+
+window.toggleCustomType = function(val) {
+    const container = document.getElementById('custom-type-container');
+    if (container) container.style.display = (val === 'other' ? 'block' : 'none');
+}
+
+window.openAddReportModal = function() {
+    const form = document.getElementById('add-report-form');
+    if (form) form.reset();
+    document.getElementById('reportIdField').value = '';
+    document.getElementById('custom-type-container').style.display = 'none';
+    document.getElementById('reportImagesPreviewContainer').classList.add('d-none');
+    document.getElementById('reportImagesList').innerHTML = '';
+    const modal = new bootstrap.Modal(document.getElementById('addReportModal'));
+    modal.show();
+}
+
+window.saveReport = function(e) {
+    e.preventDefault();
+    const id = document.getElementById('reportIdField').value;
+    const typeSelect = document.getElementById('report-type-select').value;
+    const typeCustom = document.getElementById('report-type-custom').value;
+    const typeVal = (typeSelect === 'other' ? ('other:' + typeCustom) : typeSelect);
+    
+    const imageElements = document.querySelectorAll('#reportImagesList img');
+    const images = Array.from(imageElements).map(img => img.src);
+
+    const reportData = {
+        id: id || Date.now().toString(),
+        typeVal: typeVal,
+        title: offenseTitles[typeSelect] || typeCustom || 'עבירת תנועה',
+        date: document.getElementById('report-date').value,
+        dueDate: document.getElementById('report-due-date').value,
+        location: document.getElementById('report-location').value,
+        amount: document.getElementById('report-amount-input').value,
+        points: document.getElementById('report-points-input').value,
+        status: 'unpaid',
+        images: images
+    };
 
     if (!currentCar.reports) currentCar.reports = [];
 
-    const newReport = {
-        id: idField ? parseInt(idField) : Date.now(),
-        typeVal: typeVal,
-        title: finalTitle,
-        customTitle: customTitle,
-        date: dateVal,
-        dueDate: dueDateVal,
-        location: locationVal,
-        amount: parseInt(amountVal),
-        points: parseInt(pointsVal),
-        images: [...currentBase64ReportImages],
-        status: idField ? (currentCar.reports.find(r => r.id == idField)?.status || 'unpaid') : 'unpaid'
-    };
-
-    if (idField) {
-        const idx = currentCar.reports.findIndex(r => r.id == idField);
+    if (id) {
+        const idx = currentCar.reports.findIndex(r => String(r.id) === String(id));
         if (idx > -1) {
-            currentCar.reports[idx] = newReport;
+            // Preserve status if editing an unpaid report but it might have been changed elsewhere
+            reportData.status = currentCar.reports[idx].status || 'unpaid';
+            currentCar.reports[idx] = reportData;
         }
     } else {
-        currentCar.reports.push(newReport);
+        currentCar.reports.push(reportData);
     }
 
+    const modalEl = document.getElementById('addReportModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+    
     saveToLocalStorage();
     loadReports();
-    if (typeof loadOverview === 'function') loadOverview();
+}
 
-    const addModal = bootstrap.Modal.getInstance(document.getElementById('addReportModal'));
-    if (addModal) addModal.hide();
-};
-
-window.editReport = function (reportId) {
-    const report = (currentCar.reports || []).find(r => r.id == reportId);
+window.editReport = function(id) {
+    const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (!report) return;
 
     document.getElementById('reportIdField').value = report.id;
-    const typeSelect = document.getElementById('report-type-select');
-    typeSelect.value = report.typeVal;
-
-    window.toggleCustomType(report.typeVal);
-
-    if (report.typeVal === 'other') {
-        document.getElementById('report-type-custom').value = report.customTitle || '';
-    }
-
-    document.getElementById('report-date').value = report.date;
-    document.getElementById('report-due-date').value = report.dueDate;
-    document.getElementById('report-location').value = report.location;
-    document.getElementById('report-amount-input').value = report.amount;
-    document.getElementById('report-points-input').value = report.points;
-
-    currentBase64ReportImages = report.images ? [...report.images] : [];
-    window.attachReportImageListener();
-    window.renderReportImagesPreview();
-
-    new bootstrap.Modal(document.getElementById('addReportModal')).show();
-};
-
-// Global function to toggle the custom input to ensure it fires reliably
-window.toggleCustomType = function (selectedValue) {
-    const customTypeContainer = document.getElementById('custom-type-container');
-    const customTypeInput = document.getElementById('report-type-custom');
-
-    if (!customTypeContainer || !customTypeInput) return;
-
-    if (selectedValue === 'other') {
-        customTypeContainer.style.display = 'block';
-        customTypeInput.setAttribute('required', 'required');
-        // Focus on the input purely for UX
-        setTimeout(() => customTypeInput.focus(), 50);
+    
+    const typeVal = report.typeVal || '';
+    if (typeVal.startsWith('other:')) {
+        document.getElementById('report-type-select').value = 'other';
+        document.getElementById('report-type-custom').value = typeVal.substring(6);
+        document.getElementById('custom-type-container').style.display = 'block';
     } else {
-        customTypeContainer.style.display = 'none';
-        customTypeInput.removeAttribute('required');
-        customTypeInput.value = '';
+        document.getElementById('report-type-select').value = typeVal;
+        document.getElementById('custom-type-container').style.display = 'none';
     }
-};
 
-window.markAsPaid = function (reportId) {
-    const report = (currentCar.reports || []).find(r => r.id == reportId);
+    document.getElementById('report-date').value = window.toInputDate(report.date);
+    document.getElementById('report-due-date').value = window.toInputDate(report.dueDate);
+    document.getElementById('report-location').value = report.location || '';
+    document.getElementById('report-amount-input').value = report.amount || 0;
+    document.getElementById('report-points-input').value = report.points || 0;
+
+    const previewContainer = document.getElementById('reportImagesPreviewContainer');
+    const list = document.getElementById('reportImagesList');
+    list.innerHTML = '';
+    if (report.images && report.images.length > 0) {
+        previewContainer.classList.remove('d-none');
+        report.images.forEach(img => {
+            const div = document.createElement('div');
+            div.className = 'position-relative';
+            div.innerHTML = `<img src="${img}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;">
+                             <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 start-0" style="padding:0 5px;" onclick="this.parentElement.remove()">×</button>`;
+            list.appendChild(div);
+        });
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('addReportModal'));
+    modal.show();
+}
+
+window.deleteReport = function(id) {
+    if (confirm('האם אתה בטוח שברצונך למחוק דוח זה?')) {
+        currentCar.reports = currentCar.reports.filter(r => String(r.id) !== String(id));
+        saveToLocalStorage();
+        loadReports();
+    }
+}
+
+window.markAsPaid = function(id) {
+    const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
         report.status = 'paid';
         saveToLocalStorage();
         loadReports();
-        if (typeof loadOverview === 'function') loadOverview();
     }
-};
+}
 
-window.deleteReport = function (reportId) {
-    if (confirm('האם אתה בטוח שברצונך למחוק דוח זה לצמיתות?')) {
-        const idx = (currentCar.reports || []).findIndex(r => r.id == reportId);
-        if (idx > -1) {
-            currentCar.reports.splice(idx, 1);
-            saveToLocalStorage();
-            loadReports();
-            if (typeof loadOverview === 'function') loadOverview();
-        }
-    }
-};
-
-window.updateVisibilityAndTotals = function () {
-    // Elements
-    const emptyState = document.getElementById('reports-empty-state');
-    const populatedState = document.getElementById('reports-populated-state');
+window.filterReports = function (status) {
     const container = document.getElementById('reports-list-container');
-
-    if (!emptyState || !populatedState || !container) return; // Prevent crash if not loaded
-
-    // Count total reports
-    const allReports = container.querySelectorAll('.report-item');
-
-    // If 0 reports at all, show empty, hide populated.
-    if (allReports.length === 0) {
-        emptyState.classList.remove('d-none');
-        populatedState.classList.add('d-none');
-        return;
-    } else {
-        emptyState.classList.add('d-none');
-        populatedState.classList.remove('d-none');
-    }
-
-    // Calculation variables
-    let totalAmount = 0;
-    let totalPoints = 0; // Historically we counted all points, active or paid. Points don't disappear when fine is paid.
-
-    // Iterate all reports for points
-    allReports.forEach(report => {
-        const pointsEl = report.querySelector('.report-points');
-        if (pointsEl && pointsEl.dataset.points) {
-            totalPoints += parseInt(pointsEl.dataset.points) || 0;
-        }
+    const items = container.querySelectorAll('.report-item');
+    const btn = document.getElementById('reportFilterBtn');
+    
+    btn.innerHTML = `<i class="fas fa-filter me-1"></i> ${status === 'all' ? 'הכל' : status === 'unpaid' ? 'רק פתוחים' : 'שולמו'}`;
+    
+    items.forEach(item => {
+        if (status === 'all') item.style.display = 'block';
+        else if (status === 'unpaid' && item.dataset.status !== 'paid') item.style.display = 'block';
+        else if (status === 'paid' && item.dataset.status === 'paid') item.style.display = 'block';
+        else item.style.display = 'none';
     });
-
-    // Iterate ONLY non-paid (active) reports to build the cash total
-    const activeReports = container.querySelectorAll('.report-item:not([data-status="paid"])');
-
-    activeReports.forEach(report => {
-        const amountEl = report.querySelector('.report-amount');
-        if (amountEl && amountEl.dataset.amount) {
-            totalAmount += parseInt(amountEl.dataset.amount) || 0;
-        }
-    });
-
-    // Update UI amount
-    const totalAmountEl = document.getElementById('total-amount');
-    if (totalAmountEl) totalAmountEl.textContent = '₪ ' + totalAmount;
-
-    // Update UI points
-    const pointsElement = document.getElementById('total-points');
-    const wrapper = document.getElementById('points-icon-wrapper');
-
-    if (pointsElement && wrapper) {
-        pointsElement.className = 'm-0 fw-bold';
-
-        if (totalPoints === 0) {
-            pointsElement.classList.add('text-success');
-            wrapper.style.backgroundColor = '#d1e7dd';
-            wrapper.style.color = '#198754';
-        } else if (totalPoints < 8) {
-            pointsElement.classList.add('text-warning');
-            wrapper.style.backgroundColor = '#fff3cd';
-            wrapper.style.color = '#ffc107';
-        } else {
-            pointsElement.classList.add('text-danger');
-            wrapper.style.backgroundColor = '#f8d7da';
-            wrapper.style.color = '#dc3545';
-        }
-
-        pointsElement.innerHTML = totalPoints + ' <span class="fs-6 text-muted fw-normal">/ 35</span>';
-    }
-
-    // --- MANDATORY DRIVING COURSES LOGIC ---
-    const courseContainer = document.getElementById('mandatory-courses-container');
-    if (courseContainer) {
-        courseContainer.innerHTML = '';
-        courseContainer.classList.add('d-none');
-
-        let courseHtml = '';
-        let hasAlertsOrHistory = false;
-
-        // Basic Course Logic (12 to 21 points, or if advanced is needed basic is also implicitly active unless done)
-        if (totalPoints >= 12) {
-            hasAlertsOrHistory = true;
-            if (currentCar.basicCourseDone) {
-                // History display
-                courseHtml += `
-                    <div class="alert alert-success border-0 shadow-sm p-3 mb-2 d-flex justify-content-between align-items-center" style="border-radius: 10px;">
-                        <div><i class="fas fa-check-circle me-2"></i> קורס נהיגה נכונה בסיסי ("נהיגה מונעת") בוצע ומעודכן בהיסטוריה.</div>
-                    </div>
-                `;
-            } else {
-                // Active alert
-                courseHtml += `
-                    <div class="alert alert-danger border-0 shadow-sm p-3 mb-2 d-flex justify-content-between align-items-center" style="border-radius: 10px;">
-                        <div>
-                            <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle me-2"></i> חובה לביצוע: קורס נהיגה נכונה בסיסי</h6>
-                            <small>צברת ${totalPoints} נקודות. עליך לעבור קורס נהיגה נכונה בסיסי ("נהיגה מונעת") ומבחן בסיומו.</small>
-                        </div>
-                        <button class="db-btn db-btn-sm btn-outline-danger fw-bold rounded-pill px-3" onclick="markCourseDone('basic')">סמן כבוצע</button>
-                    </div>
-                `;
-            }
-        }
-
-        // Advanced Course Logic (22 to 35 points)
-        if (totalPoints >= 22) {
-            hasAlertsOrHistory = true;
-            if (currentCar.advancedCourseDone) {
-                // History display
-                courseHtml += `
-                    <div class="alert alert-success border-0 shadow-sm p-3 mb-2 d-flex justify-content-between align-items-center" style="border-radius: 10px;">
-                        <div><i class="fas fa-check-double me-2"></i> קורס נהיגה נכונה ייעודי בוצע ומעודכן בהיסטוריה.</div>
-                    </div>
-                `;
-            } else {
-                // Active alert
-                courseHtml += `
-                    <div class="alert alert-danger border-0 shadow-sm p-3 mb-2 d-flex justify-content-between align-items-center" style="background-color: #f8d7da; border-radius: 10px; border-right: 4px solid #dc3545 !important;">
-                        <div>
-                            <h6 class="fw-bold mb-1 text-danger"><i class="fas fa-exclamation-triangle me-2"></i> חובה לביצוע: קורס נהיגה נכונה ייעודי !</h6>
-                            <small class="text-danger">צברת מעל 21 נקודות. עליך לעבור בנוסף קורס נהיגה ייעודי.</small>
-                        </div>
-                        <button class="db-btn db-btn-sm btn-danger text-white fw-bold rounded-pill px-3 shadow-sm" onclick="markCourseDone('advanced')">סמן כבוצע</button>
-                    </div>
-                `;
-            }
-        }
-
-        if (hasAlertsOrHistory) {
-            courseContainer.classList.remove('d-none');
-            courseContainer.innerHTML = courseHtml;
-        }
-    }
 }
 
-window.markCourseDone = function (type) {
-    if (confirm('האם אתה בטוח שברצונך לסמן קורס זה כבוצע? (הוא יועבר להיסטוריה)')) {
-        if (type === 'basic') {
-            currentCar.basicCourseDone = true;
-        } else if (type === 'advanced') {
-            currentCar.advancedCourseDone = true;
-        }
-        saveToLocalStorage();
-        updateVisibilityAndTotals();
+// Handle image uploads via button
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'reportImageInput') {
+        const files = e.target.files;
+        const list = document.getElementById('reportImagesList');
+        const previewContainer = document.getElementById('reportImagesPreviewContainer');
+        
+        if (files.length > 0) previewContainer.classList.remove('d-none');
+        
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const div = document.createElement('div');
+                div.className = 'position-relative';
+                div.innerHTML = `<img src="${event.target.result}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;">
+                                 <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 start-0" style="padding:0 5px;" onclick="this.parentElement.remove()">×</button>`;
+                list.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
     }
-}
+});
 
+// INITIALIZE FORM SUBMISSION VIA DELEGATION (Crucial for dynamic loading)
+document.addEventListener('submit', function(e) {
+    if (e.target && e.target.id === 'add-report-form') {
+        window.saveReport(e);
+    }
+});

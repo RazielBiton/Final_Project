@@ -195,12 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (c.disabledBadge) ctx += `משויך לקטגוריית: ${c.disabledBadge}. `;
 
         if (typeof window.calculateReliability === 'function') {
-            ctx += `\nציון אמינות מערכתי (EasyCare Score): ${window.calculateReliability(c)}%. `;
+            const relData = window.calculateReliability(c);
+            ctx += `\nציון אמינות מערכתי (EasyCare Score): ${relData.score}%. החוסרים: ${relData.missing.length ? relData.missing.join(', ') : 'אין חוסרים'}. `;
         }
 
         ctx += `\n\nטיפולים (היסטוריית מוסך): `;
         if (c.treatments && c.treatments.length) {
-            c.treatments.forEach(t => ctx += `\n- תאריך ${t.date ? t.date.split('-').reverse().join('/') : ''} | סוג: ${t.name} ע"י מוסך ${t.garage}. ק"מ מתועד: ${t.km}, חויב: ₪${t.cost}.`);
+            c.treatments.forEach(t => ctx += `\n- תאריך ${t.date ? t.date.split('-').reverse().join('/') : ''} | סוג: ${t.type || t.name} ע"י מוסך ${t.garage}. ק"מ מתועד: ${t.km}, חויב: ₪${t.cost}. פירוט: ${t.description || ''}`);
         } else { ctx += 'אפס טיפולים מוזנים.'; }
 
         ctx += `\n\nביטוחים זמינים: `;
@@ -211,13 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx += `\n\nתאונות ודוחות שמאי: `;
         if (c.accidents && c.accidents.length) {
-            c.accidents.forEach(a => ctx += `\n- תאריך ${a.date ? a.date.split('-').reverse().join('/') : ''} | מיקום ופירוט: ${a.description}. עלות משוערת: ₪${a.damageCost}.`);
+            c.accidents.forEach(a => ctx += `\n- תאריך ${a.date ? a.date.split('-').reverse().join('/') : ''} | כותרת: ${a.title || ''}. תיאור: ${a.description || ''}. פרטי נזק: ${a.damageDetails || ''}. עלות: ₪${a.repairCost}. טופל? ${a.isHandled ? 'כן' : 'לא'}`);
         } else { ctx += 'אפס תאונות מתועדות (זה דבר חיובי).'; }
 
-        ctx += `\n\nהיסטוריית תדלוק (דלק): `;
+        ctx += `\n\nהיסטוריית תדלוק (דלק/חשמל): `;
         if (c.fuelLog && c.fuelLog.length) {
-            c.fuelLog.slice(0, 5).forEach(f => ctx += `\n- ב-${f.date ? f.date.split('-').reverse().join('/') : ''} תודלק ${f.liters} ליטר. מחיר כולל: ₪${f.cost}. מס' שעות מנוע (ק"מ מדד): ${f.currentKm}`);
+            c.fuelLog.slice(0, 5).forEach(f => ctx += `\n- ב-${f.date ? f.date.split('-').reverse().join('/') : ''} בשעה ${f.time || ''} תודלק ${f.amount || f.liters} ${f.energyType === 'electricity' ? 'קוט"ש (חשמל)' : 'ליטר (דלק)'}. מחיר לליטר/קוט"ש: ₪${f.pricePerLiter || 0}. מחיר כולל: ₪${f.cost}. מס' שעות מנוע (ק"מ מדד): ${f.currentKm || ''}`);
         } else { ctx += 'לא תועדו תדלוקים.'; }
+
+        ctx += `\n\nהוצאות כלליות על הרכב: `;
+        if (c.expenses && c.expenses.length) {
+            c.expenses.forEach(e => ctx += `\n- תאריך ${e.date ? e.date.split('-').reverse().join('/') : ''} | קטגוריה: ${e.type}. סכום: ₪${e.amount}. פירוט: ${e.notes || ''}`);
+        } else { ctx += 'אין פעולות הוצאות מתועדות.'; }
+
+        ctx += `\n\nקנסות ודוחות: `;
+        if (c.reports && c.reports.length) {
+            c.reports.forEach(r => ctx += `\n- תאריך ${r.date ? r.date.split('-').reverse().join('/') : ''} | עבירה: ${r.offenseType}. מקום: ${r.location || ''}. קנס: ${r.amount} ש"ח, נקודות גיליון: ${r.points || 0}. ${r.isHandled ? 'טופל.' : 'ממתין לטיפול!'}`);
+        } else { ctx += 'ללא קנסות או דוחות.'; }
+
+        ctx += `\n\nהתראות מערכת: `;
+        if (c.alerts && c.alerts.length) {
+            c.alerts.forEach(a => ctx += `\n- נושא: ${a.title} | פירוט: ${a.description || ''} | תאריך/יעד: ${a.date ? a.date.split('-').reverse().join('/') : ''} | דחיפות: ${a.urgency} | פעיל? ${a.isActive ? 'כן' : 'לא'}`);
+        } else { ctx += 'אין התראות במערכת.'; }
 
         ctx += `\n\nלהלן אובייקט הנתונים המלא והמוחלט של הרכב מתוך הדאטה-בייס (לשימושך החופשי במידה ומשהו חסר למעלה):\n${JSON.stringify(sanitizedCar)}`;
 

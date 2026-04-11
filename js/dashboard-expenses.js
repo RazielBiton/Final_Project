@@ -139,7 +139,7 @@ function loadExpenses() {
     }
 
     // Sort descending by date
-    const sortedExpenses = [...currentCar.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedExpenses = [...currentCar.expenses].sort((a, b) => (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0));
 
     let html = '<div class="db-list-group db-list-group-flush">';
     sortedExpenses.forEach(exp => {
@@ -160,7 +160,7 @@ function loadExpenses() {
                     </div>
                     <div>
                         <h6 class="m-0 fw-bold primary-text">${typeLabel}</h6>
-                        <small class="text-muted">${new Date(exp.date).toLocaleDateString('he-IL')} ${exp.notes ? ' | ' + exp.notes : ''}</small>
+                        <small class="text-muted">${window.formatDate(exp.date)} ${exp.notes ? ' | ' + exp.notes : ''}</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center">

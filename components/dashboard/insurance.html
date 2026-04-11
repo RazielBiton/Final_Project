@@ -1,93 +1,129 @@
 <!-- 3. INSURANCE SECTION -->
 <div id="insurance-section" class="dashboard-section d-none">
-    <div class="db-flex-between db-mb-3 mb-4">
-        <h4 class="m-0">ביטוחים ורישוי</h4>
+    
+    <!-- Top Header & Stats -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; background:#fff; padding:1.2rem; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,0.03); border:1px solid #f1f5f9; flex-wrap: wrap; gap: 15px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:44px; height:44px; background:linear-gradient(135deg, #10b981, #047857); border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 12px rgba(16, 185, 129, 0.25);">
+                <i class="fas fa-shield-alt" style="color:white; font-size:1.2rem;"></i>
+            </div>
+            <div>
+                <h4 class="m-0" style="font-weight:800; color:#1e293b; font-size:1.2rem;">ביטוחים ורישוי</h4>
+                <div style="font-size:0.8rem; color:#64748b; margin-top: 2px;">ניהול ותעריפי ביטוחים פעילים</div>
+            </div>
+        </div>
+        
+        <!-- Total costs display in the header -->
+        <div style="display:flex; gap: 1.2rem; align-items:center; flex-wrap: wrap;">
+            <div style="text-align: right; padding-left: 1.2rem; border-left: 2px solid #f1f5f9;" id="hdr-breakdown">
+                <div style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom: 3px;">פירוט ביטוחים:</div>
+                <div style="font-size:0.85rem; color:#1e293b; font-weight:600; display: flex; gap: 10px;">
+                    <div>חובה: <span id="hdr-cost-mandatory" style="font-weight:800; color:#10b981;">0 ₪</span></div>
+                    <div>מקיף: <span id="hdr-cost-comprehensive" style="font-weight:800; color:#10b981;">0 ₪</span></div>
+                    <div>צ"ג: <span id="hdr-cost-thirdparty" style="font-weight:800; color:#10b981;">0 ₪</span></div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size:0.75rem; color:#64748b; font-weight:700; text-transform: uppercase;">סה״כ עלות שנתית</div>
+                <div style="font-weight:800; font-size:1.6rem; color:#10b981; line-height: 1.1;" id="hdr-cost-total">0 ₪</div>
+            </div>
+        </div>
     </div>
 
+    <!-- Insurance Cards Grid -->
     <div class="db-row">
         <!-- Mandatory Insurance -->
-        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-4">
-            <div class="db-card h-100 shadow-sm border-0" id="card-ins-mandatory">
-                <div class="db-card-body text-center position-relative">
-                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3" id="status-mandatory">חסר</span>
-                    <i class="fas fa-shield-alt fa-3x text-primary mb-3 mt-2"></i>
-                    <h5 class="card-title fw-bold">ביטוח חובה</h5>
-                    <div class="text-muted small mb-3 insurance-details">
-                        <div class="mb-1">חברה: <span id="company-mandatory" class="fw-bold text-dark">--</span></div>
-                        <div class="mb-1">פוליסה: <span id="policy-mandatory" class="fw-bold text-dark">--</span></div>
-                        <div class="mb-1">עלות: <span id="cost-mandatory" class="fw-bold text-dark">--</span></div>
-                        <div>תוקף: <span id="date-mandatory" class="fw-bold text-dark">--</span></div>
+        <div class="db-col-lg-4 db-col-md-6 mb-4">
+            <div id="card-ins-mandatory" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; position:relative; transition:all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <span class="badge" id="status-mandatory" style="position:absolute; top:1.2rem; left:1.2rem; padding:6px 10px; border-radius:8px; font-weight:700;">חסר</span>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.2rem;">
+                    <div style="width:42px; height:42px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; border: 1px solid #bfdbfe;">
+                        <i class="fas fa-file-medical-alt text-primary" style="font-size:1.2rem;"></i>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="db-btn db-btn-sm db-btn-outline-primary"
-                            onclick="openEditInsurance('mandatory')">
-                            <i class="fas fa-edit"></i> ערוך
-                        </button>
-                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-mandatory"
-                            onclick="viewInsuranceDoc('mandatory')">
-                            <i class="fas fa-file-image"></i> מסמך
-                        </button>
+                    <h5 style="margin:0; font-weight:800; color:#1e293b;">ביטוח חובה</h5>
+                </div>
+                
+                <div style="background:rgba(255,255,255,0.7); border-radius:12px; padding:1rem; border:1px solid rgba(0,0,0,0.05); margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">חברה:</span><span id="company-mandatory" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">פוליסה:</span><span id="policy-mandatory" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">תוקף:</span><span id="date-mandatory" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #cbd5e1;"><span style="color:#64748b; font-weight:700;">עלות שנתית:</span><span id="cost-mandatory" style="font-weight:900; color:#10b981; font-size:1.05rem;">--</span></div>
+
+                    <div id="extra-btn-mandatory" class="d-none text-center mt-3 pt-2" style="border-top:1px solid #f1f5f9;">
+                         <button onclick="document.getElementById('extra-info-mandatory').classList.toggle('d-none')" style="background:transparent; border:none; color:#3b82f6; font-size:0.85rem; font-weight:700; cursor:pointer;"><i class="fas fa-chevron-circle-down"></i> הראה מידע נוסף</button>
                     </div>
+                    <div id="extra-info-mandatory" class="d-none mt-2 pt-2 bg-white" style="border-radius:12px; border:1px solid #e2e8f0; padding:10px;">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button onclick="openEditInsurance('mandatory')" style="flex:1; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:8px; font-weight:700; color:#475569; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#f1f5f9';"><i class="fas fa-edit me-1"></i> ערוך</button>
+                    <button id="view-mandatory" class="d-none" onclick="viewInsuranceDoc('mandatory')" title="צפייה בביטוח" style="flex:1; background:#ffffff; border:1px solid #10b981; border-radius:10px; padding:8px; font-weight:700; color:#10b981; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#ecfdf5';"><i class="fas fa-file-image me-1"></i> מסמך</button>
+                    <button onclick="window.deleteInsuranceType('mandatory')" title="מחיקת ביטוח" style="width:42px; background:#fff; border:1px solid #fee2e2; border-radius:10px; color:#ef4444; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#fef2f2';"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
 
         <!-- Comprehensive Insurance -->
-        <div class="db-col-sm-6 db-col-md-6 db-col-lg-4 mb-4">
-            <div class="db-card h-100 shadow-sm border-0" id="card-ins-comprehensive">
-                <div class="db-card-body text-center position-relative">
-                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3"
-                        id="status-comprehensive">חסר</span>
-                    <i class="fas fa-car-crash fa-3x text-info mb-3 mt-2"></i>
-                    <h5 class="card-title fw-bold">ביטוח מקיף</h5>
-                    <div class="text-muted small mb-3 insurance-details">
-                        <div class="mb-1">חברה: <span id="company-comprehensive" class="fw-bold text-dark">--</span>
-                        </div>
-                        <div class="mb-1">פוליסה: <span id="policy-comprehensive" class="fw-bold text-dark">--</span>
-                        </div>
-                        <div class="mb-1">עלות: <span id="cost-comprehensive" class="fw-bold text-dark">--</span></div>
-                        <div>תוקף: <span id="date-comprehensive" class="fw-bold text-dark">--</span></div>
+        <div class="db-col-lg-4 db-col-md-6 mb-4">
+            <div id="card-ins-comprehensive" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; position:relative; transition:all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <span class="badge" id="status-comprehensive" style="position:absolute; top:1.2rem; left:1.2rem; padding:6px 10px; border-radius:8px; font-weight:700;">חסר</span>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.2rem;">
+                    <div style="width:42px; height:42px; border-radius:50%; background:#f0fdfa; display:flex; align-items:center; justify-content:center; border: 1px solid #a7f3d0;">
+                        <i class="fas fa-car-crash text-teal-500" style="font-size:1.2rem; color: #14b8a6;"></i>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="db-btn db-btn-sm db-btn-outline-info"
-                            onclick="openEditInsurance('comprehensive')">
-                            <i class="fas fa-edit"></i> ערוך
-                        </button>
-                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-comprehensive"
-                            onclick="viewInsuranceDoc('comprehensive')">
-                            <i class="fas fa-file-image"></i> מסמך
-                        </button>
+                    <h5 style="margin:0; font-weight:800; color:#1e293b;">ביטוח מקיף</h5>
+                </div>
+                
+                <div style="background:rgba(255,255,255,0.7); border-radius:12px; padding:1rem; border:1px solid rgba(0,0,0,0.05); margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">חברה:</span><span id="company-comprehensive" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">פוליסה:</span><span id="policy-comprehensive" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">תוקף:</span><span id="date-comprehensive" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #cbd5e1;"><span style="color:#64748b; font-weight:700;">עלות שנתית:</span><span id="cost-comprehensive" style="font-weight:900; color:#10b981; font-size:1.05rem;">--</span></div>
+                    
+                    <div id="extra-btn-comprehensive" class="d-none text-center mt-3 pt-2" style="border-top:1px solid #f1f5f9;">
+                         <button onclick="document.getElementById('extra-info-comprehensive').classList.toggle('d-none')" style="background:transparent; border:none; color:#14b8a6; font-size:0.85rem; font-weight:700; cursor:pointer;"><i class="fas fa-chevron-circle-down"></i> הראה מידע נוסף</button>
                     </div>
+                    <div id="extra-info-comprehensive" class="d-none mt-2 pt-2 bg-white" style="border-radius:12px; border:1px solid #e2e8f0; padding:10px;">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button onclick="openEditInsurance('comprehensive')" style="flex:1; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:8px; font-weight:700; color:#475569; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#f1f5f9';"><i class="fas fa-edit me-1"></i> ערוך</button>
+                    <button id="view-comprehensive" class="d-none" onclick="viewInsuranceDoc('comprehensive')" title="צפייה בביטוח" style="flex:1; background:#ffffff; border:1px solid #14b8a6; border-radius:10px; padding:8px; font-weight:700; color:#14b8a6; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#f0fdfa';"><i class="fas fa-file-image me-1"></i> מסמך</button>
+                    <button onclick="window.deleteInsuranceType('comprehensive')" title="מחיקת ביטוח" style="width:42px; background:#fff; border:1px solid #fee2e2; border-radius:10px; color:#ef4444; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#fef2f2';"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
 
         <!-- Third Party Insurance -->
-        <div class="db-col-md-4 mb-4">
-            <div class="db-card h-100 shadow-sm border-0" id="card-ins-thirdparty">
-                <div class="db-card-body text-center position-relative">
-                    <span class="badge bg-secondary position-absolute top-0 end-0 m-3" id="status-thirdparty">חסר</span>
-                    <i class="fas fa-user-shield fa-3x text-warning mb-3 mt-2"></i>
-                    <h5 class="card-title fw-bold">ביטוח צד ג'</h5>
-                    <div class="text-muted small mb-3 insurance-details">
-                        <div class="mb-1">חברה: <span id="company-thirdparty" class="fw-bold text-dark">--</span></div>
-                        <div class="mb-1">פוליסה: <span id="policy-thirdparty" class="fw-bold text-dark">--</span></div>
-                        <div class="mb-1">עלות: <span id="cost-thirdparty" class="fw-bold text-dark">--</span></div>
-                        <div>תוקף: <span id="date-thirdparty" class="fw-bold text-dark">--</span></div>
+        <div class="db-col-lg-4 db-col-md-6 mb-4">
+            <div id="card-ins-thirdparty" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; position:relative; transition:all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <span class="badge" id="status-thirdparty" style="position:absolute; top:1.2rem; left:1.2rem; padding:6px 10px; border-radius:8px; font-weight:700;">חסר</span>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.2rem;">
+                    <div style="width:42px; height:42px; border-radius:50%; background:#fff7ed; display:flex; align-items:center; justify-content:center; border: 1px solid #fed7aa;">
+                        <i class="fas fa-user-shield text-warning" style="font-size:1.2rem; color:#f97316 !important;"></i>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="db-btn db-btn-sm db-btn-outline-warning"
-                            onclick="openEditInsurance('thirdparty')">
-                            <i class="fas fa-edit"></i> ערוך
-                        </button>
-                        <button class="db-btn db-btn-sm db-btn-outline-success d-none" id="view-thirdparty"
-                            onclick="viewInsuranceDoc('thirdparty')">
-                            <i class="fas fa-file-image"></i> מסמך
-                        </button>
+                    <h5 style="margin:0; font-weight:800; color:#1e293b;">ביטוח צד ג'</h5>
+                </div>
+                
+                <div style="background:rgba(255,255,255,0.7); border-radius:12px; padding:1rem; border:1px solid rgba(0,0,0,0.05); margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">חברה:</span><span id="company-thirdparty" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">פוליסה:</span><span id="policy-thirdparty" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span style="color:#64748b; font-size:0.9rem; font-weight:600;">תוקף:</span><span id="date-thirdparty" style="font-weight:800; color:#1e293b;">--</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #cbd5e1;"><span style="color:#64748b; font-weight:700;">עלות שנתית:</span><span id="cost-thirdparty" style="font-weight:900; color:#10b981; font-size:1.05rem;">--</span></div>
+                    
+                    <div id="extra-btn-thirdparty" class="d-none text-center mt-3 pt-2" style="border-top:1px solid #f1f5f9;">
+                         <button onclick="document.getElementById('extra-info-thirdparty').classList.toggle('d-none')" style="background:transparent; border:none; color:#f97316; font-size:0.85rem; font-weight:700; cursor:pointer;"><i class="fas fa-chevron-circle-down"></i> הראה מידע נוסף</button>
                     </div>
+                    <div id="extra-info-thirdparty" class="d-none mt-2 pt-2 bg-white" style="border-radius:12px; border:1px solid #e2e8f0; padding:10px;">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button onclick="openEditInsurance('thirdparty')" style="flex:1; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:8px; font-weight:700; color:#475569; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#f1f5f9';"><i class="fas fa-edit me-1"></i> ערוך</button>
+                    <button id="view-thirdparty" class="d-none" onclick="viewInsuranceDoc('thirdparty')" title="צפייה בביטוח" style="flex:1; background:#ffffff; border:1px solid #f97316; border-radius:10px; padding:8px; font-weight:700; color:#f97316; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#fff7ed';"><i class="fas fa-file-image me-1"></i> מסמך</button>
+                    <button onclick="window.deleteInsuranceType('thirdparty')" title="מחיקת ביטוח" style="width:42px; background:#fff; border:1px solid #fee2e2; border-radius:10px; color:#ef4444; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.background='#fef2f2';"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
@@ -96,46 +132,122 @@
 
 <!-- Edit Insurance Modal -->
 <div class="modal fade" id="editInsuranceModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editInsuranceModalTitle">עריכת ביטוח</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="editInsuranceModalTitle">עריכת ביטוח</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editInsuranceForm">
                     <input type="hidden" id="insType">
-                    <div class="mb-3">
-                        <label class="form-label">חברת בטוח</label>
-                        <input type="text" class="db-form-control" id="insCompany" placeholder="לדוג': הראל, פניקס...">
+                    
+                    <div class="db-card p-3 mb-4 text-center" style="border:1px dashed #3b82f6; border-radius:12px; background:#eff6ff;">
+                        <p class="small text-muted mb-2 fw-bold" style="color:#1e40af !important;">יש לכם PDF של הפוליסה? תנו ל-AI למלא הכל אוטומטית!</p>
+                        <button type="button" class="db-btn" style="background:#3b82f6; color:white; font-weight:700; border-radius:8px;" onclick="document.getElementById('aiDocInput').click()">
+                            <i class="fas fa-magic me-2"></i> ייבוא נתונים אוטומטי ממסמך
+                        </button>
+                        <input type="file" id="aiDocInput" accept="application/pdf" class="d-none" onchange="processAiDoc(this)">
+                        <div id="aiLoading" class="d-none mt-3">
+                            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                            <span class="ms-2 small fw-bold text-primary">ה-AI קורא ומנתח את הנתונים, אנא המתן...</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">מספר פוליסה</label>
-                        <input type="text" class="db-form-control" id="insPolicyNum">
+
+                    <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-info-circle"></i> פרטי פוליסה בסיסיים</h6>
+                    <div class="db-row">
+                        <div class="db-col-sm-6 mb-3">
+                            <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">חברת בטוח</label>
+                            <input type="text" class="db-form-control" id="insCompany" placeholder="לדוג': הראל, פניקס...">
+                        </div>
+                        <div class="db-col-sm-6 mb-3">
+                            <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">מספר פוליסה</label>
+                            <input type="text" class="db-form-control" id="insPolicyNum" placeholder="הזן מספר">
+                        </div>
                     </div>
                     <div class="db-row">
                         <div class="db-col-6 mb-3">
-                            <label class="form-label">עלות שנתית (₪)</label>
-                            <input type="number" class="db-form-control" id="insCost">
+                            <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">עלות שנתית (₪)</label>
+                            <input type="number" class="db-form-control" id="insCost" placeholder="לדוג': 4500">
                         </div>
                         <div class="db-col-6 mb-3">
-                            <label class="form-label">תוקף הביטוח</label>
+                            <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">תוקף הביטוח</label>
                             <input type="date" class="db-form-control" id="insDate" required>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">מסמך פוליסה (תמונה)</label>
-                        <input type="file" class="db-form-control" id="insDoc" accept="image/*">
+                        <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">מסמך פוליסה (PDF בלבד)</label>
+                        <input type="file" class="db-form-control" id="insDoc" accept="application/pdf">
                     </div>
+
+                    <hr class="my-4">
+                    <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-layer-group"></i> הרחבות ומידע משלים <span class="badge bg-secondary ms-2" style="font-size:0.7rem; font-weight:normal;">אופציונלי</span></h6>
+
+                    <!-- 1. Roadside Assistance & More -->
+                    <div id="ext-card-roadside" class="db-card p-3 mb-3 d-none" style="border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;">
+                        <div class="form-check form-switch mb-2 pt-1 pb-1">
+                          <input class="form-check-input" type="checkbox" id="toggleRoadside" onchange="document.getElementById('roadside-fields').classList.toggle('d-none', !this.checked)" style="width:2.5rem; height:1.25rem;">
+                          <label class="form-check-label fw-bold ms-2" style="color:#1e293b; padding-right:15px; cursor:pointer;" for="toggleRoadside">שירותי דרך, גרירה ושמשות</label>
+                        </div>
+                        <div id="roadside-fields" class="d-none mt-3 pt-3 border-top border-dashed">
+                            <label class="form-label small" style="font-weight:600;">חברת גרירה + מספר טלפון</label>
+                            <input type="text" class="db-form-control mb-3" id="insTowing" placeholder="לדוג': שגריר 03-1234567">
+                            
+                            <div id="wrap-replacement">
+                                <label class="form-label small" style="font-weight:600;">זכאות לרכב חלופי</label>
+                                <input type="text" class="db-form-control mb-3" id="insReplacement" placeholder="לדוג': מהיום ה-2 במוסך הסדר">
+                            </div>
+                            
+                            <label class="form-label small" style="font-weight:600;">כיסוי שמשות ומראות (ספק)</label>
+                            <input type="text" class="db-form-control" id="insGlass" placeholder="לדוג': אוטוגלס">
+                        </div>
+                    </div>
+
+                    <!-- 2. Agent/Contact -->
+                    <div id="ext-card-agent" class="db-card p-3 mb-3 d-none" style="border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;">
+                        <div class="form-check form-switch mb-2 pt-1 pb-1">
+                          <input class="form-check-input" type="checkbox" id="toggleAgent" onchange="document.getElementById('agent-fields').classList.toggle('d-none', !this.checked)" style="width:2.5rem; height:1.25rem;">
+                          <label class="form-check-label fw-bold ms-2" style="color:#1e293b; padding-right:15px; cursor:pointer;" for="toggleAgent">פרטי סוכן / מוקד חירום</label>
+                        </div>
+                        <div id="agent-fields" class="d-none mt-3 pt-3 border-top border-dashed">
+                            <div class="db-row">
+                                <div class="db-col-sm-6 mb-3">
+                                    <label class="form-label small" style="font-weight:600;">שם הסוכן / חברה</label>
+                                    <input type="text" class="db-form-control" id="insAgentName" placeholder="לדוג': ישראל ישראלי">
+                                </div>
+                                <div class="db-col-sm-6 mb-3">
+                                    <label class="form-label small" style="font-weight:600;">טלפון / WhatsApp</label>
+                                    <input type="text" class="db-form-control" id="insAgentPhone" placeholder="050-0000000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Policy Limitations -->
+                    <div id="ext-card-limit" class="db-card p-3 mb-3 d-none" style="border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;">
+                        <div class="form-check form-switch mb-2 pt-1 pb-1">
+                          <input class="form-check-input" type="checkbox" id="toggleLimitations" onchange="document.getElementById('limitation-fields').classList.toggle('d-none', !this.checked)" style="width:2.5rem; height:1.25rem;">
+                          <label class="form-check-label fw-bold ms-2" style="color:#1e293b; padding-right:15px; cursor:pointer;" for="toggleLimitations">תנאים, הגבלות והשתתפות עצמית</label>
+                        </div>
+                        <div id="limitation-fields" class="d-none mt-3 pt-3 border-top border-dashed">
+                            <label class="form-label small" style="font-weight:600;">הגבלת גיל וותק נהגים</label>
+                            <input type="text" class="db-form-control mb-3" id="insDriverLimit" placeholder="לדוג': כל נהג מעל גיל 24">
+                            
+                            <label class="form-label small" style="font-weight:600;">דמי השתתפות עצמית (במוסך הסדר / רגיל)</label>
+                            <input type="text" class="db-form-control mb-3" id="insDeductible" placeholder="לדוג': 1000₪ בהסדר / 1500₪ במוסך אחר">
+                            
+                            <div id="wrap-protection">
+                                <label class="form-label small" style="font-weight:600;">אמצעי מיגון נדרשים (תנאי לכיסוי גניבה)</label>
+                                <input type="text" class="db-form-control" id="insProtection" placeholder="לדוג': קודנית ואיתוראן פעיל">
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="db-btn db-btn-danger" id="insDeleteBtn" onclick="deleteInsurance()">מחק
-                    ביטוח זה</button>
-                <div>
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="button" class="db-btn db-btn-primary" onclick="saveInsurance()">שמור</button>
-                </div>
+            <div class="modal-footer bg-light" style="border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end;">
+                <button type="button" class="db-btn bg-dark text-white ms-2" data-bs-dismiss="modal" style="border-radius:10px;">ביטול</button>
+                <button type="button" class="db-btn db-btn-primary" onclick="saveInsurance()" style="border-radius:10px; font-weight:700;"><i class="fas fa-check me-2"></i>שמור שינויים</button>
             </div>
         </div>
     </div>

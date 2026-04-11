@@ -36,50 +36,50 @@
     <div id="wrapper" style="display: flex; width: 100%; overflow-x: hidden;">
         <!-- הגדרת פלקס ראשית עבור תפריט צד ותוכן -->
         <!-- Sidebar -->
-        <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6;"> <!-- גבול ימני לתפריט -->
-            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase position-relative"
-                style="border-bottom: 1px solid #dee2e6;">
-                <i class="fas fa-car me-2"></i>EasyCare
+        <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6; display: flex; flex-direction: column;"> <!-- גבול ימני לתפריט -->
+            <div class="sidebar-heading text-center primary-text fs-4 fw-bold text-uppercase position-relative"
+                style="border-bottom: 1px solid #dee2e6; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                <div><i class="fas fa-car me-2"></i>EasyCare</div>
                 <i class="fas fa-times d-md-none position-absolute" id="close-sidebar"
                     style="left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #dc3545;"></i>
             </div>
-            <div class="db-list-group my-3">
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text active"
+            <div class="db-list-group my-3" style="flex-grow: 1; overflow-y: auto;">
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text active"
                     onclick="showSection('overview', this)">
                     <i class="fas fa-tachometer-alt me-2"></i> מבט על
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('treatments', this)">
                     <i class="fas fa-tools me-2"></i> טיפולים
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('insurance', this)">
                     <i class="fas fa-file-contract me-2"></i> ביטוחים
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('reports', this)">
                     <i class="fas fa-file-invoice-dollar me-2"></i> דוחות וקנסות
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('fuel', this)">
                     <i class="fas fa-gas-pump me-2"></i> מעקב דלק
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('accidents', this)">
                     <i class="fas fa-car-crash me-2"></i> תיק תאונות
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('expenses', this)">
                     <i class="fas fa-chart-pie me-2"></i> הוצאות וניתוחים
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('alerts', this)">
                     <i class="fas fa-bell me-2"></i> התראות ותזכורות
                 </a>
 
                 <hr>
 
-                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text"
+                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text"
                     onclick="showSection('sell', this)">
                     <i class="fas fa-handshake me-2 text-primary"></i> דו״ח מכירה
                 </a>
@@ -87,6 +87,15 @@
                     class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-3">
                     <i class="fas fa-sign-out-alt me-2"></i> יציאה לרכבים
                 </a>
+            </div>
+
+            <!-- User Profile Section at Bottom -->
+            <div class="sidebar-profile p-3" style="border-top: 1px solid #dee2e6; display: flex; align-items: center; background: #f8f9fa;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle border border-primary p-1 db-me-3" width="50" height="50" style="object-fit: cover; background: #fff;" alt="User">
+                <div class="text-end">
+                    <h6 id="sidebarUserName" class="m-0 fw-bold primary-text" style="font-size: 0.95rem;">טוען פרופיל...</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;">מחובר למערכת</small>
+                </div>
             </div>
         </div>
 
@@ -112,22 +121,24 @@
                 </div>
 
                 <!-- Wrapper for Left Positioning -->
-                <div class="db-nav-content" style="margin-right: auto;"> <!-- דוחף לשמאל -->
-                    <button class="db-btn db-btn-outline-dark db-me-3" onclick="openEditModal()" title="ערוך פרטי רכב"
-                        style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
+                <div class="db-nav-content" style="margin-right: auto; display: flex; align-items: center; gap: 15px;"> <!-- דוחף לשמאל -->
+                    <div style="display: flex; align-items: center; background: #ffffff; border-radius: 50px; padding: 6px 20px 6px 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; transition: all 0.3s ease;">
+                        <div class="text-end me-3" style="line-height: 1.3;">
+                            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;" id="vehicleName">--</div>
+                            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;" id="vehicleLicense">--</div>
+                        </div>
 
-                    <div
-                        style="display: flex; align-items: center; background: #2d74d785; border-radius: 1rem; padding: 0.5rem; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); border: 2px solid #dee2e6;">
-                        <img src="" id="vehicleLogo" class="rounded-circle border ms-3" width="50" height="50"
-                            alt="Logo" style="object-fit: contain; background-color: #fff; padding: 4px;">
-                        <div class="text-end">
-                            <h7 class="m-0 fs-6 text-white" id="vehicleName">--</h7>
-                            <br>
-                            <small class="text-white" id="vehicleLicense">--</small>
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+                            <img src="" id="vehicleLogo" width="38" height="38" alt="Logo" style="object-fit: contain;">
                         </div>
                     </div>
+
+                    <button class="db-btn" onclick="openEditModal()" title="ערוך פרטי רכב"
+                        style="border-radius: 12px; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #e2e8f0; color: #64748b; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" 
+                        onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'; this.style.transform='translateY(-2px)';" 
+                        onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b'; this.style.transform='translateY(0)';">
+                        <i class="fas fa-edit" style="font-size: 1.15rem;"></i>
+                    </button>
                 </div>
             </nav>
 
@@ -598,6 +609,7 @@
     <script src="js/global_footer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="js/brand-map.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/dashboard-overview.js"></script>
@@ -653,6 +665,7 @@
     </div>
 
     <script src="js/chatbot.js"></script>
+<script src="js/global-autosave.js"></script>
 </body>
 
 </html>

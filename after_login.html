@@ -15,22 +15,30 @@
 <body class="homepage is-loading">
     <div class="layout-container">
         <!-- Sidebar Navigation (Main Fleet Level) -->
-        <aside class="sidebar">
+        <aside class="sidebar" style="display: flex; flex-direction: column;">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" style="flex-grow: 1;">
                 <a href="after_login.html" class="sidebar-item active">
                     <i class="fas fa-home"></i> לוח בקרה ראשי
                 </a>
                 <a href="profile.html" class="sidebar-item">
                     <i class="fas fa-user-cog"></i> הגדרות ופרופיל אישי
                 </a>
-                <a href="login.html" class="sidebar-item text-danger mt-auto"
+                <a href="login.html" class="sidebar-item text-danger" style="margin-top: 15px;"
                     onclick="localStorage.removeItem('userCars');">
                     <i class="fas fa-sign-out-alt"></i> התנתקות
                 </a>
             </nav>
+            <!-- User Profile Section at Bottom -->
+            <div class="sidebar-profile p-3" style="border-top: 1px solid rgba(0,0,0,0.1); display: flex; align-items: center; background: #fff;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle border border-primary p-1" width="50" height="50" style="object-fit: cover; background: #fff; margin-left: 15px;" alt="User">
+                <div class="text-end" style="color: #333;">
+                    <h6 id="sidebarUserName" class="m-0 fw-bold" style="font-size: 0.95rem;">טוען פרופיל...</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;">מחובר למערכת</small>
+                </div>
+            </div>
         </aside>
 
         <main class="main-content" style="padding-block: 2rem; max-width: 100%;">
@@ -98,6 +106,7 @@
     <script src="js/after_login.js"></script>
     <script src="js/global_footer.js"></script>
 
+<script src="js/global-autosave.js"></script>
 </body>
 
 </html>

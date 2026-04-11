@@ -53,20 +53,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!currentCar.insurance) currentCar.insurance = {};
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
     if (!currentCar.treatments) currentCar.treatments = [];
-    if (!currentCar.customAlerts) currentCar.customAlerts = [];
     if (!currentCar.expenses) currentCar.expenses = [];
+    if (!currentCar.accidents) currentCar.accidents = [];
+
+    // Bridge DB 'alerts' array → 'customAlerts' used by the alerts module
+    if (currentCar.alerts && currentCar.alerts.length > 0) {
+        currentCar.customAlerts = currentCar.alerts.map(a => ({
+            id: a.id ? String(a.id) : String(Date.now()),
+            title: a.title || '',
+            description: a.description || '',
+            date: a.date || new Date().toISOString().slice(0, 10),
+            priority: a.urgency === 'critical' ? 'danger' : (a.urgency === 'important' ? 'warning' : 'gray'),
+            urgency: a.urgency || 'normal',
+            frequency: a.frequency || 'once',
+            createdAt: a.createdAt || null,
+            done: a.isActive === false
+        }));
+    } else if (!currentCar.customAlerts) {
+        currentCar.customAlerts = [];
+    }
     // ---------------------------------------
+
+    // Expose for chatbot
+    window.currentCar = currentCar;
 
     // 3. Render Initial State
     renderHeader();
+    loadUserProfile();
 
     // 4. Fetch HTML Views Asynchronously
+    const sections = ['overview', 'treatments', 'insurance', 'reports', 'fuel', 'accidents', 'sell', 'alerts', 'expenses'];
     try {
         const dashboardContainer = document.getElementById('dashboardContent');
 
         // Fetch components
-        const views = ['overview', 'treatments', 'insurance', 'reports', 'fuel', 'accidents', 'sell', 'alerts', 'expenses'];
-        const fetchPromises = views.map(view => fetch(`components/dashboard/${view}.html`).then(res => res.text()));
+        const fetchPromises = sections.map(view => fetch(`components/dashboard/${view}.html`).then(res => res.text()));
 
         const htmlParts = await Promise.all(fetchPromises);
 
@@ -86,9 +107,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAccidents();
     if (typeof loadSell === 'function') loadSell();
 
-    // 6. Generate QR Code and show default tab
+    // 6. Generate QR Code
     generateQR();
-    showSection('overview'); // Show default view after load
+    
+    // Choose start section: URL Hash > localStorage > Default
+    const getStartSection = () => {
+        if (window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            if (sections.includes(hash)) return hash;
+        }
+        return localStorage.getItem('lastDashboardSection') || 'overview';
+    };
+
+    const initialSection = getStartSection();
+    showSection(initialSection);
+
+    // Dynamic Hash Navigation Support (Back/Forward buttons)
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.substring(1);
+        if (sections.includes(hash)) {
+            showSection(hash);
+        }
+    });
+
+    // ============================================
+    // UNIVERSAL FORM AUTOSAVE DRAFT FEATURE
+    // ============================================
+
 });
 
 // Navigation Logic
@@ -97,17 +142,35 @@ function showSection(sectionId, element) {
     document.querySelectorAll('.dashboard-section').forEach(el => el.classList.add('d-none'));
 
     // Show selected
-    document.getElementById(sectionId + '-section').classList.remove('d-none');
+    const targetEl = document.getElementById(sectionId + '-section');
+    if (targetEl) {
+        targetEl.classList.remove('d-none');
+    } else {
+        console.warn(`Section element not found: ${sectionId}-section`);
+        return; // Early return to avoid broken state
+    }
+    
+    // Update hash so refresh remembers location
+    if (window.location.hash !== '#' + sectionId) {
+        window.history.replaceState(null, null, '#' + sectionId);
+    }
+    
+    // Update localStorage as ultimate fallback
+    localStorage.setItem('lastDashboardSection', sectionId);
 
-    // Update Sidebar Active State (only if clicked via sidebar)
-    if (element) {
-        document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
+    // Update Sidebar Active State
+    document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
+    
+    // Find link even if element wasn't passed directly
+    const linkEl = element || document.querySelector(`.db-list-group a[onclick*="'${sectionId}'"]`);
+    if (linkEl) {
+        linkEl.classList.add('active');
+    }
 
-        // Close sidebar on mobile after clicking
-        if (window.innerWidth <= 767) {
-            document.getElementById('wrapper').classList.remove('toggled');
-        }
+    // Close sidebar on mobile
+    if (window.innerWidth <= 767) {
+        const wrapper = document.getElementById('wrapper');
+        if (wrapper) wrapper.classList.remove('toggled');
     }
 
     // Rename Header
@@ -124,12 +187,100 @@ function showSection(sectionId, element) {
     };
     document.getElementById('pageTitle').textContent = titles[sectionId];
 
-    if (sectionId === 'sell' && typeof window.renderGallery === 'function') {
+    // Trigger module-specific load functions to ensure data is fresh and DOM is populated
+    if (sectionId === 'overview' && typeof window.loadOverview === 'function') {
+        window.loadOverview();
+    } else if (sectionId === 'treatments' && typeof window.loadTreatments === 'function') {
+        window.loadTreatments();
+    } else if (sectionId === 'insurance' && typeof window.loadInsurance === 'function') {
+        window.loadInsurance();
+    } else if (sectionId === 'reports' && typeof window.loadReports === 'function') {
+        window.loadReports();
+    } else if (sectionId === 'fuel' && typeof window.loadFuel === 'function') {
+        window.loadFuel();
+    } else if (sectionId === 'accidents' && typeof window.loadAccidents === 'function') {
+        window.loadAccidents();
+    } else if (sectionId === 'alerts' && typeof window.loadAlerts === 'function') {
+        window.loadAlerts();
+    } else if (sectionId === 'expenses' && typeof window.loadExpenses === 'function') {
+        window.loadExpenses();
+    } else if (sectionId === 'sell' && typeof window.renderGallery === 'function') {
         window.renderGallery();
-    } else if (sectionId === 'alerts') {
-        loadAlerts();
-    } else if (sectionId === 'expenses') {
-        loadExpenses();
+        if (typeof window.loadSell === 'function') window.loadSell();
+    }
+}
+
+// Programmatic navigation (e.g. from overview alert cards)
+window.goToSection = function(sectionId) {
+    showSection(sectionId);
+    // Sync sidebar highlight
+    document.querySelectorAll('.list-group-item').forEach(el => {
+        const onclick = el.getAttribute('onclick') || '';
+        if (onclick.includes(`'${sectionId}'`)) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+}
+
+function loadUserProfile() {
+    try {
+        let userStr = localStorage.getItem('loggedInUser');
+        if (!userStr && localStorage.getItem('userId')) {
+            // Backward compatibility for existing sessions
+            const fallbackUser = {
+                id: localStorage.getItem('userId'),
+                fullName: localStorage.getItem('userName') || 'משתמש',
+                email: localStorage.getItem('userEmail') || ''
+            };
+            userStr = JSON.stringify(fallbackUser);
+            localStorage.setItem('loggedInUser', userStr);
+        }
+
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            const nameEl = document.getElementById('sidebarUserName');
+            const imgEl = document.getElementById('sidebarUserImg');
+            
+            if (nameEl) nameEl.textContent = user.fullName || user.email || 'משתמש לא ידוע';
+            if (imgEl) {
+                if (user.avatar) {
+                    imgEl.src = user.avatar;
+                } else {
+                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.fullName || user.email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                }
+            }
+            
+            // Sync with DB
+            if (user.id) {
+                fetch('/api/user/me', { headers: { 'userid': user.id } })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.user) {
+                            const u = data.user;
+                            if (nameEl) nameEl.textContent = u.FullName || u.Email || 'משתמש לא ידוע';
+                            if (imgEl) {
+                                if (u.Avatar) {
+                                    imgEl.src = u.Avatar;
+                                } else {
+                                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.FullName || u.Email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                                }
+                            }
+                            
+                            // Keep LocalStorage fresh
+                            let localUser = JSON.parse(userStr);
+                            localUser.fullName = u.FullName;
+                            localUser.email = u.Email;
+                            localUser.phone = u.Phone;
+                            localUser.avatar = u.Avatar;
+                            localStorage.setItem('loggedInUser', JSON.stringify(localUser));
+                        }
+                    }).catch(err => console.warn("Background profile sync failed", err));
+            }
+        } else {
+            document.getElementById('sidebarUserName').textContent = 'אורח';
+            document.getElementById('sidebarUserImg').src = 'https://ui-avatars.com/api/?name=Guest&background=bbbec5&color=fff&rounded=true';
+        }
+    } catch(e) {
+        console.error("Failed to load user profile:", e);
     }
 }
 
@@ -195,11 +346,32 @@ function exportToPDF() {
 // --- UTILS ---
 window.parseDate = function (dateStr) {
     if (!dateStr) return null;
-    const parts = dateStr.split('/');
+    const parts = String(dateStr).split('/');
     if (parts.length === 3) {
         return new Date(parts[2], parts[1] - 1, parts[0]);
     }
-    return new Date(dateStr);
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+window.formatDate = function (dateInput) {
+    if (!dateInput) return '--';
+    const d = window.parseDate(dateInput);
+    if (!d) return dateInput;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+window.toInputDate = function (dateInput) {
+    if (!dateInput) return '';
+    const d = window.parseDate(dateInput);
+    if (!d) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
 }
 
 window.isDateFuture = function (dateStr) {
@@ -210,6 +382,9 @@ window.isDateFuture = function (dateStr) {
     return d >= today;
 }
 
+let isSyncing = false;
+let pendingSync = false;
+
 window.saveToLocalStorage = async function () {
     const index = savedCars.findIndex(c => parseInt(c.id) === parseInt(currentCar.id));
     if (index !== -1) {
@@ -217,16 +392,28 @@ window.saveToLocalStorage = async function () {
         localStorage.setItem('userCars', JSON.stringify(savedCars));
     }
     
-    try {
-        await fetch(`/api/vehicles/sync/${currentCar.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(currentCar)
-        });
-        console.log("Successfully synced Vehicle Data to Azure DB.");
-    } catch(e) {
-        console.error("Azure DB Sync failed", e);
+    // Queue synchronization to prevent Race Conditions dropping rows on fast typers/multiple images
+    if (isSyncing) {
+        pendingSync = true;
+        return;
     }
+
+    isSyncing = true;
+    do {
+        pendingSync = false;
+        try {
+            await fetch(`/api/vehicles/sync/${currentCar.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentCar)
+            });
+            console.log("Successfully synced Vehicle Data to Azure DB.");
+        } catch (e) {
+            console.error("Azure DB Sync failed", e);
+        }
+    } while (pendingSync);
+    
+    isSyncing = false;
 }
 
 let expensesChartInstance = null;
@@ -239,40 +426,66 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
         expensesChartInstance.destroy();
     }
 
+    // Modern, vibrant colors for the pie chart
+    const colors = {
+        treatments: '#ef4444', // Vivid Red
+        insurance: '#10b981',  // Emerald Green
+        fuel: '#f59e0b',       // Amber/Yellow
+        accidents: '#f97316',  // Bright Orange
+        reports: '#3b82f6'     // Vivid Blue
+    };
+
+    if (typeof ChartDataLabels !== 'undefined') {
+        Chart.register(ChartDataLabels);
+    }
+
     expensesChartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
             labels: ['טיפולים ותחזוקה', 'ביטוח ורישוי', 'דלק', 'תאונות ונזקים', 'דוחות וקנסות'],
             datasets: [{
                 data: [treatmentCost, insuranceCost, fuelCost, accidentCost, reportCost],
-                backgroundColor: ['#ec4b4bff', '#15c933ff', '#ffc107', '#fd7e14', '#0dcaf0'],
-                hoverBackgroundColor: ['#ec4b4bff', '#15c933ff', '#ffc107', '#fd7e14', '#0dcaf0'],
-                borderWidth: 0,
-                spacing: 4,
-                borderRadius: 5
+                backgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports],
+                hoverBackgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 12,
+                borderRadius: 8,
+                spacing: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%',
+            cutout: '72%',
+            layout: {
+                padding: 10
+            },
             plugins: {
+                datalabels: {
+                    display: false
+                },
                 legend: {
                     position: 'bottom',
                     labels: {
                         usePointStyle: true,
                         padding: 20,
                         font: {
-                            family: 'Segoe UI',
-                            size: 13
-                        }
+                            family: 'Segoe UI, system-ui, sans-serif',
+                            size: 13,
+                            weight: '500'
+                        },
+                        color: '#475569'
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleFont: { family: 'Segoe UI', size: 14 },
-                    bodyFont: { family: 'Segoe UI', size: 14 },
-                    padding: 12,
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleFont: { family: 'Segoe UI, system-ui, sans-serif', size: 14, weight: 'bold' },
+                    bodyFont: { family: 'Segoe UI, system-ui, sans-serif', size: 14 },
+                    padding: 14,
+                    cornerRadius: 12,
+                    boxPadding: 6,
+                    usePointStyle: true,
                     callbacks: {
                         label: function (context) {
                             let label = context.label || '';
@@ -289,7 +502,9 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
             },
             animation: {
                 animateScale: true,
-                animateRotate: true
+                animateRotate: true,
+                duration: 1200,
+                easing: 'easeOutQuart'
             }
         }
     });

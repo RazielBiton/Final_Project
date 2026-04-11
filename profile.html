@@ -45,19 +45,27 @@
                         <h2><i class="fas fa-id-card"></i> פרטים אישיים</h2>
                     </div>
                     <div class="card-body">
-                        <form class="profile-form" onsubmit="event.preventDefault(); alert('הפרטים נשמרו בהצלחה!');">
+                        <form class="profile-form" id="profileDetailsForm">
+                            <div class="form-group text-center mb-4" style="text-align: center;">
+                                <div style="display: inline-block; position: relative;">
+                                    <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=2d74d7&color=fff&rounded=true" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #dee2e6;">
+                                    <label for="avatarUpload" style="position: absolute; bottom: 0; left: 0; background-color: #2d74d7; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label for="fullName">שם מלא</label>
-                                <input type="text" id="fullName" value="ישראל ישראלי" required>
+                                <input type="text" id="fullName" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">כתובת אימייל</label>
-                                <input type="email" id="email" value="israel@easycare.co.il" required>
+                                <input type="email" id="email" required>
                             </div>
                             <div class="form-group">
                                 <label for="phone">מספר טלפון</label>
-                                <input type="tel" id="phone" value="050-1234567" dir="ltr" style="text-align: right;"
-                                    required>
+                                <input type="tel" id="phone" dir="ltr" style="text-align: right;">
                                 <small class="help-text">קריטי לקבלת התראות עתידיות בוואטסאפ או במסרונים</small>
                             </div>
                             <button type="submit" class="btn btn-primary">שמור שינויים</button>
@@ -101,7 +109,7 @@
                         <h2><i class="fas fa-shield-alt"></i> אבטחה וסיסמה</h2>
                     </div>
                     <div class="card-body">
-                        <form class="security-form" onsubmit="event.preventDefault(); alert('הסיסמה עודכנה בהצלחה!');">
+                        <form class="security-form" id="securityForm">
                             <div class="form-group">
                                 <label for="currentPassword">סיסמה נוכחית</label>
                                 <input type="password" id="currentPassword" required>
@@ -125,6 +133,8 @@
     <footer class="global-footer"></footer>
 
     <script src="js/global_footer.js"></script>
+    <script src="js/profile.js"></script>
+<script src="js/global-autosave.js"></script>
 </body>
 
 </html>

@@ -65,8 +65,31 @@ body.dashboard-body {
     color: var(--warning) !important;
 }
 
+.text-orange {
+    color: #fd7e14 !important;
+}
+
 .bg-white {
     background-color: var(--white) !important;
+}
+
+.bg-primary-soft { background-color: rgba(45, 116, 215, 0.1) !important; }
+.bg-success-soft { background-color: rgba(25, 135, 84, 0.1) !important; }
+.bg-danger-soft { background-color: rgba(220, 53, 69, 0.1) !important; }
+.bg-warning-soft { background-color: rgba(255, 193, 7, 0.1) !important; }
+
+.gradient-primary {
+    background: linear-gradient(135deg, #2d74d7 0%, #1a5bb8 100%) !important;
+}
+.gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e6ac00 100%) !important;
+}
+.gradient-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%) !important;
+}
+
+.text-dark-blue {
+    color: #0d213a !important;
 }
 
 /* 2. Grid System (Custom) */
@@ -298,12 +321,15 @@ body.dashboard-body {
 
 /* Navbar */
 .db-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: 0.3rem 0.3rem !important;
-    /* py-4 px-4 equivalent */
+    height: 80px;
+    padding: 0 1rem !important;
     background-color: var(--white);
     box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
     /* shadow-sm */
@@ -500,12 +526,20 @@ body.dashboard-body {
 }
 
 #wrapper {
-    overflow-x: hidden;
+    overflow: hidden; /* Removing overflow-x: hidden enables position: sticky on children */
     background-color: #f8f9fa;
+    height: 100vh;
+    display: flex;
+    padding-bottom: 45px; /* global footer height */
+    box-sizing: border-box;
 }
 
 #sidebar-wrapper {
-    min-height: 100vh;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    z-index: 1000;
     margin-right: -15rem;
     /* For RTL: push off screen right */
     width: 15rem;
@@ -519,7 +553,10 @@ body.dashboard-body {
 }
 
 #page-content-wrapper {
-    min-width: 100vw;
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-color: #e1ebf6 !important;
 }
 
@@ -588,7 +625,6 @@ body.dashboard-body {
         margin-right: 0 !important;
         transition: right 0.3s ease-in-out;
         overflow-y: auto;
-        padding-bottom: 30px;
     }
 
     #wrapper.toggled #sidebar-wrapper {
@@ -597,15 +633,66 @@ body.dashboard-body {
     }
 
     .db-navbar {
-        padding: 1rem !important;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+        height: 60px !important;
+        min-height: 60px;
+        padding: 0.5rem !important;
+        flex-wrap: nowrap !important; /* Force single line */
+        overflow-x: auto;
     }
 
     .db-nav-content {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        margin: 0 !important;
+    }
+
+    #pageTitle {
+        display: none !important; /* Hide to save space for important buttons */
+    }
+
+    .db-btn-outline-dark {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.8rem;
+    }
+    
+    #vehicleLogo {
+        width: 35px !important;
+        height: 35px !important;
+    }
+
+    /* Keep Search Input slim and expandable to save valuable mobile navbar real estate */
+    #globalSearchInput {
+        width: 38px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        cursor: pointer;
+        color: transparent;
+        transition: width 0.3s ease-in-out;
+    }
+    #globalSearchInput:focus {
+        width: 200px !important;
+        background: #fff !important;
+        border: 2px solid #e9ecef !important;
+        padding-left: 2.7rem !important;
+        padding-right: 1rem !important;
+        color: #212529 !important;
+        z-index: 10;
+        position: absolute;
+        right: 0;
+    }
+    
+    #vehicleName {
+        font-size: 0.9rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+        display: block !important;
+    }
+    #vehicleLicense {
+        font-size: 0.75rem;
     }
 
     #pageTitle {
