@@ -114,7 +114,7 @@
                 <!-- Global Search Bar -->
                 <div class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
                     <form class="d-flex position-relative w-100" style="max-width: 400px;" onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
-                        <input type="text" id="globalSearchInput" autocomplete="off" class="form-control rounded-pill pe-4" placeholder="חיפוש לפי יצרן או מספר רישוי..." style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important;">
+                        <input type="tel" pattern="[0-9]*" id="globalSearchInput" autocomplete="off" class="form-control rounded-pill pe-4" placeholder="חפש לפי מספר רישוי..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: ltr; text-align: right;">
                         <i class="fas fa-search position-absolute top-50 translate-middle-y text-primary fs-5" style="left: 18px; cursor: pointer;" onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);"></i>
                         <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none" style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; text-align: right; border-radius: 12px; font-size: 0.9rem;"></ul>
                     </form>

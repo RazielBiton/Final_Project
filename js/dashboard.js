@@ -3,9 +3,17 @@ let currentCar = null;
 let savedCars = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Get Vehicle ID from URL
+    // 1. Get Vehicle ID from URL or Session
     const urlParams = new URLSearchParams(window.location.search);
-    const vehicleId = urlParams.get('id');
+    let vehicleId = urlParams.get('id');
+
+    if (!vehicleId) {
+        vehicleId = sessionStorage.getItem('lastVehicleId');
+        if (vehicleId) {
+            // Rewrite URL to include ID transparently
+            window.history.replaceState(null, null, `?id=${vehicleId}` + (window.location.hash || ''));
+        }
+    }
 
     // Build Global AutoComplete logic
     try {
@@ -21,6 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'after_login.html';
         return;
     }
+
+    // Remember in session for future navigations (like coming back from search)
+    sessionStorage.setItem('lastVehicleId', vehicleId);
 
     // Make functions available globally
     window.openEditModal = openEditModal;
