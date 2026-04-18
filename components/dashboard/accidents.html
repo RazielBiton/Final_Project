@@ -1,194 +1,272 @@
-<!-- 6. ACCIDENTS SECTION -->
+<!-- 6. ACCIDENTS SECTION (MODERNIZED) -->
 <div id="accidents-section" class="dashboard-section d-none">
-    <div class="db-flex-between db-mb-3">
-        <h4 class="m-0 fw-bold">תיק תאונות ונזקים</h4>
-        <button class="db-btn db-btn-danger shadow-sm fw-bold rounded-pill px-4" onclick="openAddAccidentModal()">
-            <i class="fas fa-camera me-2"></i> דיווח נזק חדש
-        </button>
-    </div>
-
-    <!-- Empty State -->
-    <div id="accidents-empty-state" class="db-row text-center mt-5">
-        <div class="db-col-12 py-5">
-            <div class="icon-lg-wrapper mx-auto mb-4"
-                style="background-color: #d1e7dd; color: #198754; width: 80px; height: 80px; font-size: 2rem;">
-                <i class="fas fa-shield-alt"></i>
+    
+    <!-- Header with vibrant title and action -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; background:linear-gradient(135deg, #ffffff, #fff1f2); padding:1.5rem; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.04); border:1px solid #ffe4e6; flex-wrap: wrap; gap: 15px; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: rgba(225, 29, 72, 0.05); border-radius: 50%;"></div>
+        <div style="display:flex; align-items:center; gap:16px; position: relative; z-index: 1;">
+            <div style="width:54px; height:54px; background:linear-gradient(135deg, #e11d48, #be123c); border-radius:16px; display:flex; justify-content:center; align-items:center; box-shadow:0 8px 20px rgba(225, 29, 72, 0.25);">
+                <i class="fas fa-car-crash" style="color:white; font-size:1.5rem;"></i>
             </div>
-            <h5 class="fw-bold text-dark">התיק נקי!</h5>
-            <p class="text-muted">לא דווחו תאונות או נזקים לרכב זה.</p>
+            <div>
+                <h4 style="margin:0; font-weight:900; color:#0f172a; font-size:1.5rem; letter-spacing: -0.5px;">תיק תאונות ונזקים</h4>
+                <div style="font-size:0.95rem; color:#64748b; margin-top: 2px; font-weight: 500;">ניהול אירועים, פחחות ומעקב היסטורי</div>
+            </div>
+        </div>
+        <div style="position: relative; z-index: 1;">
+            <button class="db-btn" onclick="openAddAccidentModal()" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none; padding: 10px 24px; border-radius: 14px; font-weight: 700; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15); transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i> דיווח נזק חדש
+            </button>
         </div>
     </div>
 
-    <!-- Populated State: Grid for Damage Cards -->
-    <div id="accidents-populated-state" class="db-row d-none" style="gap: 1.5rem 0;">
-        <div id="accidents-list-container" class="db-col-12 w-100 db-row m-0" style="gap: 20px;">
-            <!-- Accident cards will be injected here dynamically -->
+    <!-- Accidents KPI Cards Matrix -->
+    <div class="row g-4 mb-4" id="accidents-kpi-cards">
+        <!-- Resolution Tracker Card -->
+        <div class="col-lg-4 col-md-6">
+            <div style="background: #fff; border-radius: 24px; padding: 1.8rem; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.02); height: 100%; position: relative; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; background: #fef2f2; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-clipboard-check" style="color: #e11d48; font-size: 1.1rem;"></i>
+                    </div>
+                </div>
+                <h6 style="color: #64748b; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">סטטוס תיקון נזקים</h6>
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px;">
+                    <h2 id="acc-pending-count" style="font-weight: 900; font-size: 2rem; color: #e11d48; margin: 0;">0</h2>
+                    <span style="font-size: 0.9rem; color: #64748b; font-weight: 600;">ממתין</span>
+                    <span style="margin: 0 5px; color: #cbd5e1;">/</span>
+                    <h2 id="acc-resolved-count" style="font-weight: 900; font-size: 1.4rem; color: #10b981; margin: 0;">0</h2>
+                    <span style="font-size: 0.9rem; color: #64748b; font-weight: 600;">טופל</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="mt-3" style="height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; display: flex;">
+                    <div id="acc-progress-resolved" style="width: 0%; background: #10b981; transition: width 0.5s;"></div>
+                    <div id="acc-progress-pending" style="width: 0%; background: #e11d48; transition: width 0.5s;"></div>
+                </div>
+                <div class="mt-2 text-end" style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;" id="acc-total-count-text">סה"כ 0 אירועים מדווחים</div>
+            </div>
+        </div>
+
+        <!-- Total Damage Cost Card -->
+        <div class="col-lg-4 col-md-6">
+            <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 1.8rem; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.1); height: 100%; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05;">
+                    <i class="fas fa-coins" style="font-size: 8rem;"></i>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative;">
+                    <div style="width: 44px; height: 44px; background: rgba(59, 130, 246, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-shekel-sign" style="color: #60a5fa; font-size: 1.1rem;"></i>
+                    </div>
+                </div>
+                <h6 style="color: rgba(255,255,255,0.7); font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">עלות נזקים מצטברת</h6>
+                <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 5px; position: relative;">
+                    <h2 id="acc-total-cost" style="font-weight: 900; font-size: 2.2rem; margin: 0;">₪0</h2>
+                </div>
+                <div class="mt-3" style="font-size: 0.8rem; color: rgba(255,255,255,0.6); font-weight: 500; position: relative;">
+                    כולל כל העלויות שהוזנו בדיווחי נזק היסטוריים.
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Tip Card -->
+        <div class="col-lg-4 col-md-12">
+            <div style="background: #fff; border-radius: 24px; padding: 1.8rem; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.02); height: 100%; background-image: radial-gradient(at top left, #fef2f2, #ffffff);">
+                <div style="width: 44px; height: 44px; background: #fff1f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <i class="fas fa-lightbulb" style="color: #e11d48; font-size: 1.1rem;"></i>
+                </div>
+                <h6 style="color: #0f172a; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.8rem;">המלצת ניהול נזקים</h6>
+                <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0; padding-left: 20px;">
+                    ככלל אצבע: שקול להפעיל ביטוח רק אם הנזק המוערך גבוה ב-50% מההשתתפות העצמית שלך. כך תימנע מעליית פרמיה בשנה הבאה עבור תיקון מינורי.
+                </p>
+                <div class="mt-3 d-inline-flex px-3 py-1" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #475569;">
+                    <i class="fas fa-shield-alt me-2 text-primary"></i> מדריך מקצועי
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="accidents-empty-state" class="db-row text-center mt-4 d-none">
+        <div class="db-col-12 py-5" style="background: #fff; border-radius: 24px; border: 1px dashed #cbd5e1;">
+            <div class="mx-auto mb-4" style="background-color: #f0fdf4; color: #16a34a; width: 80px; height: 80px; font-size: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <h5 class="fw-bold text-dark">התיק נקי לחלוטין!</h5>
+            <p class="text-muted" style="max-width: 400px; margin: 0 auto;">לא דווחו תאונות, פחחות או נזקים לרכב זה. לחץ על 'דיווח נזק חדש' בהמשך הדרך במידת הצורך.</p>
+        </div>
+    </div>
+
+    <!-- Timeline Filter Segmented Control -->
+    <div id="accidents-filters-container" class="d-none" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div style="background: #f1f5f9; padding: 4px; border-radius: 12px; display: inline-flex; position: relative; overflow-x: auto;">
+            <button class="acc-filter-btn active" data-filter="all" onclick="filterAccidents('all')" style="border: none; background: #fff; padding: 8px 20px; border-radius: 8px; font-weight: 700; color: #0f172a; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s;">הכל</button>
+            <button class="acc-filter-btn" data-filter="pending" onclick="filterAccidents('pending')" style="border: none; background: transparent; padding: 8px 20px; border-radius: 8px; font-weight: 600; color: #64748b; font-size: 0.9rem; transition: all 0.2s;">פתוחים לטיפול</button>
+            <button class="acc-filter-btn" data-filter="resolved" onclick="filterAccidents('resolved')" style="border: none; background: transparent; padding: 8px 20px; border-radius: 8px; font-weight: 600; color: #64748b; font-size: 0.9rem; transition: all 0.2s;">טופלו לאחרונה</button>
+            <button class="acc-filter-btn" data-filter="involved" onclick="filterAccidents('involved')" style="border: none; background: transparent; padding: 8px 20px; border-radius: 8px; font-weight: 600; color: #64748b; font-size: 0.9rem; transition: all 0.2s;">תאונות רכב מעורב</button>
+        </div>
+        
+        <div style="position: relative;">
+            <i class="fas fa-search" style="position: absolute; right: 12px; top: 11px; color: #94a3b8; font-size: 0.9rem;"></i>
+            <input type="text" id="accFilterSearch" oninput="filterAccidentsSearch()" placeholder="חיפוש אירוע במאגר..." style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 35px 8px 15px; font-size: 0.9rem; outline: none; width: 240px; background: white; transition: all 0.2s;" onfocus="this.style.boxShadow='0 0 0 3px rgba(225, 29, 72, 0.1)'; this.style.borderColor='#e11d48'" onblur="this.style.boxShadow='none'; this.style.borderColor='#e2e8f0'">
+        </div>
+    </div>
+
+    <!-- Populated State: Timeline Track -->
+    <div id="accidents-populated-state" class="d-none">
+        <!-- Timeline Background Track -->
+        <div style="background: #fff; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 15px 40px rgba(0,0,0,0.03); overflow: hidden; position: relative;">
+            <div style="padding: 1.5rem 1.8rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; position: relative; z-index: 2;">
+                <h5 style="margin:0; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-stream text-muted" style="font-size: 0.9rem;"></i> ציר זמנים (Timeline)
+                </h5>
+            </div>
+            
+            <div id="accidents-list-container" style="padding: 2rem; position: relative;">
+                <!-- Vertical Timeline Line -->
+                <div style="position: absolute; right: 40px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; z-index: 1;"></div>
+                <!-- Items injected here by JS -->
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Add/Edit Accident Modal -->
+<!-- Add/Edit Accident Modal (Redesigned) -->
 <div class="modal fade" id="addAccidentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="modal-content border-0 shadow-lg my-4"
-            style="border-radius: 16px; overflow: hidden; max-height: 90vh;">
-            <div class="modal-header text-white"
-                style="background: linear-gradient(135deg, #e63946, #d90429); border-bottom: none;">
-                <h5 class="modal-title fw-bold" id="accidentModalTitle"><i class="fas fa-car-crash me-2"></i> דיווח נזק
-                    חדש</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
-                    style="position: absolute; left: 15px; margin: 0; top: 15px;"></button>
+        <div class="modal-content border-0 shadow-lg my-4" style="border-radius: 24px; overflow: hidden; max-height: 90vh;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.5rem 2rem; border-bottom: none;">
+                <h5 class="modal-title fw-bold" id="accidentModalTitle" style="font-size: 1.3rem;">
+                    <i class="fas fa-car-crash ms-2" style="color: #fb7185;"></i> מילוי דוח אירוע
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; left: 20px; top: 25px;"></button>
             </div>
-            <div class="modal-body p-4 bg-light">
+            <div class="modal-body p-4 p-md-5 bg-light" style="background: #f8fafc !important;">
                 <form id="addAccidentForm">
                     <input type="hidden" id="accidentId">
 
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold text-dark">כותרת הנזק/אירוע</label>
-                            <input type="text" class="form-control form-control-lg shadow-sm" id="accTitle" required
-                                placeholder="לדוג': שריטה בטמבון, תאונת פחחות...">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-dark">עלות תיקון משוערת/בפועל (₪)</label>
-                            <input type="number" class="form-control form-control-lg shadow-sm" id="accCost" required
-                                placeholder="0">
-                        </div>
-
-                        <div class="col-md-4 col-12">
-                            <label class="form-label fw-bold text-dark">תאריך האירוע</label>
-                            <input type="date" class="form-control shadow-sm" id="accDate" required>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-bold text-dark">תיאור מפורט</label>
-                            <textarea class="form-control shadow-sm" id="accDescription" rows="3"
-                                placeholder="פרט כיצד קרה הנזק..." required></textarea>
-                        </div>
-
-                        <!-- Image Upload Section -->
-                        <div class="col-12 mt-4">
-                            <label class="form-label fw-bold text-dark"><i class="fas fa-images text-danger me-2"></i>
-                                תיעוד מצולם (ניתן להעלות מספר תמונות)</label>
-                            <div class="card border-1 shadow-sm h-100">
-                                <div class="card-body text-center p-3 relative"
-                                    style="border: 2px dashed #ced4da; border-radius: 8px; background-color: #fafbfc;">
-                                    <input type="file" id="accImageInput" class="d-none" accept="image/*" multiple>
-                                    <div id="accImagePlaceholder" style="cursor: pointer;"
-                                        onclick="document.getElementById('accImageInput').click()">
-                                        <i class="fas fa-camera-retro fa-3x text-muted mb-2 mt-2"></i>
-                                        <p class="text-muted fw-bold m-0">לחץ להעלאת תמונות</p>
-                                    </div>
-                                    <div id="accImagePreviewsContainer" class="d-none mt-3">
-                                        <!-- Image previews injected here -->
-                                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="accImagesList">
-                                        </div>
-                                        <button type="button"
-                                            class="btn btn-outline-danger btn-sm mt-3 fw-bold rounded-pill shadow-sm"
-                                            onclick="document.getElementById('accImageInput').click()">
-                                            <i class="fas fa-plus me-1"></i> הוסף תמונות נוספות
-                                        </button>
-                                    </div>
+                    <!-- Section 1: Event Details -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                        <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי האירוע
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label fw-bold text-dark fs-7">כותרת האירוע <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="accTitle" required placeholder="לדוג': שפשוף דלת חניה, תאונת פח...">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold text-dark fs-7">תאריך ההתרחשות <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="accDate" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-dark fs-7">תיאור ופרטים נוספים <span class="text-danger">*</span></label>
+                                <textarea class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 1rem; resize: none;" id="accDescription" rows="2" placeholder="פרט כיצד קרה הנזק ובאיזה נסיבות... (למשל: נהג רכב פגע מאחור)" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark fs-7">נזק מוערך (₪) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white" style="border-radius: 0 12px 12px 0; border: 1px solid #cbd5e1; border-left: 0;">₪</span>
+                                    <input type="number" class="form-control" style="border-radius: 12px 0 0 12px; border: 1px solid #cbd5e1; padding: 0.75rem;" id="accCost" required placeholder="למשל 1500 (הזן 0 אם לא ידוע)">
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Involved Vehicle Section -->
-                        <div class="col-12 mt-4">
-                            <div class="card border-0 shadow-sm"
-                                style="background-color: #fff3f3; border-right: 4px solid #e63946 !important;">
-                                <div class="card-body">
-                                    <label class="form-label fw-bold text-dark d-block"><i
-                                            class="fas fa-car-side text-danger me-2"></i> רכב מעורב</label>
+                    <!-- Section 2: Visual Evidence -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                        <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> תיעוד מצולם מן השטח
+                        </h6>
+                        <div class="text-center p-4 relative" style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
+                            <input type="file" id="accImageInput" class="d-none" accept="image/*" multiple>
+                            <div id="accImagePlaceholder" onclick="document.getElementById('accImageInput').click()">
+                                <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <i class="fas fa-camera text-primary fs-3"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: #334155;">העלאת תמונות מזירת האירוע</h6>
+                                <p class="text-muted m-0" style="font-size: 0.8rem;">תמונות של הנזק, רכבים מעורבים, ת.ז ורישיונות (ניתן להוסיף מספר תמונות)</p>
+                            </div>
+                            
+                            <div id="accImagePreviewsContainer" class="d-none mt-2">
+                                <div class="d-flex flex-wrap gap-2 justify-content-center" id="accImagesList"></div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-3 fw-bold rounded-pill shadow-sm" onclick="document.getElementById('accImageInput').click()">
+                                    <i class="fas fa-plus me-1"></i> הוסף מסמך/תמונה נוספים
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-                                    <div class="btn-group w-100 shadow-sm mb-3" role="group">
-                                        <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioNo"
-                                            value="no" checked onchange="toggleInvolvedVehicle()">
-                                        <label class="btn btn-outline-danger fw-bold" for="accRadioNo">ללא רכב מסד
-                                            א</label>
+                    <!-- Section 3: Third Party Involvement -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #e11d48;">
+                        <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span> מעורבות צד ג' ע"פ משרד הרישוי
+                        </h6>
+                        
+                        <div class="btn-group w-100 mb-3" role="group" style="border-radius: 12px; overflow: hidden;">
+                            <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioNo" value="no" checked onchange="toggleInvolvedVehicle()">
+                            <label class="btn btn-outline-secondary fw-bold shadow-none" for="accRadioNo" style="border-color: #cbd5e1;">ללא רכב צד ג' (פגיעה עצמית)</label>
 
-                                        <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioYes"
-                                            value="yes" onchange="toggleInvolvedVehicle()">
-                                        <label class="btn btn-outline-danger fw-bold" for="accRadioYes">מעורב רכב צד
-                                            ג'</label>
-                                    </div>
+                            <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioYes" value="yes" onchange="toggleInvolvedVehicle()">
+                            <label class="btn btn-outline-danger fw-bold shadow-none" for="accRadioYes">מעורב רכב צד ג' (תאונה 2 רכבים ויותר)</label>
+                        </div>
 
-                                    <div id="involvedVehicleContainer" class="d-none">
-                                        <!-- Container for selected vehicles -->
-                                        <div id="selectedInvolvedVehiclesContainer"
-                                            class="mb-3 d-flex flex-column gap-2"></div>
+                        <div id="involvedVehicleContainer" class="d-none">
+                            <div style="background: #fff1f2; border-radius: 12px; padding: 1.2rem; border: 1px solid #ffe4e6;">
+                                <div id="selectedInvolvedVehiclesContainer" class="mb-3 d-flex flex-column gap-2"></div>
 
-                                        <label class="form-label fw-bold text-dark d-block fs-7">חפש והוסף רכב
-                                            לרשימה:</label>
-                                        <div class="input-group shadow-sm mb-3" dir="ltr">
-                                            <button class="btn btn-danger text-white fw-bold px-4" type="button"
-                                                onclick="fetchInvolvedCarDetails()" id="btnFetchInvolved">
-                                                <i class="fas fa-search me-1"></i> חפש
-                                            </button>
-                                            <input type="text" class="form-control form-control-lg text-end"
-                                                id="accInvolvedPlate" placeholder="מספר רישוי" maxlength="8">
-                                            <span
-                                                class="input-group-text bg-warning text-dark fw-bold border-warning">IL
-                                                ישראל 🇮🇱</span>
-                                        </div>
+                                <label class="form-label fw-bold" style="color: #be123c; font-size: 0.85rem;"><i class="fas fa-search me-1"></i> חפש רכב דרך משרד הרישוי להוספה לפרוטוקול:</label>
+                                <div class="input-group" dir="ltr" style="box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                    <button class="btn text-white fw-bold px-4" type="button" style="background:#e11d48; border:none; border-radius: 12px 0 0 12px;" onclick="fetchInvolvedCarDetails()" id="btnFetchInvolved">
+                                        חפש
+                                    </button>
+                                    <input type="text" class="form-control font-monospace text-end" id="accInvolvedPlate" placeholder="מס' רישוי" maxlength="8" style="border-color: #cbd5e1;">
+                                    <span class="input-group-text fw-bold text-dark" style="background:#fbbf24; border-color:#fbbf24; border-radius: 0 12px 12px 0;">IL</span>
+                                </div>
 
-                                        <!-- API Result Display -->
-                                        <div id="involvedCarDetails"
-                                            class="d-none bg-white p-3 rounded border shadow-sm mt-3"
-                                            style="cursor: pointer; transition: all 0.2s;"
-                                            onclick="addInvolvedCarToList()">
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="icon-lg-wrapper me-3 bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center"
-                                                        style="width: 50px; height: 50px;">
-                                                        <i class="fas fa-car fs-4"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="fw-bold mb-1 text-dark" id="involvedCarTitle">--</h6>
-                                                        <small class="text-muted"><i class="fas fa-palette me-1"></i>
-                                                            <span id="involvedCarColor">--</span> | <i
-                                                                class="far fa-calendar-alt me-1"></i> <span
-                                                                id="involvedCarYear">--</span></small>
-                                                    </div>
-                                                </div>
-                                                <div class="text-success" style="font-size: 1.5rem;"
-                                                    title="לחץ להוספה לדיווח">
-                                                    <i class="fas fa-plus-circle"></i>
+                                <!-- API Result Display -->
+                                <div id="involvedCarDetails" class="d-none bg-white p-3 rounded mt-3 shadow-sm" style="cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;" onclick="addInvolvedCarToList()" onmouseover="this.style.borderColor='#e11d48'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="icon-lg-wrapper bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border: 1px solid #e2e8f0;">
+                                                <i class="fas fa-car fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0" style="color:#0f172a;" id="involvedCarTitle">--</h6>
+                                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                                                    <i class="fas fa-palette me-1"></i> <span id="involvedCarColor">--</span> &nbsp;|&nbsp; 
+                                                    <i class="far fa-calendar-alt me-1"></i> <span id="involvedCarYear">--</span>
                                                 </div>
                                             </div>
                                         </div>
+                                        <div style="width: 32px; height: 32px; background: #f0fdf4; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                            <i class="fas fa-plus"></i>
+                                        </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </form>
             </div>
-            <div class="modal-footer bg-light" style="border-top: 1px solid #dee2e6;">
-                <button type="button" class="btn btn-light shadow-sm text-dark fw-bold px-4 rounded-pill border"
-                    data-bs-dismiss="modal">ביטול</button>
-                <button type="button" class="btn btn-danger shadow-sm text-white fw-bold px-5 rounded-pill"
-                    onclick="saveAccident()">
-                    <i class="fas fa-save me-2"></i> שמור דיווח
+            <div class="modal-footer p-4" style="background: white; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0;">ביטול</button>
+                <button type="button" class="btn fw-bold px-5 text-white" onclick="saveAccident()" style="background: linear-gradient(135deg, #e11d48, #be123c); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);">
+                    <i class="fas fa-save me-2"></i> הוסף את הדיווח לתיק
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- View Image Modal -->
+<!-- View Image Modal (Enhanced Background) -->
 <div class="modal fade" id="accidentImageModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 bg-transparent shadow-none">
-            <div class="modal-header border-0 justify-content-end p-0 mb-2">
-                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal"
-                    style="opacity: 1; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></button>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-none" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 20px;">
+            <div class="modal-header border-0 justify-content-end p-0 mb-3">
+                <button type="button" class="btn-close btn-close-white fs-5" data-bs-dismiss="modal" style="opacity: 1; background-color: rgba(255,255,255,0.1); border-radius: 50%; padding: 10px;"></button>
             </div>
             <div class="modal-body p-0 text-center">
-                <img id="accidentImageModalPreview" src="" class="img-fluid rounded shadow-lg"
-                    style="max-height: 80vh;">
+                <img id="accidentImageModalPreview" src="" class="img-fluid shadow-lg" style="max-height: 85vh; border-radius: 16px;">
             </div>
         </div>
     </div>

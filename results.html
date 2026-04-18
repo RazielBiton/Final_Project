@@ -5,57 +5,260 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyCare - פרטי רכב</title>
-    <link rel="stylesheet" href="css/results.css">
-    <link rel="stylesheet" href="css/global_footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/search_styles.css">
 </head>
 
 <body>
-    <div id="loading" class="loading-overlay">מתחבר למאגר הממשלתי...</div>
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>מתחבר למאגר הממשלתי...</span>
+    </div>
 
-    <div class="main-wrapper">
-        <div class="results-container">
-            <div class="results-header">
-                <span>פרטי הרכב</span>
+    <div class="mesh-bg"></div>
+
+    <div class="layout-container">
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>EasyCare</h2></div>
+            <nav class="sidebar-nav">
+                <a href="after_login.html" class="sidebar-item">
+                    <i class="fas fa-th-large"></i><span>לוח בקרה ראשי</span>
+                </a>
+                <a href="search.html" class="sidebar-item active">
+                    <i class="fas fa-search"></i><span>חיפוש רכב</span>
+                </a>
+                <a href="profile.html" class="sidebar-item">
+                    <i class="fas fa-user-circle"></i><span>פרופיל אישי</span>
+                </a>
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <a href="login.html" class="sidebar-item text-danger"
+                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                        <i class="fas fa-power-off"></i><span>התנתקות</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-profile">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
+                    width="45" height="45" style="border-radius:50%; object-fit:cover; flex-shrink:0;">
+                <div style="margin-right: 12px;">
+                    <div id="sidebarUserName" style="font-size:0.9rem; font-weight:700; color:#1d1d1f;">טוען...</div>
+                    <div style="font-size:0.75rem; color:#86868b;">משתמש רשום</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ═══ MAIN ═══ -->
+        <main class="main-content">
+
+            <!-- Results Hero -->
+            <div class="results-hero">
+                <h1><i class="fas fa-car" style="color: var(--primary-blue); margin-left: 12px;"></i> פרטי הרכב</h1>
+                <div class="plate-badge" id="plateBadge">---</div>
             </div>
 
-            <div class="grid-form">
-                <div class="field"><label>מספר רישוי</label><input type="text" id="res_plate" readonly></div>
-                <div class="field"><label>יצרן</label><input type="text" id="res_make" readonly></div>
-                <div class="field"><label>דגם</label><input type="text" id="res_model" readonly></div>
-                <div class="field"><label>שנת ייצור</label><input type="text" id="res_year" readonly></div>
-                <div class="field"><label>צבע</label><input type="text" id="res_color" readonly></div>
-                <div class="field"><label>סוג דלק</label><input type="text" id="res_fuel" readonly></div>
-                <div class="field"><label>תוקף טסט</label><input type="text" id="res_test"></div>
-                <div class="field"><label>תוקף רישיון רכב</label><input type="text" id="res_license"></div>
-                <div class="field"><label>קבוצת זיהום</label><input type="text" id="res_pollution" readonly></div>
-                <div class="field"><label>צמיג קדמי</label><input type="text" id="res_tire_f" readonly></div>
-                <div class="field"><label>קילומטראז' נוכחי</label><input type="text" id="res_km"
-                        placeholder="הכנס קילומטראז׳" class="manual-input"></div>
-                <div class="field"><label>צמיג אחורי</label><input type="text" id="res_tire_r" readonly></div>
-
-                <!-- Manual Fields for Specs (Edited) -->
-                <div class="field"><label>נפח מנוע (סמ״ק)</label><input type="text" id="manual_volume"
-                        class="manual-input"></div>
-                <div class="field"><label>כוח סוס</label><input type="text" id="manual_hp" class="manual-input"></div>
-
-                <div id="disabledTagBox" class="tag-status">
-                    <span id="tagText">בודק זכאות לתו נכה...</span>
+            <!-- Vehicle Detail Cards -->
+            <div class="detail-grid" id="detailGrid">
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-hashtag"></i></div><div class="detail-card-text"><label>מספר רישוי</label><span id="res_plate">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-industry"></i></div><div class="detail-card-text"><label>יצרן</label><span id="res_make">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-car-side"></i></div><div class="detail-card-text"><label>דגם</label><span id="res_model">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-calendar-alt"></i></div><div class="detail-card-text"><label>שנת ייצור</label><span id="res_year">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-palette"></i></div><div class="detail-card-text"><label>צבע</label><span id="res_color">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-gas-pump"></i></div><div class="detail-card-text"><label>סוג דלק</label><span id="res_fuel">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-clipboard-check"></i></div><div class="detail-card-text"><label>תוקף טסט</label><span id="res_test">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-id-card"></i></div><div class="detail-card-text"><label>תוקף רישיון רכב</label><span id="res_license">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-smog"></i></div><div class="detail-card-text"><label>קבוצת זיהום</label><span id="res_pollution">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-circle-notch"></i></div><div class="detail-card-text"><label>צמיג קדמי</label><span id="res_tire_f">—</span></div></div>
+                <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-circle-notch"></i></div><div class="detail-card-text"><label>צמיג אחורי</label><span id="res_tire_r">—</span></div></div>
+                <!-- Editable fields -->
+                <div class="detail-card">
+                    <div class="detail-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="detail-card-text">
+                        <label>קילומטראז' <span class="editable-badge">עריכה</span></label>
+                        <input type="tel" id="res_km" class="detail-input" placeholder="הזן ק״מ" oninput="this.value=this.value.replace(/\D/g,'')">
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-icon"><i class="fas fa-cog"></i></div>
+                    <div class="detail-card-text">
+                        <label>נפח מנוע <span class="editable-badge">עריכה</span></label>
+                        <input type="text" id="manual_volume" class="detail-input" placeholder="סמ״ק">
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-icon"><i class="fas fa-horse-head"></i></div>
+                    <div class="detail-card-text">
+                        <label>כוח סוס <span class="editable-badge">עריכה</span></label>
+                        <input type="text" id="manual_hp" class="detail-input" placeholder="כ״ס">
+                    </div>
                 </div>
             </div>
 
-            <div class="action-btns">
-                <button class="btn-add" id="addBtn">הוסף לרשימת הרכבים</button>
-                <button class="btn-new" onclick="window.location.href='search.html'">חיפוש מחדש</button>
+            <!-- Disabled Tag Notice -->
+            <div id="disabledTagBox" class="notice-card warning" style="display:none;">
+                <div class="notice-icon"><i class="fas fa-wheelchair"></i></div>
+                <div class="notice-text">
+                    <h3 id="tagText">בודק זכאות...</h3>
+                    <p>בדיקת תו נכה מול מאגר רשות האוכלוסין</p>
+                </div>
             </div>
-        </div>
+
+            <!-- Action Buttons -->
+            <div class="action-area">
+                <button class="btn-add-car" id="addBtn">
+                    <i class="fas fa-plus-circle"></i> הוסף לרשימת הרכבים שלי
+                </button>
+                <button class="btn-search-again" onclick="window.location.href='search.html'">
+                    <i class="fas fa-redo"></i> חיפוש מחדש
+                </button>
+            </div>
+
+        </main>
     </div>
 
-    <footer class="global-footer"></footer>
-
     <script src="js/brand-map.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/global_footer.js"></script>
-<script src="js/global-autosave.js"></script>
-</body>
+    <script>
+    // ── Sidebar User ──────────────────────────────────────
+    (function() {
+        const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const nameEl = document.getElementById('sidebarUserName');
+        const imgEl = document.getElementById('sidebarUserImg');
+        if (nameEl) nameEl.textContent = user.fullName || 'משתמש';
+        if (imgEl && (user.avatar || user.fullName)) {
+            imgEl.src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName||'U')}&background=2d74d7&color=fff&rounded=true`;
+        }
+    })();
 
+    // ── Date Helpers ──────────────────────────────────────
+    function formatDateOnly(dateStr) {
+        if (!dateStr) return "אין נתונים";
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    function formatNextTestDate(dateStr) {
+        if (!dateStr) return "אין נתונים";
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        d.setFullYear(d.getFullYear() + 1);
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    // ── Fetch Vehicle Data ────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+        const plate = new URLSearchParams(window.location.search).get('plate');
+        if (!plate) { alert("לא הוזן מספר רכב"); window.location.href = 'search.html'; return; }
+
+        document.getElementById('plateBadge').textContent = plate;
+
+        try {
+            const carResId = '053cea08-09bc-40ec-8f7a-156f0677aff3';
+            const carUrl = `https://data.gov.il/api/3/action/datastore_search?resource_id=${carResId}&q=${plate}`;
+            const carResp = await fetch(carUrl);
+            const carData = await carResp.json();
+
+            if (carData.success && carData.result.records.length > 0) {
+                const car = carData.result.records[0];
+                document.getElementById('res_plate').textContent = car.mispar_rechev;
+                document.getElementById('res_make').textContent = car.tozeret_nm;
+                document.getElementById('res_model').textContent = car.degem_nm;
+                document.getElementById('res_year').textContent = car.shnat_yitzur;
+                document.getElementById('res_color').textContent = car.tzeva_rechev;
+                document.getElementById('res_fuel').textContent = car.sug_delek_nm;
+                document.getElementById('res_test').textContent = formatNextTestDate(car.mivchan_acharon_dt);
+                document.getElementById('res_license').textContent = formatDateOnly(car.tokef_dt);
+                document.getElementById('res_pollution').textContent = car.kvutzat_zihum;
+                document.getElementById('res_tire_f').textContent = car.zmig_kidmi;
+                document.getElementById('res_tire_r').textContent = car.zmig_ahori;
+                if (car.nefah_manoa) document.getElementById('manual_volume').value = car.nefah_manoa;
+                if (car.koah_sus) document.getElementById('manual_hp').value = car.koah_sus;
+            } else {
+                alert("רכב לא נמצא במאגר");
+            }
+
+            // Disabled tag check
+            const tagResId = 'c8b9f9c8-4612-4068-934f-d4acd2e3c06e';
+            const tagResp = await fetch(`https://data.gov.il/api/3/action/datastore_search?resource_id=${tagResId}&q=${plate}`);
+            const tagData = await tagResp.json();
+            const hasTag = tagData.result.records.length > 0;
+            const tagBox = document.getElementById('disabledTagBox');
+            const tagText = document.getElementById('tagText');
+            tagBox.style.display = 'flex';
+
+            if (hasTag) {
+                tagBox.className = 'notice-card success';
+                tagText.textContent = '♿ לרכב זה יש תו נכה פעיל במאגר';
+            } else {
+                tagBox.className = 'notice-card warning';
+                tagText.textContent = 'לרכב זה אין תו נכה במאגר';
+            }
+        } catch (err) {
+            console.error(err);
+            alert("שגיאה בחיבור למאגרי הממשלה");
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    });
+
+    // ── Add Vehicle ───────────────────────────────────────
+    document.getElementById('addBtn').onclick = async function() {
+        const btn = this;
+        btn.textContent = "מעבד...";
+        btn.disabled = true;
+
+        const makeFull = document.getElementById('res_make').textContent;
+        const hebrewBrand = makeFull.split('-')[0].trim();
+
+        try {
+            let englishBrand = typeof window.getEnglishBrandName === 'function'
+                ? window.getEnglishBrandName(hebrewBrand) : 'default';
+
+            const newCar = {
+                id: Date.now(),
+                brandHeb: hebrewBrand,
+                model: document.getElementById('res_model').textContent,
+                year: document.getElementById('res_year').textContent,
+                logo: `images/logos/${englishBrand}.png`,
+                licensePlate: document.getElementById('res_plate').textContent,
+                testDate: document.getElementById('res_test').textContent,
+                licenseExpiry: document.getElementById('res_license').textContent,
+                color: document.getElementById('res_color').textContent,
+                fuelType: document.getElementById('res_fuel').textContent,
+                pollution: document.getElementById('res_pollution').textContent,
+                tireFront: document.getElementById('res_tire_f').textContent,
+                tireRear: document.getElementById('res_tire_r').textContent,
+                hasDisabledTag: document.getElementById('disabledTagBox').classList.contains('success'),
+                km: parseInt(document.getElementById('res_km').value) || 0,
+                engineVolume: document.getElementById('manual_volume').value || '',
+                horsePower: document.getElementById('manual_hp').value || '',
+                treatments: [], accidents: [], fuelLog: [], reports: []
+            };
+
+            const userId = localStorage.getItem('userId');
+            const response = await fetch('/api/vehicles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'userid': userId || '1' },
+                body: JSON.stringify(newCar)
+            });
+
+            if (!response.ok) throw new Error(`Server ${response.status}`);
+            const data = await response.json();
+
+            const existingCars = JSON.parse(localStorage.getItem('userCars')) || [];
+            newCar.id = data.vehicleId;
+            existingCars.push(newCar);
+            localStorage.setItem('userCars', JSON.stringify(existingCars));
+
+            window.location.href = 'after_login.html';
+        } catch (err) {
+            console.error(err);
+            alert("שגיאה בעיבוד הנתונים. נסה שוב.");
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> הוסף לרשימת הרכבים שלי';
+            btn.disabled = false;
+        }
+    };
+    </script>
+</body>
 </html>

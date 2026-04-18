@@ -147,8 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.removeItem('chatHistory');
                 chatBox.innerHTML = `
                     <div class="chat-message ai-msg">
-                        היי! אני העוזר של המוסך הווירטואלי EasyCare.<br>
-                        ראיתי את נתוני הרכב שלך. איך אפשר לעזור היום?
+                        <strong>היי!</strong> אני סייע ה-AI של EasyCare. 🧠<br>
+                        יש לי גישה לאבחונים ולכלל ההיסטוריה של הרכב שלך. איך אפשר לעזור היום?
                     </div>`;
             }
         });
@@ -272,13 +272,23 @@ document.addEventListener('DOMContentLoaded', () => {
         chatHistory.forEach(msg => addMessage(msg.text, msg.sender, false));
     }
 
+    // Quick Actions
+    window.sendQuickAction = function(text) {
+        userInput.value = text;
+        sendMessage();
+    };
+
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
         addMessage(text, 'user', true);
         userInput.value = '';
-        typingIndicator.style.display = 'block';
+        typingIndicator.style.display = 'flex';
+        
+        // Scroll to the typing indicator
+        chatBox.appendChild(typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
         const carContext = getCarContextForAI();
 
@@ -292,11 +302,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             typingIndicator.style.display = 'none';
+            // Return typing indicator to window level (remove from chatbox)
+            document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, document.getElementById('quickActions'));
+            
             addMessage(data.reply, 'ai', true);
 
         } catch (error) {
             console.error(error);
             typingIndicator.style.display = 'none';
+            document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, document.getElementById('quickActions'));
             addMessage('מצטער, השרת לא מחובר באוויר כרגע. אנא ודא ש-Server.js רץ ברקע (ע"י הרצה של \`npm start\`).', 'ai');
         }
     }

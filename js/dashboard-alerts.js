@@ -1,78 +1,135 @@
-// --- CUSTOM ALERTS ---
-function loadAlerts() {
-    const alertsGrid = document.getElementById('alertsGrid');
-    const summaryText = document.getElementById('alertsSummaryText');
-    if (!alertsGrid) return;
+// --- CUSTOM ALERTS & PREMIUM HUB ---
 
-    // Sort logic
+let currentAlertFilter = 'all';
+
+function loadAlerts() {
+    const timelineContainer = document.getElementById('alertsTimelineContainer');
+    const summaryText = document.getElementById('alertsSummaryText');
+    const alertsCountTitle = document.getElementById('alertsCountTitle');
+    const alertsDoneKPI = document.getElementById('alertsDoneKPI');
+    const alertsUrgentKPI = document.getElementById('alertsUrgentKPI');
+
+    if (!timelineContainer) return;
+
+    // Standardize alerts structure & sorting
+    if (!currentCar.customAlerts) currentCar.customAlerts = [];
     currentCar.customAlerts.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let upcomingCount = 0;
+    let doneCount = 0;
+    let urgentCount = 0;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
 
-    alertsGrid.innerHTML = '';
+    // Calc KPIs globally first
+    currentCar.customAlerts.forEach(alert => {
+        if (alert.done) doneCount++;
+        else {
+            const ad = new Date(alert.date);
+            if (ad < today) urgentCount++;
+            else if (ad <= nextWeek) {
+                urgentCount++;
+                upcomingCount++;
+            }
+        }
+    });
 
-    if (!currentCar.customAlerts || currentCar.customAlerts.length === 0) {
-        alertsGrid.innerHTML = `
-            <div class="db-col-12 text-center py-5 text-muted">
-                <i class="fas fa-bell-slash fa-4x mb-3 opacity-25"></i>
-                <h5>אין התראות אישיות עדיין</h5>
-                <p>הוסף תזכורות כדי להישאר מעודכן בכל מה שקשור לרכב שלך.</p>
+    if (alertsCountTitle) alertsCountTitle.textContent = currentCar.customAlerts.length;
+    if (alertsDoneKPI) alertsDoneKPI.textContent = doneCount;
+    if (alertsUrgentKPI) alertsUrgentKPI.textContent = urgentCount;
+
+    timelineContainer.innerHTML = '';
+
+    // Apply Filters
+    let filteredAlerts = currentCar.customAlerts;
+    if (currentAlertFilter === 'done') {
+        filteredAlerts = currentCar.customAlerts.filter(a => a.done);
+    } else if (currentAlertFilter === 'upcoming') {
+        filteredAlerts = currentCar.customAlerts.filter(a => !a.done);
+    }
+
+    if (!filteredAlerts || filteredAlerts.length === 0) {
+        timelineContainer.innerHTML = `
+            <div class="text-center py-5 text-muted" style="background: rgba(255,255,255,0.5); border-radius: 16px; border: 1px dashed #cbd5e1; margin-top: 20px;">
+                <i class="fas fa-check-circle fa-4x mb-3 text-success" style="opacity: 0.3;"></i>
+                <h5 class="fw-bold text-dark">הכל נקי ומסודר!</h5>
+                <p>אין לך תזכורות ${currentAlertFilter === 'done' ? 'שהסתיימו' : currentAlertFilter === 'upcoming' ? 'פתוחות' : 'במערכת'}. השתמש בהצעות החכמות למעלה כדי להוסיף רשומות בקליק.</p>
             </div>
         `;
-        summaryText.innerHTML = `אין התראות כרגע`;
+        if (summaryText) {
+            summaryText.innerHTML = currentCar.customAlerts.length === 0 ? `הארגונית האישית שלך כרגע ריקה לחלוטין.` : `אין משימות מתאימות לסינון הנבחר.`;
+        }
         return;
     }
 
-    currentCar.customAlerts.forEach(alert => {
+    // Render Timeline Items
+    filteredAlerts.forEach(alert => {
         const ad = new Date(alert.date);
 
         let statusHtml = '';
         let isExpired = false;
+        let nodeClass = 'node-gray'; // Default node colors
+
         if (alert.done) {
-            statusHtml = `<span class="db-badge bg-success ms-2">בוצע</span>`;
+            statusHtml = `<span class="badge ms-2 rounded-pill px-3 py-2" style="background:#dcfce7; color:#16a34a; border: 1px solid #bbf7d0;"><i class="fas fa-check me-1"></i> בוצע</span>`;
+            nodeClass = 'node-success';
         } else if (ad < today) {
-            statusHtml = `<span class="db-badge bg-danger ms-2">פג תוקף</span>`;
+            statusHtml = `<span class="badge ms-2 rounded-pill px-3 py-2 animate__animated animate__pulse animate__infinite" style="background:#fee2e2; color:#ef4444; border: 1px solid #fecaca;"><i class="fas fa-exclamation-triangle me-1"></i> באיחור!</span>`;
             isExpired = true;
+            nodeClass = 'node-danger';
         } else if (ad <= nextWeek) {
-            statusHtml = `<span class="db-badge bg-warning text-dark ms-2">קרוב</span>`;
-            upcomingCount++;
+            statusHtml = `<span class="badge ms-2 rounded-pill px-3 py-2" style="background:#fef9c3; color:#ca8a04; border: 1px solid #fef08a;"><i class="fas fa-clock me-1"></i> קרוב</span>`;
+            nodeClass = 'node-warning';
         } else {
-            statusHtml = `<span class="db-badge bg-secondary ms-2">עתידי</span>`;
+            statusHtml = `<span class="badge ms-2 rounded-pill px-3 py-2" style="background:#f1f5f9; color:#64748b; border: 1px solid #e2e8f0;">עתידי</span>`;
         }
 
-        const borderColors = {
-            'gray': '#6c757d',
-            'warning': '#ffc107',
-            'danger': '#dc3545'
+        // Convert priority text to coloring
+        if (!alert.done && !isExpired && ad > nextWeek) {
+            if (alert.priority === 'danger') nodeClass = 'node-danger';
+            if (alert.priority === 'warning') nodeClass = 'node-warning';
+            if (alert.priority === 'gray') nodeClass = 'node-gray';
+        }
+
+        const frequencyTransMap = {
+            'once': 'פעולה בודדת',
+            'daily': 'תזכורת יומית',
+            'weekly': 'תזכורת שבועית',
+            'monthly': 'תזכורת חודשית',
+            'yearly': 'תזכורת שנתית (ריטואל)'
         };
+        const freqText = frequencyTransMap[alert.frequency || 'once'] || 'חד פעמית';
 
-        const cardStyle = `border-right: 4px solid ${borderColors[alert.priority]}; opacity: ${alert.done ? '0.6' : '1'};`;
-
-        alertsGrid.innerHTML += `
-            <div class="db-col-md-6 db-col-lg-4 mb-3">
-                <div class="db-card ${isExpired && !alert.done ? 'border-danger' : ''}" style="${cardStyle}">
-                    <div class="db-card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold m-0 ${alert.done ? 'text-decoration-line-through text-muted' : ''}">${alert.title}</h5>
-                            ${statusHtml}
+        timelineContainer.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-node ${nodeClass}">
+                    <i class="fas ${alert.done ? 'fa-check' : 'fa-thumbtack'}" style="color: white; font-size: 10px;"></i>
+                </div>
+                <div class="timeline-content-card ${alert.done ? 'done-item' : ''} ${isExpired && !alert.done ? 'border-danger' : ''}">
+                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap">
+                        <h5 class="fw-bold text-dark m-0 d-flex align-items-center" style="${alert.done ? 'text-decoration: line-through; opacity:0.8;' : ''}">
+                            ${alert.title}
+                        </h5>
+                        <div class="mt-2 mt-sm-0">${statusHtml}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-end flex-wrap mt-3">
+                        <div class="d-flex flex-column gap-1">
+                            <span class="text-muted fw-bold" style="font-size: 0.95rem;">
+                                <i class="fas fa-calendar bg-light p-2 rounded-circle me-1" style="width: 28px; text-align: center; color: #3b82f6;"></i>
+                                ${ad.toLocaleDateString('he-IL', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                            </span>
+                            <span class="text-muted" style="font-size: 0.8rem;">
+                                <i class="fas fa-sync-alt bg-light p-2 rounded-circle me-1" style="width: 28px; text-align: center; color: #8b5cf6;"></i>
+                                מחזוריות: ${freqText}
+                            </span>
                         </div>
-                        <p class="text-muted small mb-3">
-                            <i class="far fa-calendar-alt me-1"></i>
-                            ${ad.toLocaleDateString('he-IL')}
-                            <span class="ms-2 badge bg-light text-dark border"><i class="fas fa-sync-alt me-1"></i> ${alert.frequency === 'daily' ? 'יומית' :
-                alert.frequency === 'weekly' ? 'שבועית' :
-                    alert.frequency === 'monthly' ? 'חודשית' :
-                        alert.frequency === 'yearly' ? 'שנתית' : 'חד פעמית'
-            }</span>
-                        </p>
-                        <div class="d-flex justify-content-end gap-2 mt-auto">
-                            ${!alert.done ? `<button class="db-btn db-btn-outline-dark db-btn-sm" title="סמן כבוצע" onclick="markAlertAsDone('${alert.id}')"><i class="fas fa-check text-success"></i></button>` : ''}
-                            <button class="db-btn db-btn-outline-dark db-btn-sm" title="ערוך" onclick="openEditAlertModal('${alert.id}')"><i class="fas fa-pencil-alt text-primary"></i></button>
-                            <button class="db-btn db-btn-outline-dark db-btn-sm" title="מחק" onclick="deleteAlert('${alert.id}')"><i class="fas fa-trash text-danger"></i></button>
+                        <div class="d-flex gap-2 mt-3 mt-md-0">
+                            ${!alert.done ? `<button class="db-btn db-btn-sm" style="background:#dcfce7; color:#16a34a; border:none; border-radius:10px; font-weight:bold; padding: 6px 12px; transition: all 0.2s;" title="סמן כבוצע" onclick="markAlertAsDone('${alert.id}')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-check me-1"></i> השלם</button>` : ''}
+                            <button class="db-btn db-btn-sm" style="background:#eff6ff; color:#3b82f6; border:none; border-radius:10px; padding: 6px 12px; transition: all 0.2s;" title="ערוך" onclick="openEditAlertModal('${alert.id}')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-pencil-alt"></i></button>
+                            <button class="db-btn db-btn-sm" style="background:#fee2e2; color:#ef4444; border:none; border-radius:10px; padding: 6px 12px; transition: all 0.2s;" title="מחק" onclick="deleteAlert('${alert.id}')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
@@ -80,25 +137,66 @@ function loadAlerts() {
         `;
     });
 
-    // Update summary text
-    let summaryStr = `סה"כ ${currentCar.customAlerts.length} התראות.`;
-    if (upcomingCount > 0) summaryStr += ` <b>(${upcomingCount} התראות ל-7 הימים הקרובים)</b>`;
-    summaryText.innerHTML = summaryStr;
+    // Update Premium Summary Text
+    let summaryStr = `נמצאו <strong>${urgentCount} פריטים בדחיפות גבוהה</strong> עבור ${currentCar.brand || 'רכב זה'}.`;
+    if (urgentCount === 0 && upcomingCount === 0 && doneCount > 0) summaryStr = `כל המשימות הפתוחות הושלמו, יופי של ניהול רכב! 🌟`;
+    else if (urgentCount === 0 && upcomingCount > 0) summaryStr = `ישנן ${upcomingCount} התראות שמתקרבות לשבוע הקרוב.`;
+
+    if (summaryText) summaryText.innerHTML = summaryStr;
 }
 
-function openAddAlertModal() {
+// GUI Filter Logic
+window.filterAlerts = function (type) {
+    currentAlertFilter = type;
+
+    // Update active UI classes for Segmented buttons
+    try {
+        const segContainer = document.getElementById('alertsSegmentFilter');
+        if (segContainer) {
+            const btns = segContainer.querySelectorAll('.segment-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            // simple match hack based on onclick function body string match
+            btns.forEach(b => {
+                if (b.getAttribute('onclick').includes(type)) {
+                    b.classList.add('active');
+                }
+            });
+        }
+    } catch (e) { }
+
+    loadAlerts();
+}
+
+// AI Smart Suggestion Auto-Filler
+window.smartAddAlert = function (title, priority, freq, inDays) {
     document.getElementById('add-alert-form').reset();
+
+    document.getElementById('alertTitle').value = title;
+    document.getElementById('alertPriority').value = priority;
+    document.getElementById('alertFrequency').value = freq;
+
+    let target = new Date();
+    target.setDate(target.getDate() + inDays);
+    document.getElementById('alertDate').value = target.toISOString().split('T')[0];
+
     new bootstrap.Modal(document.getElementById('addAlertModal')).show();
 }
 
-function saveAlert() {
+// Modal open overrides
+window.openAddAlertModal = function () {
+    document.getElementById('add-alert-form').reset();
+    document.getElementById('alertDate').value = new Date().toISOString().split('T')[0]; // Default to today
+    new bootstrap.Modal(document.getElementById('addAlertModal')).show();
+}
+
+window.saveAlert = function () {
     const title = document.getElementById('alertTitle').value;
     const date = document.getElementById('alertDate').value;
     const priority = document.getElementById('alertPriority').value;
     const frequency = document.getElementById('alertFrequency').value;
 
     if (!title || !date) {
-        alert('אנא מלא את כל השדות החובה.');
+        alert('יש למלא כותרת ותאריך יעד למשימה.');
         return;
     }
 
@@ -111,22 +209,26 @@ function saveAlert() {
         done: false
     };
 
+    if (!currentCar.customAlerts) currentCar.customAlerts = [];
     currentCar.customAlerts.push(newAlert);
     saveToLocalStorage();
 
     bootstrap.Modal.getInstance(document.getElementById('addAlertModal')).hide();
-    loadAlerts();
+
+    // Switch filter to 'upcoming' or 'all' automatically so user sees it right away
+    if (currentAlertFilter === 'done') filterAlerts('upcoming');
+    else loadAlerts();
 }
 
-function deleteAlert(id) {
-    if (confirm('האם אתה בטוח שברצונך למחוק התראה זו?')) {
+window.deleteAlert = function (id) {
+    if (confirm('מחיקת תזכורת: הפעולה תמחוק את האייטם לצמיתות. להמשיך?')) {
         currentCar.customAlerts = currentCar.customAlerts.filter(a => a.id !== id);
         saveToLocalStorage();
         loadAlerts();
     }
 }
 
-function markAlertAsDone(id) {
+window.markAlertAsDone = function (id) {
     const alert = currentCar.customAlerts.find(a => a.id === id);
     if (!alert) return;
 
@@ -143,14 +245,13 @@ function markAlertAsDone(id) {
             currentDate.setFullYear(currentDate.getFullYear() + 1);
         }
 
-        // Update to next date, keep done = false
         const year = currentDate.getFullYear();
         const month = String(currentDate.getMonth() + 1).padStart(2, '0');
         const day = String(currentDate.getDate()).padStart(2, '0');
         alert.date = `${year}-${month}-${day}`;
-
+        // For recurring, doing it pushes date forward, keeps done=false
+        window.alert(`התזכורת הועברה למועדה הבא במחזוריות: ${day}/${month}/${year}`);
     } else {
-        // One time action mark as done
         alert.done = true;
     }
 
@@ -158,7 +259,7 @@ function markAlertAsDone(id) {
     loadAlerts();
 }
 
-function openEditAlertModal(id) {
+window.openEditAlertModal = function (id) {
     const alert = currentCar.customAlerts.find(a => a.id === id);
     if (!alert) return;
 
@@ -171,7 +272,7 @@ function openEditAlertModal(id) {
     new bootstrap.Modal(document.getElementById('editAlertModal')).show();
 }
 
-function updateAlert() {
+window.updateAlert = function () {
     const id = document.getElementById('editAlertId').value;
     const title = document.getElementById('editAlertTitle').value;
     const date = document.getElementById('editAlertDate').value;
@@ -179,16 +280,22 @@ function updateAlert() {
     const frequency = document.getElementById('editAlertFrequency').value;
 
     if (!title || !date) {
-        alert('אנא מלא את כל השדות החובה.');
+        alert('יש למלא כותרת ותאריך יעד.');
         return;
     }
 
-    const alert = currentCar.customAlerts.find(a => a.id === id);
-    if (alert) {
-        alert.title = title;
-        alert.date = date;
-        alert.priority = priority;
-        alert.frequency = frequency;
+    const alertInst = currentCar.customAlerts.find(a => a.id === id);
+    if (alertInst) {
+        alertInst.title = title;
+        alertInst.date = date;
+        alertInst.priority = priority;
+        alertInst.frequency = frequency;
+
+        // If it was past date but being modified to future, it might 'undone' naturally?
+        // Actually editing date doesn't un-done it unless we force it.
+        if (alertInst.done && new Date(date) > new Date()) {
+            alertInst.done = false; // logic reset if date pushed forward explicitly
+        }
 
         saveToLocalStorage();
         bootstrap.Modal.getInstance(document.getElementById('editAlertModal')).hide();

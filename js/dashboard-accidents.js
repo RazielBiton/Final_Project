@@ -1,4 +1,35 @@
 // --- MODULE: ACCIDENTS ---
+
+window.currentAccidentFilter = 'all';
+window.currentAccidentSearch = '';
+
+window.filterAccidents = function(type) {
+    window.currentAccidentFilter = type;
+    
+    document.querySelectorAll('.acc-filter-btn').forEach(btn => {
+        if(btn.dataset.filter === type) {
+            btn.classList.add('active');
+            btn.style.background = '#fff';
+            btn.style.color = '#0f172a';
+            btn.style.fontWeight = '700';
+            btn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = 'transparent';
+            btn.style.color = '#64748b';
+            btn.style.fontWeight = '600';
+            btn.style.boxShadow = 'none';
+        }
+    });
+    
+    window.loadAccidents(); // Will re-render using the current filter state
+};
+
+window.filterAccidentsSearch = function() {
+    window.currentAccidentSearch = (document.getElementById('accFilterSearch').value || '').toLowerCase();
+    window.loadAccidents();
+};
+
 window.loadAccidents = function () {
     const listContainer = document.getElementById('accidents-list-container');
     const emptyState = document.getElementById('accidents-empty-state');
@@ -8,74 +39,137 @@ window.loadAccidents = function () {
 
     listContainer.innerHTML = ''; // Clear container
 
+    listContainer.innerHTML = '<div style="position: absolute; right: 40px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; z-index: 1;"></div>';
+
     // Ensure array exists
     if (!currentCar.accidents) currentCar.accidents = [];
+
+    // KPI Calculations
+    let totalCost = 0;
+    let pendingCount = 0;
+    let resolvedCount = 0;
+    
+    currentCar.accidents.forEach(a => {
+        totalCost += Number(a.cost) || 0;
+        if(a.status === 'resolved') resolvedCount++;
+        else pendingCount++;
+    });
+
+    const kpiPending = document.getElementById('acc-pending-count');
+    const kpiResolved = document.getElementById('acc-resolved-count');
+    const kpiTotalCost = document.getElementById('acc-total-cost');
+    const kpiCountText = document.getElementById('acc-total-count-text');
+    const progResolved = document.getElementById('acc-progress-resolved');
+    const progPending = document.getElementById('acc-progress-pending');
+
+    if(kpiPending) kpiPending.textContent = pendingCount;
+    if(kpiResolved) kpiResolved.textContent = resolvedCount;
+    if(kpiTotalCost) kpiTotalCost.textContent = `₪${new Intl.NumberFormat('he-IL').format(totalCost)}`;
+    if(kpiCountText) kpiCountText.textContent = `סה"כ ${currentCar.accidents.length} אירועים מדווחים`;
+    
+    const totalAccidents = pendingCount + resolvedCount;
+    if(progResolved && progPending) {
+        progResolved.style.width = totalAccidents > 0 ? `${(resolvedCount / totalAccidents) * 100}%` : '0%';
+        progPending.style.width = totalAccidents > 0 ? `${(pendingCount / totalAccidents) * 100}%` : '0%';
+    }
+
+    const filterContainer = document.getElementById('accidents-filters-container');
 
     if (currentCar.accidents.length === 0) {
         emptyState.classList.remove('d-none');
         populatedState.classList.add('d-none');
+        if (filterContainer) filterContainer.classList.add('d-none');
         return;
     } else {
         emptyState.classList.add('d-none');
         populatedState.classList.remove('d-none');
+        if (filterContainer) filterContainer.classList.remove('d-none');
     }
 
-    // Sort by status first (resolved last), then date descending
+    // Sort by status first (resolved last), then date descending, then filter
     const sortedAccidents = [...currentCar.accidents].sort((a, b) => {
         if (a.status === 'resolved' && b.status !== 'resolved') return 1;
         if (a.status !== 'resolved' && b.status === 'resolved') return -1;
         return (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0);
+    }).filter(acc => {
+        // Filter by type
+        const typeMatch = 
+            window.currentAccidentFilter === 'all' ||
+            (window.currentAccidentFilter === 'pending' && acc.status !== 'resolved') ||
+            (window.currentAccidentFilter === 'resolved' && acc.status === 'resolved') ||
+            (window.currentAccidentFilter === 'involved' && (acc.involvedVehicles?.length > 0 || acc.involvedVehicle));
+            
+        // Filter by text search
+        const searchMatch = !window.currentAccidentSearch || 
+            (acc.title && acc.title.toLowerCase().includes(window.currentAccidentSearch)) ||
+            (acc.description && acc.description.toLowerCase().includes(window.currentAccidentSearch)) ||
+            (acc.cost && String(acc.cost).includes(window.currentAccidentSearch)) ||
+            (acc.involvedVehicles && acc.involvedVehicles.some(v => v.plate?.includes(window.currentAccidentSearch) || v.title?.toLowerCase().includes(window.currentAccidentSearch)));
+            
+        return typeMatch && searchMatch;
     });
+
+    if (sortedAccidents.length === 0) {
+        // Show a "No results found for filter" message inside the list container
+        listContainer.innerHTML += `
+        <div class="text-center py-5" style="width: 100%; position: relative; z-index: 2;">
+            <div style="width: 60px; height: 60px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: #94a3b8; font-size: 1.5rem;">
+                <i class="fas fa-search"></i>
+            </div>
+            <h6 style="color: #475569; font-weight: 700;">לא נמצאו תוצאות התואמות לסינון</h6>
+            <button class="btn btn-sm mt-3" onclick="document.getElementById('accFilterSearch').value=''; filterAccidents('all');" style="background: white; border: 1px solid #cbd5e1; color: #64748b; font-weight: 600; border-radius: 8px;">נקה סינון</button>
+        </div>`;
+        return;
+    }
 
     sortedAccidents.forEach(acc => {
         const isResolved = acc.status === 'resolved';
-        const statusBadgeClass = isResolved ? 'bg-success' : 'bg-warning text-dark';
-        const statusIcon = isResolved ? 'fa-check-circle' : 'fa-exclamation-circle';
-        const statusText = isResolved ? 'טופל ותוקן' : 'ממתין לטיפול';
-
-        // Formatted Date
-        const badgeHtml = `<span class="badge ${statusBadgeClass} rounded-pill px-3 py-2 shadow-sm"><i class="fas ${statusIcon} me-1"></i> ${statusText}</span>`;
 
         let involvedHtml = '';
         if (acc.involvedVehicles && acc.involvedVehicles.length > 0) {
             let vhtml = acc.involvedVehicles.map(v => {
-                let logoHtml = v.logo ? `<img src="${v.logo}" class="rounded-circle border ms-2 bg-white" width="30" height="30" style="object-fit: contain; padding: 2px;">` : '';
+                let logoHtml = v.logo ? `<img src="${v.logo}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; border:1px solid #e2e8f0; padding:2px; margin-left:12px;">` : `<div style="width:36px; height:36px; border-radius:50%; background:#f8fafc; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin-left:12px;"><i class="fas fa-car text-slate-400"></i></div>`;
                 return `
-                <div class="d-flex align-items-center justify-content-between mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                     <div class="d-flex align-items-center">
                         ${logoHtml}
                         <div>
-                            <span class="fw-bold text-dark d-block" style="font-size: 0.9rem;">${v.title || 'רכב לא ידוע'}</span>
-                            <span class="text-muted small">${v.color || '-'} | שנת ${v.year || '-'}</span>
+                            <span class="fw-bold d-block" style="color: #1e293b; font-size: 0.9rem;">${v.title || 'רכב לא ידוע'}</span>
+                            <span style="color: #64748b; font-size: 0.8rem;">${v.color || '-'} | שנת ${v.year || '-'}</span>
                         </div>
                     </div>
-                    <div class="badge ${isResolved ? 'bg-secondary' : 'bg-light border border-secondary'} text-dark px-2 py-1 mx-2" dir="ltr" style="font-size: 0.75rem;">
-                        ${v.plate} <span class="ms-1">🇮🇱</span>
+                    <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
+                        ${v.plate} <span class="ms-1 fs-6">🇮🇱</span>
                     </div>
                 </div>
             `}).join('');
 
             involvedHtml = `
-            <div class="mt-3 p-2 rounded" style="background-color: ${isResolved ? '#e9ecef' : '#fff3f3'}; border-right: 3px solid ${isResolved ? '#6c757d' : '#e63946'};">
-                <small class="${isResolved ? 'text-secondary' : 'text-danger'} fw-bold mb-1 d-block"><i class="fas fa-car-side me-1"></i> כלי רכב מעורבים (${acc.involvedVehicles.length})</small>
+            <div style="margin-top: 1.5rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; border-right: 4px solid #f43f5e;">
+                <div style="font-size: 0.85rem; font-weight: 800; color: #e11d48; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-file-contract"></i> רכבים מעורבים (צד ג') 
+                    <span style="background: #ffe4e6; color: #be123c; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem;">${acc.involvedVehicles.length} רכבים</span>
+                </div>
                 ${vhtml}
             </div>`;
         } else if (acc.involvedVehicle && acc.involvedVehicle.plate) {
-            // Backwards compatibility
-            let logoHtml = acc.involvedVehicle.logo ? `<img src="${acc.involvedVehicle.logo}" class="rounded-circle border ms-2 bg-white" width="30" height="30" style="object-fit: contain; padding: 2px;">` : '';
+            // Backwards compat
+            let logoHtml = acc.involvedVehicle.logo ? `<img src="${acc.involvedVehicle.logo}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; border:1px solid #e2e8f0; padding:2px; margin-left:12px;">` : `<div style="width:36px; height:36px; border-radius:50%; background:#f8fafc; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin-left:12px;"><i class="fas fa-car text-slate-400"></i></div>`;
             involvedHtml = `
-            <div class="mt-3 p-2 rounded" style="background-color: ${isResolved ? '#e9ecef' : '#fff3f3'}; border-right: 3px solid ${isResolved ? '#6c757d' : '#e63946'};">
-                <small class="${isResolved ? 'text-secondary' : 'text-danger'} fw-bold mb-1 d-block"><i class="fas fa-car-side me-1"></i> כלי רכב מעורבים (1)</small>
-                <div class="d-flex align-items-center justify-content-between mt-2">
+            <div style="margin-top: 1.5rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; border-right: 4px solid #f43f5e;">
+                <div style="font-size: 0.85rem; font-weight: 800; color: #e11d48; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-file-contract"></i> רכבים מעורבים (צד ג')
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
                     <div class="d-flex align-items-center">
                         ${logoHtml}
                         <div>
-                            <span class="fw-bold text-dark d-block" style="font-size: 0.9rem;">${acc.involvedVehicle.title || 'רכב לא ידוע'}</span>
-                            <span class="text-muted small">${acc.involvedVehicle.color || '-'} | שנת ${acc.involvedVehicle.year || '-'}</span>
+                            <span class="fw-bold d-block" style="color: #1e293b; font-size: 0.9rem;">${acc.involvedVehicle.title || 'רכב לא ידוע'}</span>
+                            <span style="color: #64748b; font-size: 0.8rem;">${acc.involvedVehicle.color || '-'} | שנת ${acc.involvedVehicle.year || '-'}</span>
                         </div>
                     </div>
-                    <div class="badge ${isResolved ? 'bg-secondary' : 'bg-light border border-secondary'} text-dark px-2 py-1 mx-2" dir="ltr" style="font-size: 0.75rem;">
-                        ${acc.involvedVehicle.plate} <span class="ms-1">🇮🇱</span>
+                    <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
+                        ${acc.involvedVehicle.plate} <span class="ms-1 fs-6">🇮🇱</span>
                     </div>
                 </div>
             </div>`;
@@ -84,47 +178,62 @@ window.loadAccidents = function () {
         let imageHtml = '';
         if (acc.images && acc.images.length > 0) {
             let imgsHtml = acc.images.map((img, idx) => `
-                <img src="${img}" class="img-fluid rounded shadow-sm m-1" style="height: 60px; width: 60px; object-fit: cover; cursor: pointer; display: inline-block; filter: ${isResolved ? 'grayscale(80%) opacity(0.8)' : 'none'};" onclick="viewAccidentImage('${acc.id}', ${idx})" title="לחץ להגדלה">
+                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="viewAccidentImage('${acc.id}', ${idx})" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${img}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'};">
+                </div>
             `).join('');
-            imageHtml = `<div class="mt-3 text-start">${imgsHtml}</div>`;
+            imageHtml = `<div class="mt-3 d-flex flex-wrap gap-2">${imgsHtml}</div>`;
         } else if (acc.image) {
-            // Backwards compatibility
-            imageHtml = `<div class="mt-3 text-start"><img src="${acc.image}" class="img-fluid rounded shadow-sm m-1" style="height: 60px; width: 60px; object-fit: cover; cursor: pointer; display: inline-block; filter: ${isResolved ? 'grayscale(80%) opacity(0.8)' : 'none'};" onclick="viewAccidentImage('${acc.id}', 0)" title="לחץ להגדלה"></div>`;
+            imageHtml = `
+            <div class="mt-3 d-flex flex-wrap gap-2">
+                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="viewAccidentImage('${acc.id}', 0)" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${acc.image}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'};">
+                </div>
+            </div>`;
         }
 
-        const cardBgClass = isResolved ? 'bg-light' : 'bg-white';
         const cardHtml = `
-        <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card ${cardBgClass} border-0 shadow-sm h-100" style="border-radius: 12px; transition: transform 0.2s; border-top: 4px solid ${isResolved ? '#6c757d' : '#ffc107'}!important;">
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title fw-bold text-dark mb-0">${acc.title}</h5>
-                        ${badgeHtml}
-                    </div>
-                    <h6 class="card-subtitle mb-3 text-muted">
-                        <i class="far fa-calendar-alt me-1"></i> ${window.formatDate(acc.date)} &nbsp;|&nbsp; 
-                        <i class="fas fa-shekel-sign me-1"></i> ${parseInt(acc.cost).toLocaleString()}
-                    </h6>
-                    <p class="card-text text-secondary mb-3 flex-grow-1" style="font-size: 0.95rem;">${acc.description}</p>
-                    
-                    ${involvedHtml}
-                    ${imageHtml}
-                </div>
-                <div class="card-footer ${cardBgClass} border-top-0 pt-0 pb-3 d-flex justify-content-between">
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="toggleAccidentStatus(${acc.id})">
-                        ${isResolved ? '<i class="fas fa-undo me-1"></i> סמן כלא טופל' : '<i class="fas fa-check me-1"></i> הגדר כטופל'}
-                    </button>
+        <div style="position: relative; margin-bottom: 2rem; padding-right: 60px; z-index: 2;">
+            <!-- Timeline Dot -->
+            <div style="position: absolute; right: 28px; top: 20px; width: 24px; height: 24px; border-radius: 50%; background: ${isResolved ? '#10b981' : '#e11d48'}; border: 4px solid #fff; box-shadow: 0 0 0 2px ${isResolved ? '#a7f3d0' : '#fecdd3'}; z-index: 2;"></div>
+            
+            <div style="background: ${isResolved ? '#f8fafc' : '#ffffff'}; border-radius: 16px; border: 1px solid ${isResolved ? '#e2e8f0' : '#e2e8f0'}; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: all 0.2s; border-right: 4px solid ${isResolved ? '#94a3b8' : '#e11d48'}; opacity: ${isResolved ? '0.9' : '1'};">
+                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
                     <div>
-                        <button class="btn btn-light btn-sm text-primary rounded-circle shadow-sm me-1" onclick="editAccident(${acc.id})" title="ערוך">
-                            <i class="fas fa-pen"></i>
+                        <h5 class="fw-bold m-0" style="color: #0f172a; font-size: 1.15rem;">${acc.title}</h5>
+                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                            <i class="far fa-calendar-alt me-1"></i> ${window.formatDate(acc.date)} &nbsp;|&nbsp; 
+                            <i class="fas fa-coins me-1"></i> ₪${parseInt(acc.cost).toLocaleString()}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="background: ${isResolved ? '#f1f5f9' : '#fff1f2'}; color: ${isResolved ? '#475569' : '#be123c'}; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid ${isResolved ? '#cbd5e1' : '#fda4af'};">
+                            <i class="fas ${isResolved ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1"></i> ${isResolved ? 'טופל ותוקן' : 'ממתין לטיפול (פתוח)'}
+                        </span>
+                    </div>
+                </div>
+                
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6; margin-top: 1rem; margin-bottom: 0;">${acc.description}</p>
+                
+                ${involvedHtml}
+                ${imageHtml}
+                
+                <div class="mt-4 pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px dashed #cbd5e1;">
+                    <button class="btn btn-sm" onclick="toggleAccidentStatus(${acc.id})" style="background: ${isResolved ? '#ffffff' : '#f8fafc'}; color: ${isResolved ? '#64748b' : '#334155'}; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 600;">
+                        ${isResolved ? '<i class="fas fa-undo me-1"></i> החזר לפתוח' : '<i class="fas fa-check text-success me-1"></i> סימון שטופל בהצלחה'}
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm" onclick="editAccident(${acc.id})" style="background: #eff6ff; color: #3b82f6; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;" title="ערוך רישום">
+                            <i class="fas fa-pen fa-xs"></i>
                         </button>
-                        <button class="btn btn-light btn-sm text-danger rounded-circle shadow-sm" onclick="deleteAccident(${acc.id})" title="מחק">
-                            <i class="fas fa-trash"></i>
+                        <button class="btn btn-sm" onclick="deleteAccident(${acc.id})" style="background: #fef2f2; color: #ef4444; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;" title="מחיקה מהתיק">
+                            <i class="fas fa-trash fa-xs"></i>
                         </button>
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+        `;
 
         listContainer.insertAdjacentHTML('beforeend', cardHtml);
     });

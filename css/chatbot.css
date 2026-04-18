@@ -1,172 +1,324 @@
-/* --- עיצוב כפתור הצ'אט הצף --- */
+/* --- עיצוב כפתור הצ'אט הצף בהשראת הילת סירי (Apple AI) --- */
 .chat-widget-btn {
     position: fixed;
     bottom: 30px;
     left: 30px;
     width: 65px;
     height: 65px;
-    background-color: #ffffff;
-    color: white;
-    border: 1px solid #2d74d7;
     border-radius: 50%;
-    font-size: 28px;
     cursor: grab;
-    box-shadow: 0 4px 15px rgb(0, 0, 0);
     z-index: 999999;
-    transition: transform 0.3s ease, background-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     user-select: none;
-    padding: 0;
-    /* Remove default padding for image fit */
+    border: none;
+    
+    /* Apple Siri/Intelligence Gradient and Glow */
+    background: linear-gradient(135deg, #10b981, #3b82f6, #8b5cf6, #ec4899);
+    background-size: 200% 200%;
+    animation: siriGlow 4s ease infinite;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(255,255,255,0.5);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
-    /* Ensure image doesn't bleed out of circle */
 }
 
-.chat-widget-btn img {
-    width: 80%;
-    height: 80%;
-    object-fit: cover;
-    /* Cover ensures aspect ratio bounds within circle */
-    border-radius: 70%;
-    /* Make the image follow the circle constraints */
+.chat-widget-btn i {
+    font-size: 28px;
+    color: white;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    z-index: 2;
+}
+
+/* Add a shimmering inner ring */
+.chat-widget-btn::after {
+    content: '';
+    position: absolute;
+    top: 2px; right: 2px; bottom: 2px; left: 2px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+@keyframes siriGlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .chat-widget-btn:active {
     cursor: grabbing;
+    transform: scale(0.9);
 }
 
 .chat-widget-btn:hover {
     transform: scale(1.1);
-    background-color: #1a5bb8;
+    box-shadow: 0 15px 35px rgba(139, 92, 246, 0.5), inset 0 0 10px rgba(255,255,255,0.6);
 }
 
-/* --- עיצוב חלון הצ'אט --- */
+/* --- תצורת חלון הצ'אט, סגנון macOS Glassmorphism --- */
 .chat-widget-window {
     position: fixed;
     bottom: 110px;
     left: 30px;
-    width: 350px;
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgb(0, 0, 0);
+    width: 360px;
+    border-radius: 24px;
     display: none;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #e0e0e0;
     z-index: 1000000;
+    
+    /* Apple Frosted Glass */
+    background: rgba(250, 250, 252, 0.85);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    
+    transform-origin: bottom left;
+    animation: windowPopUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+@keyframes windowPopUp {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Header */
 .chat-header {
-    background: #2d74d7;
-    color: #fff;
-    padding: 15px;
+    /* Rich Apple-inspired deep blue gradient */
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: #ffffff;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.1rem;
-    font-weight: bold;
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     cursor: grab;
     user-select: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
 }
 
 .chat-header:active {
     cursor: grabbing;
 }
 
+.chat-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.chat-header-title i {
+    color: #0ea5e9;
+    background: #ffffff;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chat-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
 .chat-controls button {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
-    color: white;
-    font-size: 24px;
-    line-height: 1;
+    color: #ffffff;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    line-height: Math(26px);
     cursor: pointer;
-    margin-inline-start: 10px;
-    opacity: 0.8;
-    transition: 0.2s;
+    margin-inline-start: 6px;
+    transition: all 0.2s;
 }
 
 .chat-controls button:hover {
-    opacity: 1;
+    background: rgba(255, 255, 255, 0.4);
     transform: scale(1.1);
 }
 
+/* מיכל ההתכתבות */
 .chat-box {
     height: 380px;
-    padding: 15px;
+    padding: 20px 15px 10px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background-color: #f9fbfb;
+    background: linear-gradient(to bottom, #f0f9ff, #ffffff); /* Subtle light blue cool background */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
 }
+.chat-box::-webkit-scrollbar { width: 6px; }
+.chat-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
+/* iMessage Style Bubbles */
 .chat-message {
-    max-width: 85%;
-    padding: 12px 16px;
-    border-radius: 12px;
+    max-width: 80%;
+    padding: 10px 15px;
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    position: relative;
+    word-wrap: break-word;
+    animation: fadeInBubble 0.3s ease;
 }
 
+@keyframes fadeInBubble {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* User Message */
 .user-msg {
-    background-color: #2d74d7;
-    color: white;
     align-self: flex-end;
-    border-bottom-left-radius: 0;
+    background: #007aff; /* Apple Blue */
+    color: white;
+    border-radius: 20px 20px 0px 20px; /* Tail pointing right/bottom */
+    box-shadow: 0 2px 5px rgba(0, 122, 255, 0.2);
 }
 
+/* AI Message */
 .ai-msg {
-    background-color: #e2e8f0;
-    color: #333;
     align-self: flex-start;
-    border-bottom-right-radius: 0;
+    background: #e5e5ea; /* Apple Light Gray */
+    color: #1d1d1f;
+    border-radius: 20px 20px 20px 0px; /* Tail pointing left/bottom */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
 }
 
+.ai-msg strong {
+    font-weight: 700;
+    color: #000;
+}
+
+/* Quick Actions Chips Container */
+.chat-quick-actions {
+    display: flex;
+    padding: 5px 15px 10px;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.chat-quick-actions::-webkit-scrollbar { display: none; }
+
+.chat-chip {
+    white-space: nowrap;
+    background: #e0f2fe; /* Light blue accent */
+    border: 1px solid #bae6fd;
+    color: #0369a1; /* Deep rich blue text */
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.chat-chip:hover {
+    background: #0ea5e9;
+    color: white;
+    border-color: #0ea5e9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
+}
+
+/* Typing Indicator (iOS Style Bouncing Dots) */
+.typing-indicator-container {
+    display: none;
+    align-self: flex-start;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px 20px 20px 0px;
+    padding: 12px 16px;
+    margin-bottom: 5px;
+    margin-right: 15px; /* Offset to look like bubble */
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background-color: #3b82f6; /* Blue dots */
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Input Area */
 .chat-input-area {
     display: flex;
-    padding: 12px;
-    border-top: 1px solid #eee;
-    background: #fff;
+    padding: 10px 15px 15px;
+    background: transparent;
+    align-items: flex-end;
 }
 
 #userInput {
     flex: 1;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #d1d1d6;
+    border-radius: 24px; /* macOS pill style */
     outline: none;
-    font-family: 'Tahoma', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: all 0.3s;
+    max-height: 100px;
+    resize: none; /* In case it becomes textarea later */
 }
 
 #userInput:focus {
-    border-color: #2d74d7;
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
 }
 
 #sendBtn {
-    background: #2d74d7;
+    background: #007aff; /* Apple Blue */
     color: white;
     border: none;
     border-radius: 50%;
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     margin-inline-start: 10px;
     cursor: pointer;
-    font-size: 1.2rem;
-    transition: 0.2s;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
 }
 
 #sendBtn:hover {
-    background: #1a5bb8;
+    background: #005bb5;
+    transform: scale(1.05);
 }
 
-.typing-indicator {
-    font-size: 0.85rem;
-    color: #888;
-    align-self: flex-start;
-    display: none;
-    padding: 0 15px 10px;
-    direction: rtl;
+#sendBtn:active {
+    transform: scale(0.95);
 }

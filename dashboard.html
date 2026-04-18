@@ -36,7 +36,8 @@
     <div id="wrapper" style="display: flex; width: 100%; overflow-x: hidden;">
         <!-- הגדרת פלקס ראשית עבור תפריט צד ותוכן -->
         <!-- Sidebar -->
-        <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6; display: flex; flex-direction: column;"> <!-- גבול ימני לתפריט -->
+        <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6; display: flex; flex-direction: column;">
+            <!-- גבול ימני לתפריט -->
             <div class="sidebar-heading text-center primary-text fs-4 fw-bold text-uppercase position-relative"
                 style="border-bottom: 1px solid #dee2e6; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0;">
                 <div><i class="fas fa-car me-2"></i>EasyCare</div>
@@ -44,7 +45,8 @@
                     style="left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #dc3545;"></i>
             </div>
             <div class="db-list-group my-3" style="flex-grow: 1; overflow-y: auto;">
-                <a href="javascript:void(0)" class="list-group-item list-group-item-action bg-transparent second-text active"
+                <a href="javascript:void(0)"
+                    class="list-group-item list-group-item-action bg-transparent second-text active"
                     onclick="showSection('overview', this)">
                     <i class="fas fa-tachometer-alt me-2"></i> מבט על
                 </a>
@@ -90,10 +92,15 @@
             </div>
 
             <!-- User Profile Section at Bottom -->
-            <div class="sidebar-profile p-3" style="border-top: 1px solid #dee2e6; display: flex; align-items: center; background: #f8f9fa;">
-                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle border border-primary p-1 db-me-3" width="50" height="50" style="object-fit: cover; background: #fff;" alt="User">
+            <div class="sidebar-profile p-3"
+                style="border-top: 1px solid #dee2e6; display: flex; align-items: center; background: #f8f9fa;">
+                <img id="sidebarUserImg"
+                    src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
+                    class="rounded-circle border border-primary p-1 db-me-3" width="50" height="50"
+                    style="object-fit: cover; background: #fff;" alt="User">
                 <div class="text-end">
-                    <h6 id="sidebarUserName" class="m-0 fw-bold primary-text" style="font-size: 0.95rem;">טוען פרופיל...</h6>
+                    <h6 id="sidebarUserName" class="m-0 fw-bold primary-text" style="font-size: 0.95rem;">טוען פרופיל...
+                    </h6>
                     <small class="text-muted" style="font-size: 0.8rem;">מחובר למערכת</small>
                 </div>
             </div>
@@ -113,29 +120,42 @@
 
                 <!-- Global Search Bar -->
                 <div class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
-                    <form class="d-flex position-relative w-100" style="max-width: 400px;" onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
-                        <input type="tel" pattern="[0-9]*" id="globalSearchInput" autocomplete="off" class="form-control rounded-pill pe-4" placeholder="חפש לפי מספר רישוי..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: ltr; text-align: right;">
-                        <i class="fas fa-search position-absolute top-50 translate-middle-y text-primary fs-5" style="left: 18px; cursor: pointer;" onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);"></i>
-                        <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none" style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; text-align: right; border-radius: 12px; font-size: 0.9rem;"></ul>
+                    <form class="d-flex position-relative w-100" style="max-width: 400px;"
+                        onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
+                        <input type="tel" pattern="[0-9]*" id="globalSearchInput" autocomplete="off"
+                            class="form-control rounded-pill pe-4" placeholder="חפש לפי מספר רישוי..."
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: ltr; text-align: right;">
+                        <i class="fas fa-search position-absolute top-50 translate-middle-y text-primary fs-5"
+                            style="left: 18px; cursor: pointer;"
+                            onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);"></i>
+                        <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none"
+                            style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; text-align: right; border-radius: 12px; font-size: 0.9rem;">
+                        </ul>
                     </form>
                 </div>
 
                 <!-- Wrapper for Left Positioning -->
-                <div class="db-nav-content" style="margin-right: auto; display: flex; align-items: center; gap: 15px;"> <!-- דוחף לשמאל -->
-                    <div style="display: flex; align-items: center; background: #ffffff; border-radius: 50px; padding: 6px 20px 6px 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; transition: all 0.3s ease;">
+                <div class="db-nav-content" style="margin-right: auto; display: flex; align-items: center; gap: 15px;">
+                    <!-- דוחף לשמאל -->
+                    <div
+                        style="display: flex; align-items: center; background: #ffffff; border-radius: 50px; padding: 6px 20px 6px 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; transition: all 0.3s ease;">
                         <div class="text-end me-3" style="line-height: 1.3;">
-                            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;" id="vehicleName">--</div>
-                            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;" id="vehicleLicense">--</div>
+                            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;"
+                                id="vehicleName">--</div>
+                            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;" id="vehicleLicense">--
+                            </div>
                         </div>
 
-                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
                             <img src="" id="vehicleLogo" width="38" height="38" alt="Logo" style="object-fit: contain;">
                         </div>
                     </div>
 
                     <button class="db-btn" onclick="openEditModal()" title="ערוך פרטי רכב"
-                        style="border-radius: 12px; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #e2e8f0; color: #64748b; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" 
-                        onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'; this.style.transform='translateY(-2px)';" 
+                        style="border-radius: 12px; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #e2e8f0; color: #64748b; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"
+                        onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'; this.style.transform='translateY(-2px)';"
                         onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b'; this.style.transform='translateY(0)';">
                         <i class="fas fa-edit" style="font-size: 1.15rem;"></i>
                     </button>
@@ -255,17 +275,20 @@
 
     <!-- QR Modal -->
     <!-- הערה: מחלקות בוטסטראפ נשמרו לפונקציונליות -->
+    <!-- Premium QR Modal -->
     <div class="modal fade" id="qrModal" tabindex="-1">
-        <div class="modal-dialog modal-sm text-center">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">QR לרכב</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered text-center">
+            <div class="modal-content border-0" style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                    <h5 class="modal-title fw-bold text-dark mx-auto" style="font-size: 1.3rem;">מדבקת חלון דיגיטלית</h5>
+                    <button type="button" class="btn-close ms-0 position-absolute end-0 me-3 mt-3" data-bs-dismiss="modal" style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
                 </div>
-                <div class="modal-body">
-                    <div id="qrcode" class="d-flex justify-content-center my-3"
-                        style="display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1rem;"></div>
-                    <p class="text-muted small">סרוק את הקוד כדי להגיע לדף נחיתה עם פרטי הרכב</p>
+                <div class="modal-body px-4 pt-3 pb-4" style="background: #ffffff;">
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 20px; padding: 25px; margin-bottom: 20px;">
+                        <div id="qrcode" class="d-flex justify-content-center align-items-center bg-white"
+                            style="margin: 0 auto; width: 190px; height: 190px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 5px;"></div>
+                        <p class="text-muted small mt-3 mb-0" style="font-weight: 500;">סרוק את הקוד להצגת נתוני הרכב באינטרנט</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -337,7 +360,8 @@
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-muted small mb-1">ציון אמינות (0-100)</label>
-                                <input type="number" min="0" max="100" class="db-form-control form-control-sm" id="editReliabilityScore" placeholder="לדוג': 85">
+                                <input type="number" min="0" max="100" class="db-form-control form-control-sm"
+                                    id="editReliabilityScore" placeholder="לדוג': 85">
                             </div>
                         </div>
 
@@ -389,143 +413,167 @@
         </div>
     </div>
 
-    <!-- Add Alert Modal -->
+    <!-- Add Alert Modal (Premium iOS Style) -->
     <div class="modal fade" id="addAlertModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">הוספת התראה אישית</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.3rem;">יצירת משימה אישית</h5>
+                    <button type="button" class="btn-close me-auto ms-0" data-bs-dismiss="modal" style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body px-4 pt-4 pb-3" style="background: #ffffff;">
                     <form id="add-alert-form" onsubmit="event.preventDefault(); saveAlert();">
                         <div class="mb-3">
-                            <label class="form-label">תיאור התזכורת</label>
-                            <input type="text" class="db-form-control" id="alertTitle" required
-                                placeholder="לדוג': להחליף מגבים">
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מה צריך לקרות? <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control db-form-control" id="alertTitle" required placeholder="לדוג': להחליף מגבים לקראת החורף" style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold;">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">תאריך יעד</label>
-                            <input type="date" class="db-form-control" id="alertDate" required>
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">תאריך יעד / תזכורת <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control db-form-control" id="alertDate" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-family: -apple-system, sans-serif;">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">רמת דחיפות</label>
-                            <select class="db-form-control" id="alertPriority" required>
-                                <option value="gray" selected>רגיל</option>
-                                <option value="warning">חשוב</option>
-                                <option value="danger">קריטי</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">תדירות התראה</label>
-                            <select class="db-form-control" id="alertFrequency" required>
-                                <option value="once" selected>חד פעמית</option>
-                                <option value="daily">יומית</option>
-                                <option value="weekly">שבועית</option>
-                                <option value="monthly">חודשית</option>
-                                <option value="yearly">שנתית</option>
-                            </select>
+                        <div class="row g-3 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סטטוס דחיפות</label>
+                                <select class="form-select db-form-control" id="alertPriority" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
+                                    <option value="gray" selected>רגיל (אפור)</option>
+                                    <option value="warning">חשוב למעקב (צהוב)</option>
+                                    <option value="danger">קריטי לבטיחות (אדום)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מחזוריות משימה</label>
+                                <select class="form-select db-form-control" id="alertFrequency" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
+                                    <option value="once" selected>חד פעמית</option>
+                                    <option value="daily">יומית</option>
+                                    <option value="weekly">שבועית</option>
+                                    <option value="monthly">חודשית</option>
+                                    <option value="yearly">שנתית (ריטואל)</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" form="add-alert-form" class="db-btn db-btn-primary">שמור התראה</button>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #ffffff;">
+                    <button type="button" class="btn w-100 mb-2 fw-bold text-white shadow-sm hover-lift" onclick="document.getElementById('add-alert-form').requestSubmit();" style="border-radius: 14px; background: linear-gradient(135deg, #10b981, #059669); padding: 12px;">הוסף למאגר</button>
+                    <button type="button" class="btn w-100 fw-bold m-0" data-bs-dismiss="modal" style="border-radius: 14px; background: #f1f5f9; color: #64748b; padding: 12px;">סגור</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Alert Modal -->
+    <!-- Edit Alert Modal (Premium iOS Style) -->
     <div class="modal fade" id="editAlertModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">עריכת התראה אישית</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.3rem;">עריכת משימה</h5>
+                    <button type="button" class="btn-close me-auto ms-0" data-bs-dismiss="modal" style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body px-4 pt-4 pb-3" style="background: #ffffff;">
                     <form id="edit-alert-form" onsubmit="event.preventDefault(); updateAlert();">
                         <input type="hidden" id="editAlertId">
                         <div class="mb-3">
-                            <label class="form-label">תיאור התזכורת</label>
-                            <input type="text" class="db-form-control" id="editAlertTitle" required>
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מה צריך לקרות? <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control db-form-control" id="editAlertTitle" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold;">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">תאריך יעד</label>
-                            <input type="date" class="db-form-control" id="editAlertDate" required>
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">תאריך יעד לביצוע <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control db-form-control" id="editAlertDate" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-family: -apple-system, sans-serif;">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">רמת דחיפות</label>
-                            <select class="db-form-control" id="editAlertPriority" required>
-                                <option value="gray">רגיל</option>
-                                <option value="warning">חשוב</option>
-                                <option value="danger">קריטי</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">תדירות התראה</label>
-                            <select class="db-form-control" id="editAlertFrequency" required>
-                                <option value="once">חד פעמית</option>
-                                <option value="daily">יומית</option>
-                                <option value="weekly">שבועית</option>
-                                <option value="monthly">חודשית</option>
-                                <option value="yearly">שנתית</option>
-                            </select>
+                        <div class="row g-3 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">רמת דחיפות</label>
+                                <select class="form-select db-form-control" id="editAlertPriority" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
+                                    <option value="gray">רגיל (אפור)</option>
+                                    <option value="warning">חשוב (צהוב)</option>
+                                    <option value="danger">קריטי (אדום)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מחזוריות</label>
+                                <select class="form-select db-form-control" id="editAlertFrequency" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
+                                    <option value="once">חד פעמית</option>
+                                    <option value="daily">יומית</option>
+                                    <option value="weekly">שבועית</option>
+                                    <option value="monthly">חודשית</option>
+                                    <option value="yearly">שנתית</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" form="edit-alert-form" class="db-btn db-btn-primary">עדכן התראה</button>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #ffffff;">
+                    <button type="button" class="btn w-100 mb-2 fw-bold text-white shadow-sm hover-lift" onclick="document.getElementById('edit-alert-form').requestSubmit();" style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9, #3b82f6); padding: 12px;">עדכן שינויים</button>
+                    <button type="button" class="btn w-100 fw-bold m-0" data-bs-dismiss="modal" style="border-radius: 14px; background: #f1f5f9; color: #64748b; padding: 12px;">ביטול</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add Expense Modal -->
+    <!-- Add Expense Modal (Premium iOS Style Redesign) -->
     <div class="modal fade" id="addExpenseModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">הוספת הוצאה חדשה</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0"
+                style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.3rem;">רישום הוצאה חדשה</h5>
+                    <button type="button" class="btn-close me-auto ms-0" data-bs-dismiss="modal"
+                        style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body px-4 pt-4 pb-3" style="background: #ffffff;">
                     <form id="add-expense-form" onsubmit="event.preventDefault(); saveCustomExpense();">
                         <div class="mb-3">
-                            <label class="form-label">סוג הוצאה</label>
-                            <select class="db-form-control" id="expenseType" required
-                                onchange="toggleOtherExpenseInput()">
-                                <option value="" disabled selected>-- בחר סוג הוצאה --</option>
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סוג הוצאה <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select db-form-control" id="expenseType" required
+                                onchange="toggleOtherExpenseInput()"
+                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500;">
+                                <option value="" disabled selected>-- בחר מקטגוריה --</option>
                                 <option value="test">טסט (רישוי שנתי)</option>
                                 <option value="cosmetics">קוסמטיקה וטיפוח</option>
-                                <option value="wash">שטיפה</option>
-                                <option value="other">אחר</option>
+                                <option value="wash">שטיפת רכב</option>
+                                <option value="other">אחר (חופשי)</option>
                             </select>
                         </div>
                         <div class="mb-3 d-none" id="otherExpenseDiv">
-                            <label class="form-label">פרט סוג הוצאה</label>
-                            <input type="text" class="db-form-control" id="expenseTypeOther"
-                                placeholder="לדוג': אביזרים לרכב">
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">פרט סוג
+                                הוצאה</label>
+                            <input type="text" class="form-control db-form-control" id="expenseTypeOther"
+                                placeholder="ספר לנו אודות ההוצאה..."
+                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0;">
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סכום לתשלום (₪)
+                                    <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control db-form-control" id="expenseAmount" required
+                                    placeholder="0.00"
+                                    style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold; font-family: -apple-system, sans-serif;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">תאריך ביצוע
+                                    <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control db-form-control" id="expenseDate" required
+                                    style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-family: -apple-system, sans-serif;">
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">סכום (₪)</label>
-                            <input type="number" class="db-form-control" id="expenseAmount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">תאריך</label>
-                            <input type="date" class="db-form-control" id="expenseDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">הערות (אופציונלי)</label>
-                            <input type="text" class="db-form-control" id="expenseNotes">
+                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">הערות פנימיות
+                                (אופציונלי)</label>
+                            <textarea class="form-control db-form-control" id="expenseNotes" rows="2"
+                                placeholder="כאן ניתן לרשום דברים לתיעוד אישי..."
+                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; resize: none;"></textarea>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" form="add-expense-form" class="db-btn db-btn-primary">שמור הוצאה</button>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #ffffff;">
+                    <button type="button" class="btn w-100 mb-2 fw-bold text-white shadow-sm hover-lift"
+                        onclick="document.getElementById('add-expense-form').requestSubmit();"
+                        style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9, #2563eb); padding: 12px;">הוסף
+                        הוצאה לארנק הרכב</button>
+                    <button type="button" class="btn w-100 fw-bold m-0" data-bs-dismiss="modal"
+                        style="border-radius: 14px; background: #f1f5f9; color: #64748b; padding: 12px;">ביטול
+                        פעולה</button>
                 </div>
             </div>
         </div>
@@ -638,34 +686,62 @@
         }
     </script>
 
-    <!-- Chatbot Widget -->
-    <button class="chat-widget-btn" id="chatWidgetBtn" title="דבר עם המוסכניק החכם">
-        <img src="images/icons/chatbot.png" alt="chatbot">
+    <!-- Premium Chatbot Widget (Apple Inspired) -->
+    <button class="chat-widget-btn" id="chatWidgetBtn" title="דבר עם המוסכניק החכם (AI)">
+        <div
+            style="position:relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-robot"
+                style="font-size: 26px; color: white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
+            <i class="fas fa-sparkles"
+                style="position: absolute; top: 8px; right: 10px; font-size: 14px; color: #fffb00; filter: drop-shadow(0 0 5px rgba(255, 235, 59, 1)); animation: pulse 2s infinite;"></i>
+        </div>
     </button>
     <div class="chat-widget-window" id="chatWidgetWindow">
         <div class="chat-header">
-            <span>🤖 המוסכניק החכם</span>
+            <div class="chat-header-title">
+                <i class="fas fa-robot"></i> EasyCare AI
+            </div>
             <div class="chat-controls">
-                <button id="clearChat" title="נקה שיחה" style="margin-left: 5px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: white;">🗑️</button>
-                <button id="minimizeChat" title="מזער">−</button>
-                <button id="closeChat" title="סגור">×</button>
+                <button id="clearChat" title="נקה שיחה"><i class="fas fa-trash-alt"
+                        style="font-size: 0.8rem;"></i></button>
+                <button id="minimizeChat" title="מזער"><i class="fas fa-minus" style="font-size: 0.8rem;"></i></button>
+                <button id="closeChat" title="סגור"><i class="fas fa-times" style="font-size: 0.8rem;"></i></button>
             </div>
         </div>
+
         <div class="chat-box" id="chatBox">
             <div class="chat-message ai-msg">
-                היי! אני העוזר של המוסך הווירטואלי EasyCare.<br>
-                ראיתי את נתוני הרכב שלך. איך אפשר לעזור היום?
+                <strong>היי!</strong> אני סייע ה-AI של EasyCare. 🧠<br>
+                יש לי גישה לאבחונים ולכלל ההיסטוריה של הרכב שלך. איך אפשר לעזור היום?
             </div>
         </div>
-        <div class="typing-indicator" id="typing">מעבד תשובה...</div>
+
+        <div class="typing-indicator-container" id="typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+        </div>
+
+        <!-- Smart Quick Actions -->
+        <div class="chat-quick-actions" id="quickActions">
+            <button class="chat-chip" onclick="window.sendQuickAction('מתי הטסט הבא שלי ומה צריך להכין?')">מתי הטסט
+                הבא?</button>
+            <button class="chat-chip" onclick="window.sendQuickAction('ציין לי את הטיפול האחרון שביצעתי ביפרוט')">טיפול
+                אחרון</button>
+            <button class="chat-chip" onclick="window.sendQuickAction('סכם לי בכמה משפטים מה מצב תקינות הרכב כרגע')">מצב
+                אמינות הרכב</button>
+            <button class="chat-chip" onclick="window.sendQuickAction('האם יש קנסות פתוחים שפספסתי?')">בדיקת
+                קנסות</button>
+        </div>
+
         <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="הקלד כאן..." autocomplete="off">
-            <button id="sendBtn">➔</button>
+            <input type="text" id="userInput" placeholder="איך אוכל לעזור?" autocomplete="off">
+            <button id="sendBtn"><i class="fas fa-arrow-up"></i></button>
         </div>
     </div>
 
     <script src="js/chatbot.js"></script>
-<script src="js/global-autosave.js"></script>
+    <script src="js/global-autosave.js"></script>
 </body>
 
 </html>

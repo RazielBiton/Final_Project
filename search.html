@@ -4,43 +4,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyCare - חיפוש רכב במאגר</title>
-    <link rel="stylesheet" href="css/search.css">
-    <link rel="stylesheet" href="css/global_footer.css">
+    <title>EasyCare - חיפוש רכב</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/search_styles.css">
 </head>
 
 <body>
-    <div class="search-container">
-        <div class="search-card">
+    <div class="mesh-bg"></div>
 
-            <a href="after_login.html" class="back-text-btn">חזור</a>
+    <div class="layout-container">
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>EasyCare</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="after_login.html" class="sidebar-item">
+                    <i class="fas fa-th-large"></i><span>לוח בקרה ראשי</span>
+                </a>
+                <a href="search.html" class="sidebar-item active">
+                    <i class="fas fa-search"></i><span>חיפוש רכב</span>
+                </a>
+                <a href="profile.html" class="sidebar-item">
+                    <i class="fas fa-user-circle"></i><span>פרופיל אישי</span>
+                </a>
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <a href="login.html" class="sidebar-item text-danger"
+                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                        <i class="fas fa-power-off"></i><span>התנתקות</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-profile">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
+                    width="45" height="45" style="border-radius:50%; object-fit:cover; flex-shrink:0;">
+                <div style="margin-right: 12px;">
+                    <div id="sidebarUserName" style="font-size:0.9rem; font-weight:700; color:#1d1d1f;">טוען...</div>
+                    <div style="font-size:0.75rem; color:#86868b;">משתמש רשום</div>
+                </div>
+            </div>
+        </aside>
 
-            <div class="search-header">
-                <div class="header-text">
-                    <h1>חיפוש במאגר הממשלתי</h1>
-                    <p>נתונים אמיתיים ממשרד התחבורה</p>
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <main class="main-content">
+
+            <!-- Search Hero -->
+            <div class="search-hero">
+                <h1><i class="fas fa-search" style="color: var(--primary-blue); font-size: 2.2rem; margin-left: 16px;"></i>חיפוש במאגר הממשלתי</h1>
+                <p>נתונים אמיתיים ומעודכנים ממשרד התחבורה — תוצאות מיידיות</p>
+
+                <!-- Quick Stats -->
+                <div class="stat-row">
+                    <div class="stat-chip-q"><i class="fas fa-database"></i> מאגר ממשלתי מאומת</div>
+                    <div class="stat-chip-q"><i class="fas fa-bolt"></i> תוצאות בשניות</div>
+                    <div class="stat-chip-q"><i class="fas fa-shield-alt"></i> בדיקת תו נכה כלולה</div>
                 </div>
             </div>
 
-            <div class="search-content">
+            <!-- Main Search Box -->
+            <div class="search-glass-box">
+                <label for="plateInput"><i class="fas fa-id-badge" style="margin-left:6px; color:var(--primary-blue);"></i>מספר רישוי הרכב</label>
                 <form id="searchForm">
-                    <label for="plateInput">מספר רישוי</label>
-                    <div class="input-wrapper">
-                        <button type="submit" class="search-btn">🔍</button>
-                        <input type="tel" id="plateInput" inputmode="numeric" placeholder="הזן מספר רכב" required
-                            maxlength="8" pattern="\d{1,8}" oninput="this.value = this.value.replace(/\D/g, '')"
-                            title="נא להזין מספרים בלבד (1 עד 8 ספרות)">
+                    <div class="search-input-row">
+                        <input
+                            type="tel"
+                            id="plateInput"
+                            class="plate-input"
+                            inputmode="numeric"
+                            placeholder="1234567"
+                            maxlength="8"
+                            pattern="\d{1,8}"
+                            oninput="this.value = this.value.replace(/\D/g, '')"
+                            autocomplete="off"
+                            required>
+                        <button type="submit" class="search-btn-main">
+                            <i class="fas fa-search"></i> חפש
+                        </button>
                     </div>
+                    <p class="search-hint">
+                        <i class="fas fa-info-circle"></i>
+                        הזן מספרים בלבד, בין 5 ל-8 ספרות. הנתונים נשלפים בזמן אמת ממשרד התחבורה.
+                    </p>
                 </form>
             </div>
-        </div>
+
+            <!-- Recent Searches -->
+            <div id="recentSection" style="display:none;">
+                <div class="section-title"><i class="fas fa-history"></i> חיפושים אחרונים</div>
+                <div class="recent-chips" id="recentChips"></div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="section-title" style="margin-top: 1rem;"><i class="fas fa-lightbulb"></i> איך זה עובד?</div>
+            <div class="how-grid">
+                <div class="how-card" style="animation-delay: 0.1s;">
+                    <div class="how-icon"><i class="fas fa-keyboard"></i></div>
+                    <h3>הזן מספר רישוי</h3>
+                    <p>הקלד את מספר הרישוי של הרכב שברצונך לבדוק</p>
+                </div>
+                <div class="how-card" style="animation-delay: 0.2s;">
+                    <div class="how-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <h3>שליפה ממשרד התחבורה</h3>
+                    <p>המערכת מתחברת ישירות למאגר הממשלתי ושולפת נתונים עדכניים</p>
+                </div>
+                <div class="how-card" style="animation-delay: 0.3s;">
+                    <div class="how-icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>קבל עמוד פרטים מלא</h3>
+                    <p>צבע, שנת ייצור, טסט, ביטוח ובדיקת תו נכה — הכל במקום אחד</p>
+                </div>
+                <div class="how-card" style="animation-delay: 0.4s;">
+                    <div class="how-icon"><i class="fas fa-plus-circle"></i></div>
+                    <h3>הוסף לצי שלך</h3>
+                    <p>כפתור אחד — הרכב מתווסף ישירות לדשבורד הניהול שלך</p>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <footer class="global-footer"></footer>
+    <script>
+    // ── Sidebar User Load ────────────────────────────────────
+    (function() {
+        const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const nameEl = document.getElementById('sidebarUserName');
+        const imgEl = document.getElementById('sidebarUserImg');
+        if (nameEl) nameEl.textContent = user.fullName || 'משתמש';
+        if (imgEl && (user.avatar || user.fullName)) {
+            imgEl.src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName||'U')}&background=2d74d7&color=fff&rounded=true`;
+        }
+    })();
 
-    <script src="js/search.js"></script>
-    <script src="js/global_footer.js"></script>
-<script src="js/global-autosave.js"></script>
+    // ── Recent Searches (localStorage) ──────────────────────
+    const RECENT_KEY = 'easycare_recent_searches';
+
+    function getRecent() {
+        try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+    }
+
+    function saveRecent(plate) {
+        let list = getRecent().filter(p => p !== plate);
+        list.unshift(plate);
+        list = list.slice(0, 6);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+    }
+
+    function removeRecent(plate) {
+        const list = getRecent().filter(p => p !== plate);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+        renderRecent();
+    }
+
+    function renderRecent() {
+        const list = getRecent();
+        const section = document.getElementById('recentSection');
+        const container = document.getElementById('recentChips');
+        if (!list.length) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        container.innerHTML = list.map(plate => `
+            <div class="chip-recent" onclick="goSearch('${plate}')">
+                <i class="fas fa-history"></i>
+                ${plate}
+                <button class="chip-clear" onclick="event.stopPropagation(); removeRecent('${plate}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function goSearch(plate) {
+        saveRecent(plate);
+        window.location.href = `results.html?plate=${plate}`;
+    }
+
+    // ── Form Submit ──────────────────────────────────────────
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const plate = document.getElementById('plateInput').value.trim();
+        const isValid = /^\d{5,8}$/.test(plate);
+        if (!isValid) {
+            document.getElementById('plateInput').style.borderColor = '#ff3b30';
+            document.getElementById('plateInput').style.boxShadow = '0 0 0 4px rgba(255,59,48,0.1)';
+            setTimeout(() => {
+                document.getElementById('plateInput').style.borderColor = '';
+                document.getElementById('plateInput').style.boxShadow = '';
+            }, 2000);
+            return;
+        }
+        saveRecent(plate);
+        window.location.href = `results.html?plate=${plate}`;
+    });
+
+    // ── Init ─────────────────────────────────────────────────
+    renderRecent();
+    </script>
 </body>
-
 </html>

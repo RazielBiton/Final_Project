@@ -1,57 +1,71 @@
-function toggleMenu(btn) {
-    const card = btn.closest('.our-team');
-    const dropdown = btn.nextElementSibling;
+/**
+ * --- AFTER LOGIN PREMIUM CONTROLLER ---
+ * Fleet overview, personalized UX, and luxury interactions.
+ */
 
-    // סוגר תפריטים אחרים
-    document.querySelectorAll('.dropdown-content').forEach(menu => {
-        if (menu !== dropdown) {
-            menu.classList.remove('show');
-            menu.closest('.our-team').classList.remove('menu-open');
-        }
-    });
-
-    // פותח/סוגר את הנוכחי
-    const isOpen = dropdown.classList.toggle('show');
-
-    if (isOpen) {
-        card.classList.add('menu-open');
-    } else {
-        card.classList.remove('menu-open');
-    }
+/* ── HELPER UTILS ───────────────────────────────────────────────────────────── */
+function isDateFuture(dateStr) {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d > new Date();
 }
 
-document.querySelectorAll('.our-team').forEach(card => {
+/**
+ * Enhanced Reliability Calculation for Fleet View (Strict Logic)
+ * Must match dashboard-overview.js logic 1:1
+ */
+window.calculateReliability = function (car) {
+    let score = 0;
 
-    card.addEventListener('mouseleave', () => {
-        // מחפש את הדרופ-דאון בתוך הכרטיס הספציפי הזה
-        const dropdown = card.querySelector('.dropdown-content');
+    const isDateFuture = (dateStr) => {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return d > new Date();
+    };
 
-        // סוגר רק אם הוא באמת פתוח
-        if (dropdown && dropdown.classList.contains('show')) {
-            dropdown.classList.remove('show');
-            card.classList.remove('menu-open');
-        }
-    });
+    // 1. Treatments with invoice (30%)
+    const treatmentsWithInvoice = (car.treatments || []).filter(t => t.invoice).length;
+    score += Math.min(treatmentsWithInvoice / 5, 1) * 30;
+
+    // 2. Insurance (20%)
+    const insObj = car.insurance || {};
+    const hasMandatory = insObj.mandatory?.date && isDateFuture(insObj.mandatory.date) && insObj.mandatory.file;
+    const hasCompOrThird = (insObj.comprehensive?.date && isDateFuture(insObj.comprehensive.date) && insObj.comprehensive.file)
+        || (insObj.thirdparty?.date && isDateFuture(insObj.thirdparty.date) && insObj.thirdparty.file);
+    
+    if (hasMandatory) score += 10;
+    if (hasCompOrThird) score += 10;
+
+    // 3. Fuel Logs (20%)
+    const fuelCount = (car.fuelLog || []).length;
+    score += Math.min(fuelCount / 5, 1) * 20;
+
+    // 4. Valid Test (15%)
+    const testDone = !!(car.testDate && isDateFuture(car.testDate));
+    if (testDone) score += 15;
+
+    // 5. Mileage (15%)
+    const kmDone = !!(car.km && car.km > 0);
+    if (kmDone) score += 15;
+
+    return Math.round(score);
+};
+
+/* ── DOM READY ─────────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async () => {
+    initHeroGreeting();
+    loadUserProfile();
+    await fetchAndRenderFleet();
 });
 
-// סגירה בלחיצה מחוץ לתפריט
-window.onclick = function (event) {
-    if (!event.target.matches('.menu-btn')) {
-        document.querySelectorAll('.dropdown-content').forEach(menu => menu.classList.remove('show'));
-        document.querySelectorAll('.our-team').forEach(card => card.classList.remove('menu-open'));
-    }
-}
+/* ── CORE LOGIC ────────────────────────────────────────────────────────────── */
 
-
-
-document.addEventListener('DOMContentLoaded', async () => {
-    loadUserProfile();
+async function fetchAndRenderFleet() {
     const row = document.getElementById('vehicleRow');
     const addWrapper = document.getElementById('addCardWrapper');
-    
     const userId = localStorage.getItem('userId');
+    
     if (!userId) {
-        // Not logged in -> redirect to login
         window.location.href = 'login.html';
         return;
     }
@@ -65,226 +79,211 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const savedCars = await res.json();
         
-        // Also save to localStorage as a fallback cache for now so other pages don't crash yet
-        // Since API doesn't return nested arrays (treatments, etc) right now, we map it
-        const memCars = savedCars.map(car => {
-            return {
-                id: car.Id,
-                brandHeb: car.BrandHeb,
-                model: car.Model,
-                year: car.Year,
-                logo: car.Logo || 'images/logos/default.png',
-                licensePlate: car.LicensePlate,
-                treatments: [], accidents: [], fuelLog: [], reports: []
-            };
-        });
+        // Map to internal format
+        const memCars = savedCars.map(car => ({
+            id: car.Id,
+            brandHeb: car.BrandHeb,
+            model: car.Model,
+            year: car.Year,
+            logo: car.Logo || 'images/logos/default.png',
+            licensePlate: car.LicensePlate,
+            km: car.Km,
+            testDate: car.TestDate,
+            // Full data now coming from the updated comprehensive API
+            treatments: car.treatments || [],
+            accidents: car.accidents || [],
+            fuelLog: car.fuelLog || [],
+            insurance: car.insurance || {},
+            reliabilityScore: car.ReliabilityScore
+        }));
+        
         localStorage.setItem('userCars', JSON.stringify(memCars));
 
+        // Clear existing injected cards
+        document.querySelectorAll('.premium-card-wrapper:not(#addCardWrapper)').forEach(c => c.remove());
+
+        let totalFleetScore = 0;
+
         memCars.forEach(car => {
+            const relScore = window.calculateReliability(car);
+            totalFleetScore += relScore;
+
             const col = document.createElement('div');
-            col.className = 'col-12 col-sm-6 col-md-5 col-lg-3';
-            // המבנה המקורי שלך מילה במילה
+            col.className = 'col-12 col-md-6 col-lg-4 col-xl-3 premium-card-wrapper fleet-item';
+            col.setAttribute('data-search', `${car.brandHeb} ${car.model} ${car.licensePlate}`.toLowerCase());
+            
+            let statusColorClass = 'score-low';
+            if (relScore >= 80) statusColorClass = 'score-high';
+            else if (relScore >= 50) statusColorClass = 'score-mid';
+
             col.innerHTML = `
-                <div class="our-team">
-                    <div class="card-menu">
-                        <button class="menu-btn" onclick="toggleMenu(this)">⋮</button>
+                <div class="premium-card">
+                    <div class="reliability-ribbon ${statusColorClass}">
+                        <i class="fas fa-microchip"></i>
+                        <span>${relScore}% Reliability</span>
+                    </div>
+
+                    <div class="kebab-menu">
+                        <button class="kebab-btn" onclick="toggleCardActions(event, this)">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
                         <div class="dropdown-content">
-                            <a href="javascript:void(0)" onclick="previewCar(${car.id})">Preview</a>
-                            <a href="javascript:void(0)" onclick="editCar(${car.id})">Edit</a>
-                            <a href="javascript:void(0)" onclick="deleteCar(${car.id})" class="delete">Delete</a>
+                            <a href="javascript:void(0)" onclick="editCar(${car.id})"><i class="fas fa-edit me-2"></i> עריכה</a>
+                            <a href="javascript:void(0)" onclick="deleteCar(${car.id})" class="text-danger"><i class="fas fa-trash me-2"></i> מחיקה</a>
                         </div>
                     </div>
-                    <div class="picture">
+
+                    <div class="card-logo-container">
                         <img src="${car.logo}" onerror="this.src='images/logos/default.png'">
                     </div>
-                    <div class="team-content">
-                        <h3 class="name" title="${car.brandHeb} ${car.model}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; ${(car.brandHeb + ' ' + car.model).length > 18 ? 'font-size: 1rem;' : ((car.brandHeb + ' ' + car.model).length > 14 ? 'font-size: 1.15rem;' : '')}">${car.brandHeb} ${car.model}</h3>
-                        <ul class="social"><li></li></ul>
-                        <a class="btn_enter" href="dashboard.html?id=${car.id}">כניסה לרכב</a>
-                        <br><br>
-                        <h4 class="title">${car.year}</h4>
+
+                    <div class="card-info">
+                        <h3 class="car-name">${car.brandHeb} ${car.model}</h3>
+                        <p class="car-year">${car.year} • ${car.licensePlate}</p>
                     </div>
+
+                    <a class="btn-premium-enter" href="dashboard.html?id=${car.id}">
+                        ניהול רכב <i class="fas fa-chevron-left ms-2" style="font-size: 0.8rem;"></i>
+                    </a>
                 </div>
             `;
+            
+            // Add individual hover 3D tilt
+            addTiltEffect(col);
+
             row.insertBefore(col, addWrapper);
         });
 
+        // Update stats
+        document.getElementById('carCountStat').textContent = `${memCars.length} רכבים רשומים`;
+        const avgScore = memCars.length > 0 ? Math.round(totalFleetScore / memCars.length) : 0;
+        document.getElementById('avgReliabilityStat').textContent = `ציון אמינות צי: ${avgScore}%`;
+
     } catch (err) {
         console.error('Error fetching cars:', err);
-        alert('שגיאה בטעינת צי הרכבים שלך ממסד הנתונים.');
     }
+}
+
+function initHeroGreeting() {
+    const greetingEl = document.getElementById('heroGreeting');
+    if (!greetingEl) return;
+
+    const hour = new Date().getHours();
+    let text = "יום טוב";
+    if (hour >= 5 && hour < 12) text = "בוקר טוב";
+    else if (hour >= 12 && hour < 17) text = "צהריים טובים";
+    else if (hour >= 17 && hour < 21) text = "ערב טוב";
+    else text = "לילה טוב";
+
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const firstName = (user.fullName || "משתמש").split(' ')[0];
+
+    greetingEl.textContent = `${text}, ${firstName}!`;
+}
+
+/* ── INTERACTIONS ───────────────────────────────────────────────────────────── */
+
+function filterFleet() {
+    const query = document.getElementById('fleetSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.fleet-item');
+    items.forEach(item => {
+        const text = item.getAttribute('data-search');
+        item.style.display = text.includes(query) ? 'block' : 'none';
+    });
+}
+
+function toggleCardActions(e, btn) {
+    e.stopPropagation();
+    const dropdown = btn.nextElementSibling;
+    
+    // Close others
+    document.querySelectorAll('.dropdown-content').forEach(d => {
+        if(d !== dropdown) d.classList.remove('show');
+    });
+
+    dropdown.classList.toggle('show');
+}
+
+// Click outside to close dropdowns
+window.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
 });
 
-function toggleMenu(btn) {
-    btn.nextElementSibling.classList.toggle('show');
+function addTiltEffect(el) {
+    const card = el.querySelector('.premium-card');
+    el.addEventListener('mousemove', (e) => {
+        const { left, top, width, height } = el.getBoundingClientRect();
+        const x = (e.clientX - left) / width;
+        const y = (e.clientY - top) / height;
+        
+        const tiltX = (y - 0.5) * 10; // degrees
+        const tiltY = (x - 0.5) * -10; // degrees
+
+        card.style.transform = `translateY(-12px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+    });
+
+    el.addEventListener('mouseleave', () => {
+        card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+    });
 }
+
+/* ── VEHICLE CRUD ────────────────────────────────────────────────────────────── */
 
 async function deleteCar(id) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את הרכב מהצי?')) return;
     const userId = localStorage.getItem('userId');
-    if (confirm('האם אתה בטוח שברצונך למחוק את הרכב?')) {
-        try {
-            const res = await fetch(`/api/vehicles/${id}`, {
-                method: 'DELETE',
-                headers: { 'userid': userId }
-            });
-            if (res.ok) {
-                // Remove from cache
-                let cars = JSON.parse(localStorage.getItem('userCars')) || [];
-                cars = cars.filter(c => c.id !== id);
-                localStorage.setItem('userCars', JSON.stringify(cars));
-                location.reload();
-            } else {
-                alert('שגיאה במחיקת הרכב מהשרת.');
-            }
-        } catch(err) {
-            console.error(err);
+    try {
+        const res = await fetch(`/api/vehicles/${id}`, {
+            method: 'DELETE',
+            headers: { 'userid': userId }
+        });
+        if (res.ok) {
+            location.reload();
         }
-    }
-}
-
-// Redirects to dashboard for this car
-function previewCar(id) {
-    window.location.href = `dashboard.html?id=${id}`;
+    } catch(err) { console.error(err); }
 }
 
 let currentEditingCarId = null;
-
-// Opens edit modal for the car
 function editCar(id) {
     const cars = JSON.parse(localStorage.getItem('userCars')) || [];
     const car = cars.find(c => c.id === id);
     if (!car) return;
 
     currentEditingCarId = id;
-
-    // Fill the current data into the fields
     document.getElementById('editBrand').value = car.brandHeb;
     document.getElementById('editModel').value = car.model;
     document.getElementById('editLogoPreview').src = car.logo || 'images/logos/default.png';
 
-    // Open via Bootstrap JS
-    const editModal = new bootstrap.Modal(document.getElementById('editVehicleModal'));
-    editModal.show();
+    const modal = new bootstrap.Modal(document.getElementById('editVehicleModal'));
+    modal.show();
 }
 
-// Image preview handler
-document.getElementById('editLogoInput')?.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('editLogoPreview').src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
 async function saveVehicleDetails() {
-    if (!currentEditingCarId) return;
-
     const brand = document.getElementById('editBrand').value.trim();
     const model = document.getElementById('editModel').value.trim();
     const logoSrc = document.getElementById('editLogoPreview').src;
-
-    if (!brand || !model) {
-        alert('יש להזין שם יצרן ודגם.');
-        return;
-    }
-
     const userId = localStorage.getItem('userId');
-    
+
     try {
         const payload = { brandHeb: brand, model: model, logo: logoSrc };
         const res = await fetch(`/api/vehicles/${currentEditingCarId}`, {
             method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'userid': userId 
-            },
+            headers: { 'Content-Type': 'application/json', 'userid': userId },
             body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-            // Update local cache
-            let cars = JSON.parse(localStorage.getItem('userCars')) || [];
-            const carIndex = cars.findIndex(c => c.id === currentEditingCarId);
-            if (carIndex !== -1) {
-                cars[carIndex].brandHeb = brand;
-                cars[carIndex].model = model;
-                if (logoSrc && !logoSrc.endsWith('default.png')) {
-                    cars[carIndex].logo = logoSrc;
-                }
-                localStorage.setItem('userCars', JSON.stringify(cars));
-            }
-            location.reload(); // Reload to show shiny new edits
-        } else {
-            alert('שגיאה בעדכון הרכב בשרת.');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('שגיאת תקשורת.');
-    }
+        if (res.ok) location.reload();
+    } catch (err) { console.error(err); }
 }
 
+/* ── PROFILE SYNC ───────────────────────────────────────────────────────────── */
 function loadUserProfile() {
-    try {
-        let userStr = localStorage.getItem('loggedInUser');
-        if (!userStr && localStorage.getItem('userId')) {
-            // Backward compatibility for existing sessions
-            const fallbackUser = {
-                id: localStorage.getItem('userId'),
-                fullName: localStorage.getItem('userName') || 'משתמש',
-                email: localStorage.getItem('userEmail') || ''
-            };
-            userStr = JSON.stringify(fallbackUser);
-            localStorage.setItem('loggedInUser', userStr);
-        }
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const nameEl = document.getElementById('sidebarUserName');
+    const imgEl = document.getElementById('sidebarUserImg');
 
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            const nameEl = document.getElementById('sidebarUserName');
-            const imgEl = document.getElementById('sidebarUserImg');
-            
-            if (nameEl) nameEl.textContent = user.fullName || user.email || 'משתמש לא ידוע';
-            if (imgEl) {
-                if (user.avatar) {
-                    imgEl.src = user.avatar;
-                } else {
-                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.fullName || user.email || 'U') + '&background=2d74d7&color=fff&rounded=true';
-                }
-            }
-            
-            // Sync with DB
-            if (user.id) {
-                fetch('/api/user/me', { headers: { 'userid': user.id } })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success && data.user) {
-                            const u = data.user;
-                            if (nameEl) nameEl.textContent = u.FullName || u.Email || 'משתמש לא ידוע';
-                            if (imgEl) {
-                                if (u.Avatar) {
-                                    imgEl.src = u.Avatar;
-                                } else {
-                                    imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.FullName || u.Email || 'U') + '&background=2d74d7&color=fff&rounded=true';
-                                }
-                            }
-                            
-                            // Keep LocalStorage fresh
-                            let localUser = JSON.parse(userStr);
-                            localUser.fullName = u.FullName;
-                            localUser.email = u.Email;
-                            localUser.phone = u.Phone;
-                            localUser.avatar = u.Avatar;
-                            localStorage.setItem('loggedInUser', JSON.stringify(localUser));
-                        }
-                    }).catch(err => console.warn("Background profile sync failed", err));
-            }
-        } else {
-            document.getElementById('sidebarUserName').textContent = 'אורח';
-            document.getElementById('sidebarUserImg').src = 'https://ui-avatars.com/api/?name=Guest&background=bbbec5&color=fff&rounded=true';
-        }
-    } catch(e) {
-        console.error("Failed to load user profile:", e);
+    if (nameEl) nameEl.textContent = user.fullName || "משתמש";
+    if (imgEl) {
+        imgEl.src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'U')}&background=0071e3&color=fff&rounded=true`;
     }
 }

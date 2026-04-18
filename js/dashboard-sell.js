@@ -1,17 +1,71 @@
+// --- SELL & TRADE-IN DASHBOARD MODULE ---
+
 window.loadSell = function () {
-    // Initialization if needed
+    if(!currentCar) return;
+    
+    // Initialize default sell settings if missing
+    if (!currentCar.sellSettings) {
+        currentCar.sellSettings = {
+            showTreatments: true,
+            showCosts: true,
+            showInsurance: true,
+            showAccidents: true,
+            sellerComment: ""
+        };
+    }
+    
+    // Load state to UI toggles
+    const s = currentCar.sellSettings;
+    const tTreatments = document.getElementById('toggleTreatments');
+    const tCosts = document.getElementById('toggleCosts');
+    const tInsurance = document.getElementById('toggleInsurance');
+    const tAccidents = document.getElementById('toggleAccidents');
+    const tComment = document.getElementById('sellerCommentBox');
+    
+    if(tTreatments) tTreatments.checked = s.showTreatments !== false;
+    if(tCosts) tCosts.checked = s.showCosts !== false;
+    if(tInsurance) tInsurance.checked = s.showInsurance !== false;
+    if(tAccidents) tAccidents.checked = s.showAccidents !== false;
+    if(tComment) tComment.value = s.sellerComment || "";
+
+    window.renderGallery();
+};
+
+window.saveSellSettings = function () {
+    if(!currentCar) return;
+    if(!currentCar.sellSettings) currentCar.sellSettings = {};
+    
+    const tTreatments = document.getElementById('toggleTreatments');
+    const tCosts = document.getElementById('toggleCosts');
+    const tInsurance = document.getElementById('toggleInsurance');
+    const tAccidents = document.getElementById('toggleAccidents');
+    const tComment = document.getElementById('sellerCommentBox');
+
+    currentCar.sellSettings.showTreatments = tTreatments ? tTreatments.checked : true;
+    currentCar.sellSettings.showCosts = tCosts ? tCosts.checked : true;
+    currentCar.sellSettings.showInsurance = tInsurance ? tInsurance.checked : true;
+    currentCar.sellSettings.showAccidents = tAccidents ? tAccidents.checked : true;
+    currentCar.sellSettings.sellerComment = tComment ? tComment.value.trim() : "";
+
+    saveToLocalStorage();
+    console.log("Sell settings saved privately: ", currentCar.sellSettings);
 };
 
 window.generateStickerQR = function () {
     if (!currentCar) return;
 
-    // Clear previous QR
+    // REQUIREMENT: Minimum 3 photos
+    const photos = currentCar.gallery || [];
+    if (photos.length < 3) {
+        alert('יש להעלות לפחות 3 תמונות לגלריה כדי להפיק ברקוד סריקה (מדבקה).');
+        return;
+    }
+
+    window.saveSellSettings(); // Ensure anything edited is flushed to db first
+
     const qrContainer = document.getElementById('qrcode');
     if (qrContainer) qrContainer.innerHTML = '';
 
-    // Basic base64 encode for ID to pass via URL
-    // For a real app, you'd pass the DB ID. Here we mock it by passing currentCar.id.
-    // Ensure the host is correct (assuming same host)
     const host = window.location.origin + window.location.pathname.replace('dashboard.html', '');
     const landingUrl = `${host}public_report.html?id=${currentCar.id}`;
 
@@ -19,70 +73,80 @@ window.generateStickerQR = function () {
         text: landingUrl,
         width: 180,
         height: 180,
-        colorDark: "#000000",
+        colorDark: "#0f172a",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
 
-    // Add download button if it doesn't exist
     const modalBody = qrContainer.parentElement;
-    if (!document.getElementById('downloadQrBtn')) {
-        const btn = document.createElement('button');
-        btn.id = 'downloadQrBtn';
-        btn.className = 'btn btn-primary w-100 mt-3 fw-bold';
-        btn.innerHTML = '<i class="fas fa-download me-2"></i> הורד מדבקת סריקה (QR)';
-        btn.onclick = function () {
-            const img = qrContainer.querySelector('img');
-            if (img) {
-                const link = document.createElement('a');
-                link.download = `QR_Sale_${currentCar.licensePlate}.png`;
-                link.href = img.src;
-                link.click();
-            } else {
-                // For browsers where canvas is used instead of img by qrcode.js
-                const canvas = qrContainer.querySelector('canvas');
-                if (canvas) {
-                    const link = document.createElement('a');
-                    link.download = `QR_Sale_${currentCar.licensePlate}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                }
-            }
-        };
-        modalBody.appendChild(btn);
-    }
+    let oldBtn = document.getElementById('downloadQrBtn');
+    if (oldBtn) oldBtn.remove();
+    
+    const btn = document.createElement('button');
+    btn.id = 'downloadQrBtn';
+    btn.className = 'btn w-100 mt-4 fw-bold';
+    btn.style.cssText = "background: #3b82f6; color: white; border-radius: 12px; padding: 12px;";
+    btn.innerHTML = '<i class="fas fa-download me-2"></i> שמור ברקוד להדפסה';
+    btn.onclick = function () {
+        const img = qrContainer.querySelector('img');
+        const link = document.createElement('a');
+        link.download = `Premium_QR_${currentCar.licensePlate}.png`;
+        if (img && img.src.length > 100) {
+            link.href = img.src; link.click();
+        } else {
+            const canvas = qrContainer.querySelector('canvas');
+            if (canvas) { link.href = canvas.toDataURL("image/png"); link.click(); }
+        }
+    };
+    modalBody.appendChild(btn);
 };
 
+/* --- PREMIUM PDF GENERATOR (Apple Certificate Style) --- */
 window.generateFullPDFReport = function () {
-    console.log("PDF Generation triggered. Checking currentCar...");
-    if (!currentCar) {
-        console.warn("currentCar is not defined. Aborting.");
+    if (!currentCar) return;
+
+    // REQUIREMENT: Minimum 3 photos
+    const photos = currentCar.gallery || [];
+    if (photos.length < 3) {
+        alert('יש להעלות לפחות 3 תמונות לגלריה כדי להפיק דוח PDF רשמי.');
         return;
     }
-    console.log("Building PDF for:", currentCar.licensePlate);
+
+    window.saveSellSettings(); // Sync state before generating
+    
+    console.log("Generating Premium PDF Export...");
+    const s = currentCar.sellSettings;
 
     const brand = currentCar.brandHeb || currentCar.brand || '';
     const validLogo = currentCar.logo && !currentCar.logo.includes('default.png');
-    const logoSource = validLogo ? `<img src="${currentCar.logo}" style="width: 80px; height: 80px; object-fit: contain;">` : '';
+    const logoSource = validLogo ? `<img src="${currentCar.logo}" style="height: 60px; object-fit: contain;">` : '';
 
-    // Calculate total expenses roughly
-    let totalExpenses = 0;
-    const treatments = currentCar.treatments || [];
-    const acc = currentCar.accidents || [];
+    const reliabilityScore = window.calculateReliability ? window.calculateReliability(currentCar).score : '--';
 
-    if (treatments.length > 0) treatments.forEach(t => { if (t.cost) totalExpenses += parseFloat(t.cost); });
-    if (currentCar.insurance && currentCar.insurance.cost) totalExpenses += parseFloat(currentCar.insurance.cost);
+    // Build Seller Pitch Module
+    let sellerPitchHtml = "";
+    if (s.sellerComment && s.sellerComment.length > 0) {
+        sellerPitchHtml = `
+        <div style="background: #f8fafc; border-right: 4px solid #3b82f6; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <p style="margin: 0; font-size: 16px; color: #334155; line-height: 1.6; font-style: italic;">
+                "${s.sellerComment}"
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #94a3b8; font-weight: bold;">-- הערות המוכר</p>
+        </div>`;
+    }
 
-    // Initial HTML setup with premium typography and structured grid layout
-    // Initial HTML setup with premium typography and structured grid layout
+    // Modern Header structure
+    // FIX: Wrapping in a fixed width container (800px) that matches windowWidth in options to prevent floating issues.
     let html = `
-        <div style="font-family: 'Rubik', Arial, sans-serif; direction: rtl; text-align: right; color: #212529; padding: 30px; background: #ffffff;">
-            <!-- Header -->
-            <table width="100%" dir="rtl" style="border-bottom: 3px solid #0d6efd; padding-bottom: 15px; margin-bottom: 25px; margin-top: 10px;">
+        <div style="width: 800px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; direction: rtl; text-align: right; color: #0f172a; padding: 40px; background: #ffffff; box-sizing: border-box;">
+            
+            <!-- OFFICIAL CERTIFICATE HEADER -->
+            <table width="100%" dir="rtl" style="margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;">
                 <tr>
                     <td style="vertical-align: middle; text-align: right;">
-                        <h1 style="color: #0d6efd; margin: 0; font-size: 32px; font-weight: 700;">דוח&nbsp;שקיפות&nbsp;רכב&nbsp;מלא&nbsp;-&nbsp;${brand}</h1>
-                        <p style="margin: 5px 0 0 0; font-size: 16px; color: #6c757d;">הופק&nbsp;אוטומטית&nbsp;ממערכת&nbsp;EasyCare</p>
+                        <span style="font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #3b82f6; text-transform: uppercase;">TRANSPARENCY CERTIFICATE</span>
+                        <h1 style="color: #0f172a; margin: 5px 0 0 0; font-size: 34px; font-weight: 800; letter-spacing: -0.5px;">תעודת מערכת - דוח רכב</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 16px; color: #64748b; font-weight: 500;"> ${brand} ${currentCar.model || ''} - מספר רישוי: <span style="background: #fbbf24; color: black; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; border: 1px solid #d97706;" dir="ltr">${currentCar.licensePlate}</span></p>
                     </td>
                     <td style="vertical-align: middle; text-align: left; width: 120px;">
                         ${logoSource}
@@ -90,279 +154,190 @@ window.generateFullPDFReport = function () {
                 </tr>
             </table>
 
-            <!-- Vehicle Summary Grid -->
-            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                <h2 style="margin: 0 0 15px 0; font-size: 22px; color: #212529; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;">פרטי&nbsp;רכב&nbsp;בסיסיים</h2>
-                <table width="100%" dir="rtl" style="font-size: 16px; line-height: 1.6; table-layout: fixed;">
+            ${sellerPitchHtml}
+
+            <!-- CAR METRICS ROW -->
+            <table width="100%" dir="rtl" style="margin-bottom: 30px; table-layout: fixed;">
+                <tr>
+                    <td style="padding: 15px; background: #f8fafc; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; width: 23%;">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 5px;">שנת ייצור</div>
+                        <div style="font-size: 20px; color: #0f172a; font-weight: 800;">${currentCar.year || '-'}</div>
+                    </td>
+                    <td style="width: 2%;"></td>
+                    <td style="padding: 15px; background: #f8fafc; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; width: 23%;">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 5px;">קילומטראז'</div>
+                        <div style="font-size: 20px; color: #0f172a; font-weight: 800;">${currentCar.km ? currentCar.km.toLocaleString() : '-'}</div>
+                    </td>
+                    <td style="width: 2%;"></td>
+                    <td style="padding: 15px; background: #f8fafc; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; width: 23%;">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 5px;">מועד טסט הבא</div>
+                        <div style="font-size: 20px; color: #0f172a; font-weight: 800;">${currentCar.testDate || '-'}</div>
+                    </td>
+                    <td style="width: 2%;"></td>
+                    <td style="padding: 15px; background: #f0f9ff; border-radius: 16px; text-align: center; border: 1px solid #bae6fd; width: 23%;">
+                        <div style="font-size: 12px; color: #0284c7; font-weight: 600; margin-bottom: 5px;">ציון אמינות</div>
+                        <div style="font-size: 22px; color: #0369a1; font-weight: 800;">${reliabilityScore}%</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- SPECS GRID -->
+            <div style="margin-bottom: 35px;">
+                <h3 style="font-size: 16px; font-weight: 800; color: #334155; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">מפרט טכני</h3>
+                <table width="100%" dir="rtl" style="font-size: 14px; text-align: right;">
                     <tr>
-                        <td width="50%" style="vertical-align: top; padding-right: 10px;">
-                            <table width="100%" dir="rtl" style="font-size: 16px;">
-                                <tr>
-                                    <td style="width: 45%; padding-bottom: 8px;"><strong>יצרן&nbsp;ודגם:</strong></td>
-                                    <td style="width: 55%; padding-bottom: 8px; text-align: right;" dir="rtl">${brand}&nbsp;${currentCar.model || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>מספר&nbsp;רישוי:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;"><span style="background: #ffeb3b; color: #000; padding: 2px 8px; border-radius: 4px; border: 1px solid #212529; font-weight:bold; letter-spacing: 1px;" dir="ltr">${currentCar.licensePlate}</span></td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>שנת&nbsp;ייצור:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;" dir="rtl">${currentCar.year || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>קילומטראז'&nbsp;נוכחי:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;" dir="rtl">${currentCar.km ? currentCar.km.toLocaleString() : '-'}&nbsp;ק"מ</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>צבע&nbsp;הרכב:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;" dir="rtl">${currentCar.color || '-'}</td>
-                                </tr>
-                            </table>
-                        </td>
-                        <td width="50%" style="vertical-align: top; padding-right: 20px; border-right: 1px solid #dee2e6;">
-                            <table width="100%" dir="rtl" style="font-size: 16px;">
-                                <tr>
-                                    <td style="width: 50%; padding-bottom: 8px;"><strong>טסט&nbsp;בתוקף&nbsp;עד:</strong></td>
-                                    <td style="width: 50%; padding-bottom: 8px; text-align: right;" dir="rtl">${currentCar.testDate || 'אין&nbsp;נתונים'}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>ציון&nbsp;אמינות&nbsp;משוער:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;"><span style="color: #0d6efd; font-weight: bold; font-size: 18px;" dir="ltr">${window.calculateReliability ? window.calculateReliability(currentCar).score : '--'}%</span></td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px; color: #dc3545;"><strong>סך&nbsp;הוצאות&nbsp;מתועדות:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;" dir="rtl">₪${totalExpenses.toLocaleString()}&nbsp;משוער</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 8px;"><strong>סטטוס&nbsp;המערכת:</strong></td>
-                                    <td style="padding-bottom: 8px; text-align: right;"><span style="color: #198754; font-weight: bold;" dir="rtl">${currentCar.status || 'פעיל'}</span></td>
-                                </tr>
-                            </table>
-                        </td>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0; width: 50%;"><strong>סוג מנוע:</strong> ${currentCar.fuelType || '-'}</td>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0; width: 50%;"><strong>צבע רכב:</strong> ${currentCar.color || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;"><strong>כוח סוס:</strong> ${currentCar.horsePower ? currentCar.horsePower + ' כ"ס' : '-'}</td>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;"><strong>נפח מנוע:</strong> ${currentCar.engineVolume ? currentCar.engineVolume + ' סמ"ק' : '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;"><strong>צמיגים קדמיים:</strong> <span dir="ltr">${currentCar.tireFront || '-'}</span></td>
+                        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;"><strong>צמיגים אחוריים:</strong> <span dir="ltr">${currentCar.tireRear || '-'}</span></td>
                     </tr>
                 </table>
             </div>
 
-            <!-- Technical Specs Section -->
-            <h3 style="border-bottom: 2px solid #0d6efd; color: #0d6efd; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">מפרט&nbsp;טכני</h3>
-            <table width="100%" dir="rtl" style="border-collapse: collapse; margin-top: 15px; border: 1px solid #dee2e6; text-align: right;">
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; width: 25%; font-weight: bold;">כוח&nbsp;סוס&nbsp;(כ"ס)</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; width: 25%; text-align: right;" dir="ltr">${currentCar.horsePower || '-'}</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; width: 25%; font-weight: bold;">נפח&nbsp;מנוע&nbsp;(סמ"ק)</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; width: 25%; text-align: right;" dir="ltr">${currentCar.engineVolume || '-'}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">צמיגים&nbsp;קדמיים</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; text-align: right;" dir="ltr">${currentCar.tireFront || '-'}</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">צמיגים&nbsp;אחוריים</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; text-align: right;" dir="ltr">${currentCar.tireRear || '-'}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">סוג&nbsp;מנוע&nbsp;/&nbsp;דלק</td>
-                    <td style="padding: 10px; border: 1px solid #dee2e6; text-align: right;" colspan="3" dir="rtl">${currentCar.fuelType || '-'}</td>
-                </tr>
-            </table>
-
-            <!-- Treatments Section -->
-            ${generateTreatmentsHTML()}
-
-            <!-- Insurance Section -->
-            ${generateInsuranceHTML()}
-
-            <!-- Fuel & Accidents Sections -->
-            ${generateLogsHTML()}
-
-            <!-- End of main info page footer -->
-            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 13px;" dir="rtl">
-                מסמך&nbsp;זה&nbsp;הופק&nbsp;ישירות&nbsp;מממשק&nbsp;EasyCare&nbsp;ומהווה&nbsp;ריכוז&nbsp;נתונים&nbsp;כפי&nbsp;שהווזנו&nbsp;במערכת.&nbsp;על&nbsp;הקונה&nbsp;לוודא&nbsp;פרטים&nbsp;בבדיקת&nbsp;הרכב.<br>
-                יוצר&nbsp;עבור&nbsp;מזהה&nbsp;רישוי&nbsp;<span dir="ltr">${currentCar.licensePlate}</span>&nbsp;בתאריך&nbsp;${new Date().toLocaleDateString('he-IL')}&nbsp;שעה&nbsp;${new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            
-            <br>
-        </div>
+            <!-- DYNAMIC BLOCKS BASED ON FILTERS -->
     `;
 
-    // --- Media Appendices: Iterate and add Page Breaks for Images ---
-    let mediaHtml = '';
-
-    // Treatments Images
-    treatments.forEach(t => {
-        if (t.invoice && t.invoice.startsWith('data:image')) {
-            mediaHtml += `
-                <div class="html2pdf__page-break"></div>
-                <div style="font-family: 'Rubik', Arial, sans-serif; direction: rtl; text-align: right; padding: 40px; background: #fff;">
-                    <h2 style="color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">נספח:&nbsp;חשבונית&nbsp;טיפול&nbsp;מאומתת</h2>
-                    <table width="100%" dir="rtl" style="font-size: 16px;">
-                        <tr><td width="20%"><strong>שם&nbsp;הטיפול:</strong></td><td>${t.type || t.name || '-'}</td></tr>
-                        <tr><td><strong>מוסך:</strong></td><td>${t.garage || '-'}</td></tr>
-                        <tr><td><strong>תאריך:</strong></td><td dir="ltr" style="text-align:right;">${t.date ? t.date.split('-').reverse().join('/') : '-'}</td></tr>
-                    </table>
-                    <div style="text-align: center; margin-top: 30px;">
-                        <img src="${t.invoice}" style="max-width: 100%; max-height: 850px; border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    </div>
-                </div>
-            `;
+    // 1. Treatments
+    if (s.showTreatments) {
+        const trs = currentCar.treatments || [];
+        html += `<h3 style="font-size: 16px; font-weight: 800; color: #059669; margin-bottom: 15px; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">לוג טיפולים ${trs.length ? `(${trs.length})` : ''}</h3>`;
+        if (trs.length === 0) {
+            html += `<p style="color: #64748b; font-size: 13px;">לא הוכנס תיעוד במערכת.</p>`;
+        } else {
+            html += `<table width="100%" dir="rtl" style="border-collapse: collapse; font-size: 13px; text-align: right; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #f1f5f9; color: #475569; font-weight: bold;">
+                                <th style="padding: 12px; border-bottom: 1px solid #e2e8f0;">תאריך</th>
+                                <th style="padding: 12px; border-bottom: 1px solid #e2e8f0;">תיאור הטיפול</th>
+                                <th style="padding: 12px; border-bottom: 1px solid #e2e8f0;">מוסך מבצע</th>
+                                <th style="padding: 12px; border-bottom: 1px solid #e2e8f0;">ק"מ</th>`;
+            if (s.showCosts) html += `<th style="padding: 12px; border-bottom: 1px solid #e2e8f0;">עלות</th>`;
+            html += `</tr></thead><tbody>`;
+            
+            trs.slice().reverse().forEach(t => {
+                html += `<tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #64748b;" dir="ltr">${t.date ? t.date.split('-').reverse().join('/') : '-'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">${t.name || t.type || '-'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #475569;">${t.garage || '-'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #64748b;">${t.km ? t.km.toLocaleString() : '-'}</td>`;
+                if (s.showCosts) {
+                    html += `<td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #10b981; font-weight: bold;">${t.cost ? '₪' + t.cost.toLocaleString() : '-'}</td>`;
+                }
+                html += `</tr>`;
+            });
+            html += `</tbody></table>`;
         }
-    });
-
-    // Accidents Images (Future proofing)
-    acc.forEach(a => {
-        if (a.image && a.image.startsWith('data:image')) {
-            mediaHtml += `
-                <div class="html2pdf__page-break"></div>
-                <div style="font-family: 'Rubik', Arial, sans-serif; direction: rtl; text-align: right; padding: 40px; background: #fff;">
-                    <h2 style="color: #dc3545; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">נספח:&nbsp;תיעוד&nbsp;תאונה/נזק</h2>
-                    <table width="100%" dir="rtl" style="font-size: 16px;">
-                        <tr><td width="20%"><strong>תיאור:</strong></td><td>${a.description || '-'}</td></tr>
-                        <tr><td><strong>תאריך:</strong></td><td dir="ltr" style="text-align:right;">${a.date ? a.date.split('-').reverse().join('/') : '-'}</td></tr>
-                    </table>
-                    <div style="text-align: center; margin-top: 30px;">
-                        <img src="${a.image}" style="max-width: 100%; max-height: 850px; border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    </div>
-                </div>
-            `;
-        }
-    });
-
-    // Combine Data and Media
-    const finalDocumentHTML = html + mediaHtml;
-    console.log("HTML Template structured successfully. String length:", finalDocumentHTML.length);
-
-    // Show loading text on the triggering button
-    const btn = document.querySelector('.action-card button') || document.querySelector('.sell-hero-banner');
-    let originalText = '';
-    if (btn && btn.tagName === 'BUTTON') {
-        originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> מפיק מסמך בקידוד איכותי...';
     }
 
-    console.log("Dispatching string to html2pdf engine...");
-
-    // Configure html2pdf to use the Raw String natively
-    const opt = {
-        margin: [0.25, 0, 0.25, 0], // Top and bottom margins so text isn't cut off at printer edges
-        filename: `Transparency_Report_${currentCar.licensePlate}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, imageTimeout: 15000 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    // Passing the string directly delegates the safe off-screen layout generation entirely to html2pdf itself!
-    try {
-        html2pdf().set(opt).from(finalDocumentHTML).save().then(() => {
-            console.log("PDF generated and saved successfully.");
-            if (btn && btn.tagName === 'BUTTON') btn.innerHTML = originalText;
-        }).catch(err => {
-            console.error("PDF generation promise rejection:", err);
-            alert("אירעה שגיאה אינטרנטית בשמירת ה-PDF. אנא בדוק חיבור, נסה שוב או רענן.");
-            if (btn && btn.tagName === 'BUTTON') btn.innerHTML = originalText;
-        });
-    } catch (e) {
-        console.error("Critical synchronous error firing html2pdf:", e);
-        if (btn && btn.tagName === 'BUTTON') btn.innerHTML = originalText;
-    }
-
-    // --- Helper HTML Generators ---
-
-    function generateTreatmentsHTML() {
-        if (treatments.length === 0) return `<h3 style="border-bottom: 2px solid #0d6efd; color: #0d6efd; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">ציר&nbsp;זמן&nbsp;טיפולים&nbsp;ותחזוקה</h3><p style="color: #6c757d;">לא&nbsp;תועדו&nbsp;טיפולים.</p>`;
-
-        let tHTML = `<h3 style="border-bottom: 2px solid #0d6efd; color: #0d6efd; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">היסטוריית&nbsp;טיפולים&nbsp;ותחזוקה&nbsp;(${treatments.length})</h3>`;
-        tHTML += `<table width="100%" dir="rtl" style="border-collapse: collapse; margin-top: 15px; border: 1px solid #dee2e6; text-align: right; font-size: 14px;">
-                    <thead><tr style="background: #e9ecef;">
-                        <th style="padding: 8px; border: 1px solid #dee2e6; width: 15%; text-align: right;">תאריך</th>
-                        <th style="padding: 8px; border: 1px solid #dee2e6; width: 30%; text-align: right;">שם&nbsp;הטיפול</th>
-                        <th style="padding: 8px; border: 1px solid #dee2e6; width: 25%; text-align: right;">מוסך</th>
-                        <th style="padding: 8px; border: 1px solid #dee2e6; width: 10%; text-align: right;">ק"מ</th>
-                        <th style="padding: 8px; border: 1px solid #dee2e6; text-align: right;">עלות&nbsp;(₪)</th>
-                    </tr></thead><tbody>`;
-        treatments.forEach(t => {
-            tHTML += `<tr>
-                <td style="padding: 8px; border: 1px solid #dee2e6;" dir="ltr">${t.date ? t.date.split('-').reverse().join('/') : '-'}</td>
-                <td style="padding: 8px; border: 1px solid #dee2e6;" dir="rtl"><strong>${t.type || t.name || '-'}</strong></td>
-                <td style="padding: 8px; border: 1px solid #dee2e6;" dir="rtl">${t.garage || '-'}</td>
-                <td style="padding: 8px; border: 1px solid #dee2e6;" dir="ltr">${t.km ? t.km.toLocaleString() : '-'}</td>
-                <td style="padding: 8px; border: 1px solid #dee2e6; color: #198754; font-weight: bold;" dir="ltr">${t.cost ? t.cost.toLocaleString() : '-'}</td>
-            </tr>`;
-        });
-        tHTML += `</tbody></table>`;
-        return tHTML;
-    }
-
-    function generateInsuranceHTML() {
+    // 2. Insurance Data
+    if (s.showInsurance) {
         const ins = currentCar.insurance || {};
         const mandatory = ins.mandatory || {};
         const comp = ins.comprehensive || ins.thirdparty || {};
         const compType = ins.comprehensive ? 'מקיף' : (ins.thirdparty ? "צד ג'" : "-");
-
-        let costSum = (mandatory.cost ? parseInt(mandatory.cost) : 0) + (comp.cost ? parseInt(comp.cost) : 0);
-
-        return `<h3 style="border-bottom: 2px solid #0d6efd; color: #0d6efd; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">נתונים&nbsp;ביטוחיים</h3>
-        <table width="100%" dir="rtl" style="border-collapse: collapse; margin-top: 15px; border: 1px solid #dee2e6; text-align: right; font-size: 14px;">
-            <tr>
-                <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; width: 25%; font-weight: bold;">חברת&nbsp;ביטוח&nbsp;חובה</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; width: 25%;" dir="rtl">${mandatory.company || '-'}</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; width: 25%; font-weight: bold;">תוקף&nbsp;הביטוח</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; width: 25%;" dir="ltr" style="text-align: right;">${mandatory.date ? mandatory.date.split('-').reverse().join('/') : '-'}</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">ביטוח&nbsp;המשך</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6;" dir="rtl">${compType === '-' ? 'אין&nbsp;תיעוד' : compType + '&nbsp;מטעם&nbsp;' + (comp.company || '')}</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">תוקף&nbsp;סיום</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6;" dir="ltr" style="text-align: right;">${comp.date ? comp.date.split('-').reverse().join('/') : '-'}</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #dee2e6; background: #f8f9fa; font-weight: bold;">עלות&nbsp;שנתית&nbsp;משוערת</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; color: #198754; font-weight: bold;" colspan="3" dir="ltr" style="text-align: right;">${costSum > 0 ? costSum.toLocaleString() + '&nbsp;₪' : '-'}</td>
-            </tr>
-        </table>`;
+        
+        html += `<h3 style="font-size: 16px; font-weight: 800; color: #2563eb; margin-bottom: 15px; margin-top: 35px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">שקיפות מידע ביטוחי</h3>`;
+        html += `
+        <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; background: #ffffff;">
+                <div style="font-size: 12px; color: #64748b; font-weight:bold;">ביטוח חובה</div>
+                <div style="font-size: 15px; color: #0f172a; font-weight:bold; margin-top: 5px;">${mandatory.company || 'לא מוגדר'}</div>
+                <div style="font-size: 13px; color: #475569; margin-top: 4px;">תוקף: ${mandatory.date ? mandatory.date.split('-').reverse().join('/') : '-'}</div>
+                ${s.showCosts ? `<div style="font-size: 14px; color: #10b981; font-weight: bold; margin-top: 8px;">₪${mandatory.cost || '-'} לשנה</div>` : ''}
+            </div>
+            <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; background: #ffffff;">
+                <div style="font-size: 12px; color: #64748b; font-weight:bold;">ביטוח המשך (${compType})</div>
+                <div style="font-size: 15px; color: #0f172a; font-weight:bold; margin-top: 5px;">${comp.company || 'לא מוגדר'}</div>
+                <div style="font-size: 13px; color: #475569; margin-top: 4px;">תוקף: ${comp.date ? comp.date.split('-').reverse().join('/') : '-'}</div>
+                ${s.showCosts ? `<div style="font-size: 14px; color: #10b981; font-weight: bold; margin-top: 8px;">₪${comp.cost || '-'} לשנה</div>` : ''}
+            </div>
+        </div>`;
     }
 
-    function generateLogsHTML() {
-        let rHTML = '';
-        const fuels = currentCar.fuelLog || [];
-        if (fuels.length > 0) {
-            rHTML += `<h3 style="border-bottom: 2px solid #0d6efd; color: #0d6efd; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">היסטוריית&nbsp;תדלוקים&nbsp;(5&nbsp;אחרונים)</h3>
-            <table width="100%" dir="rtl" style="border-collapse: collapse; margin-top: 15px; border: 1px solid #dee2e6; text-align: right; font-size: 14px;">
-                <thead><tr style="background: #e9ecef;">
-                    <th style="padding: 8px; border: 1px solid #dee2e6; width: 33%; text-align: right;">תאריך</th>
-                    <th style="padding: 8px; border: 1px solid #dee2e6; width: 33%; text-align: right;">כמות&nbsp;(ליטר/קוט"ש)</th>
-                    <th style="padding: 8px; border: 1px solid #dee2e6; width: 33%; text-align: right;">עלות&nbsp;סופית&nbsp;(₪)</th>
-                </tr></thead><tbody>`;
-            fuels.slice(0, 5).forEach(f => {
-                rHTML += `<tr>
-                    <td style="padding: 8px; border: 1px solid #dee2e6;" dir="ltr" style="text-align: right;">${f.date ? f.date.split('-').reverse().join('/') : '-'}</td>
-                    <td style="padding: 8px; border: 1px solid #dee2e6;" dir="ltr" style="text-align: right;">${f.amount ? parseFloat(f.amount).toFixed(2) : (f.liters ? parseFloat(f.liters).toFixed(2) : '-')}</td>
-                    <td style="padding: 8px; border: 1px solid #dee2e6; color: #198754; font-weight: bold;" dir="ltr" style="text-align: right;">${f.cost ? f.cost.toLocaleString() : '-'}</td>
-                </tr>`;
+    // 3. Accidents / Anomalies
+    if (s.showAccidents) {
+        const accs = currentCar.accidents || [];
+        html += `<h3 style="font-size: 16px; font-weight: 800; color: #ef4444; margin-bottom: 15px; margin-top: 35px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">חריגים ותאונות יום ${accs.length ? `(${accs.length})` : ''}</h3>`;
+        if (accs.length === 0) {
+            html += `<div style="padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #16a34a; font-size: 14px;"><strong>מצוין!</strong> רכב זה הוגדר במערכת כנקי ללא היסטוריית תאונות או נזקים מתועדים.</div>`;
+        } else {
+            html += `<table width="100%" dir="rtl" style="border-collapse: collapse; font-size: 13px; text-align: right; border: 1px solid #fecaca; border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #fef2f2; color: #991b1b; font-weight: bold;">
+                                <th style="padding: 12px; border-bottom: 1px solid #fecaca;">תאריך הנזק</th>
+                                <th style="padding: 12px; border-bottom: 1px solid #fecaca;">סיווג ולוג נזק</th>`;
+            if (s.showCosts) html += `<th style="padding: 12px; border-bottom: 1px solid #fecaca;">עלות / ירידת ערך</th>`;
+            html += `</tr></thead><tbody>`;
+            
+            accs.forEach(a => {
+                html += `<tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #fecaca; color: #7f1d1d;" dir="ltr">${a.date ? a.date.split('-').reverse().join('/') : '-'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #fecaca; font-weight: bold; color: #7f1d1d;">${a.title || 'פגיעה כללית'} <span style="font-weight:normal; color:#991b1b;">- ${a.description||''}</span></td>`;
+                if (s.showCosts) {
+                    html += `<td style="padding: 12px; border-bottom: 1px solid #fecaca; color: #991b1b;">${a.repairCost ? '₪' + a.repairCost.toLocaleString() : '-'}</td>`;
+                }
+                html += `</tr>`;
             });
-            rHTML += `</tbody></table>`;
+            html += `</tbody></table>`;
         }
+    }
 
-        if (acc.length > 0) {
-            rHTML += `<h3 style="border-bottom: 2px solid #dc3545; color: #dc3545; padding-bottom: 8px; margin-top: 25px; font-size: 20px;">היסטוריית&nbsp;תאונות&nbsp;ונזקים&nbsp;(${acc.length}&nbsp;נרשמו)</h3>
-            <table width="100%" dir="rtl" style="border-collapse: collapse; margin-top: 15px; border: 1px solid #f5c2c7; text-align: right; font-size: 14px;">
-                <thead><tr style="background: #f8d7da; color: #842029;">
-                    <th style="padding: 8px; border: 1px solid #f5c2c7; width: 20%; text-align: right;">תאריך</th>
-                    <th style="padding: 8px; border: 1px solid #f5c2c7; width: 55%; text-align: right;">נושא&nbsp;/&nbsp;סיווג&nbsp;התיאור</th>
-                    <th style="padding: 8px; border: 1px solid #f5c2c7; width: 25%; text-align: right;">עלות&nbsp;תביעה&nbsp;/&nbsp;נזק</th>
-                </tr></thead><tbody>`;
-            acc.forEach(a => {
-                rHTML += `<tr>
-                    <td style="padding: 8px; border: 1px solid #f5c2c7;" dir="ltr" style="text-align: right;">${a.date ? a.date.split('-').reverse().join('/') : '-'}</td>
-                    <td style="padding: 8px; border: 1px solid #f5c2c7;" dir="rtl"><strong>${a.title || ''}</strong> ${a.title ? '-' : ''} ${a.description || '-'}</td>
-                    <td style="padding: 8px; border: 1px solid #f5c2c7;" dir="ltr" style="text-align: right;">${a.repairCost ? a.repairCost.toLocaleString() : (a.damageCost ? a.damageCost.toLocaleString() : '-')}</td>
-                </tr>`;
-            });
-            rHTML += `</tbody></table>`;
-        }
+    // Official Footer stamp
+    html += `
+            <div style="text-align: center; margin-top: 45px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;" dir="rtl">
+                מסמך שקיפות זה הופרש רשמית ממערכת EasyCare.<br>
+                יוצר עבור ${currentCar.licensePlate} בתאריך ${new Date().toLocaleDateString('he-IL')} שעה ${new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}. מסמך זה כפוף לבדיקת קניה ולמקוריות הנתוניםשהוזנו למערכת.
+            </div>
+        </div>
+    `;
 
-        return rHTML;
+    // ADDED LOGIC FOR PHOTO GALLERY CARDS
+    let mediaHtml = '';
+    if (photos.length > 0) {
+        mediaHtml += `<div class="html2pdf__page-break"></div>
+        <div style="width: 800px; margin: 0 auto; font-family: -apple-system, sans-serif; direction: rtl; padding: 40px; background: #ffffff; box-sizing: border-box;">
+            <h2 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-weight: 800;">נספח תמונות רכב: מוכנות פומבית</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 30px;">`;
+        photos.forEach(img => {
+            mediaHtml += `<div style="width: 47%; height: 320px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;">
+                <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>`;
+        });
+        mediaHtml += `</div></div>`;
+    }
+
+    const finalDocumentHTML = html + mediaHtml;
+
+    // Load state
+    const btn = document.querySelector('.sell-hero-banner');
+    let originalText = btn ? btn.innerHTML : '';
+    if(btn) btn.innerHTML = '<h3 class="text-white text-center mt-3"><i class="fas fa-spinner fa-spin me-2"></i> מפיק תעודת רכב מקצועית...</h3>';
+
+    const opt = {
+        margin: 0,
+        filename: `EasyCare_Certificate_${currentCar.licensePlate}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+        html2pdf().set(opt).from(finalDocumentHTML).save().then(() => {
+            if (btn) btn.innerHTML = originalText;
+        }).catch(err => {
+            alert("שגיאת יצוא.");
+            if (btn) btn.innerHTML = originalText;
+        });
+    } catch (e) {
+        if (btn) btn.innerHTML = originalText;
     }
 };
-
-// --- VEHICLE PHOTO GALLERY ADMIN LOGIC ---
 
 window.renderGallery = function () {
     const grid = document.getElementById('sellGalleryGrid');
@@ -372,17 +347,19 @@ window.renderGallery = function () {
     if (!currentCar.gallery) currentCar.gallery = [];
 
     if (currentCar.gallery.length === 0) {
-        grid.innerHTML = '<div class="col-12 text-center text-muted small py-3">לא הועלו תמונות טרם.</div>';
+        grid.innerHTML = '<div class="col-12 text-center text-muted small py-4" style="background: #f8fafc; border-radius: 12px;">מערכת ההדפסה והצגת הרכב תשמח לתמונת השוויצה מציאותית. הוסף לכאן.</div>';
         return;
     }
 
     currentCar.gallery.forEach((imgBase64, index) => {
         grid.innerHTML += `
-            <div class="col-6 col-md-3 position-relative mt-3">
-                <img src="${imgBase64}" class="img-fluid rounded border shadow-sm w-100" style="height: 140px; object-fit: cover;">
-                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle shadow d-flex align-items-center justify-content-center" onclick="window.deleteGalleryImage(${index})" style="width:28px; height:28px; padding:0; line-height:1;">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="col-6 col-md-4 position-relative mt-3">
+                <div style="border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); height: 160px;">
+                    <img src="${imgBase64}" class="w-100 h-100" style="object-fit: cover;">
+                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center hover-lift" onclick="window.deleteGalleryImage(${index})" style="width:30px; height:30px; padding:0;">
+                        <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                    </button>
+                </div>
             </div>
         `;
     });
@@ -391,11 +368,15 @@ window.renderGallery = function () {
 window.handleGalleryUpload = function (event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-
     if (!currentCar.gallery) currentCar.gallery = [];
 
-    const btnInput = event.target;
+    // REQUIREMENT: Maximum 10 photos
+    if (currentCar.gallery.length + files.length > 10) {
+        alert(`ניתן להעלות עד 10 תמונות בלבד. כרגע קיימות ${currentCar.gallery.length} תמונות.`);
+        return;
+    }
 
+    const btnInput = event.target;
     Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -404,20 +385,17 @@ window.handleGalleryUpload = function (event) {
                 window.saveToLocalStorage();
                 window.renderGallery();
             } catch (err) {
-                console.error("Storage Error:", err);
-                currentCar.gallery.pop(); // Revert the last photo push
-                alert('שגיאה: התמונה גדולה מדי לחלל האחסון המקומי. אנא נסה לכווץ אותה או לבחור תמונה ששוקלת פחות מ-2MB.');
+                currentCar.gallery.pop();
+                alert('התמונה חורגת מנפח הזיכרון. רצוי להעלות תמונות קטנות מ-2MB למערכת חופשית היברידית.');
             }
         };
         reader.readAsDataURL(file);
     });
-
-    // reset input
     btnInput.value = '';
 };
 
 window.deleteGalleryImage = function (index) {
-    if (confirm('האם אתה בטוח שברצונך למחוק תמונה זו מהמאגר?')) {
+    if (confirm('האם אתה בטוח שברצונך למחוק תמונה זו? היא תרד גם מהדוח הרשמי.')) {
         currentCar.gallery.splice(index, 1);
         window.saveToLocalStorage();
         window.renderGallery();

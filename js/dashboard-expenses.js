@@ -1,11 +1,64 @@
-// --- CUSTOM EXPENSES & ANALYTICS ---
+// --- CUSTOM EXPENSES & FINANCIAL ANALYTICS (Apple Premium Style) ---
 let expensesChartInst = null;
 
+function calculateFinancialAIInsights(totalsMap, grandTotal) {
+    const titleEl = document.getElementById('ai-insight-title');
+    const textEl = document.getElementById('ai-insight-text');
+    if(!titleEl || !textEl) return;
+
+    if (grandTotal === 0) {
+        titleEl.textContent = "דף נקי, התחלה חדשה!";
+        textEl.textContent = "עדיין אין הוצאות מתועדות במערכת עבור רכב זה. הוסף דיווחים כדי שאוכל להתחיל בניתוח מגמות המאקרו שלך.";
+        return;
+    }
+
+    // Identify the biggest expense
+    let maxKey = '';
+    let maxVal = -1;
+    for (const [key, val] of Object.entries(totalsMap)) {
+        if (val > maxVal) {
+            maxVal = val;
+            maxKey = key;
+        }
+    }
+
+    const percentage = Math.round((maxVal / grandTotal) * 100);
+    
+    // Generate insight text
+    let title = "";
+    let text = "";
+
+    if (maxKey === 'fuel') {
+        title = "תדלוקים מובילים את ההוצאות";
+        text = `דלק שואב כ-${percentage}% מהתקציב שלך (${new Intl.NumberFormat('he-IL').format(maxVal)} ₪). אם זו סטייה מתמשכת, מומלץ לבדוק תקינות לחץ אוויר או לסגל נהיגה חסכונית יותר במטרה לקצץ בעלויות.`;
+    } else if (maxKey === 'accidents') {
+        title = "חריגה בעקבות תיקוני פחחות";
+        text = `רוב הוצאותיך כרגע קשורות לתיקוני תאונות וטיפולי פח אקסטרים (${percentage}% נתח). מומלץ להפעיל ביטוח בצורה שקולה ולא לספוג הכל כפחת.`;
+    } else if (maxKey === 'treatments') {
+        title = "משקיע בתקינות המכנית";
+        text = `טיפולים שוטפים גוזלים את רוב התקציב (${percentage}%). זהו סימן חיובי לתחזוקת הרכב, אך כדאי להשוות מחירי מוסך לטיפולים גדולים כדי לוודא שאינך משלם "קנס" מוסכים.`;
+    } else if (maxKey === 'insurance') {
+        title = "פרמיות ביטוח גבוהות";
+        text = `ביטוחים תופסים השנה חלק משמעותי (${percentage}%). לקראת מועד סיום הפוליסה, כדאי לשבת עם סוכן לעשות סקר שוק תחרותי.`;
+    } else {
+        title = "הוצאות כלליות גבוהות";
+        text = `ההוצאות החופשיות שיא (${percentage}%). שווה לשים לב מה החריגות המוזרות בדף כדי לאבד שליטה פיננסית.`;
+    }
+
+    titleEl.textContent = title;
+    textEl.textContent = text;
+}
+
 function loadExpenses() {
+    // Top Plate rendering logic UI sync
+    const plateEl = document.getElementById('walletVehiclePlate');
+    if (plateEl) {
+        plateEl.textContent = currentCar.licensePlate || currentCar.brand || 'No Plate';
+    }
+
     // 1. Calculate sums
     let totalTreatments = currentCar.treatments ? currentCar.treatments.reduce((sum, t) => sum + (Number(t.cost) || 0), 0) : 0;
 
-    // Insurance Sum (Compulsory + Comprehensive/Third-party)
     let totalInsurance = 0;
     if (currentCar.insurance) {
         if (currentCar.insurance.compulsoryCost) totalInsurance += Number(currentCar.insurance.compulsoryCost);
@@ -13,29 +66,73 @@ function loadExpenses() {
         if (currentCar.insurance.thirdPartyCost) totalInsurance += Number(currentCar.insurance.thirdPartyCost);
     }
 
-    // Fuel Sum
     let totalFuel = currentCar.fuelLog ? currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0) : 0;
-
-    // Custom Expenses Sum
     let totalCustom = currentCar.expenses ? currentCar.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) : 0;
-
-    // Accidents Sum (if exists)
     let totalAccidents = currentCar.accidents ? currentCar.accidents.reduce((sum, a) => sum + (Number(a.repairCost) || 0), 0) : 0;
 
     const grandTotal = totalTreatments + totalInsurance + totalFuel + totalCustom + totalAccidents;
-
-    // Optional: Calculate monthly avg if we know a start period. Just a simple fallback: divide by 12.
     const avgMonthly = Math.round(grandTotal / 12);
 
-    // Update KPIs
-    document.getElementById('totalYearlyExpenses').textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
-    document.getElementById('avgMonthlyExpense').textContent = new Intl.NumberFormat('he-IL').format(avgMonthly) + ' ₪';
+    // Update KPIs with counter animation effect
+    const totalEl = document.getElementById('totalYearlyExpenses');
+    if(totalEl) totalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
+    
+    // Update chart central text HTML (replaces the canvas plugin drawing)
+    const centerChartTotalEl = document.getElementById('chartCenterTotal');
+    if(centerChartTotalEl) centerChartTotalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
 
-    // 2. Render Chart
+    const avgEl = document.getElementById('avgMonthlyExpense');
+    if(avgEl) avgEl.textContent = new Intl.NumberFormat('he-IL').format(avgMonthly) + ' ₪';
+
+    // Calculate AI Insight
+    calculateFinancialAIInsights({
+        treatments: totalTreatments,
+        insurance: totalInsurance,
+        fuel: totalFuel,
+        accidents: totalAccidents,
+        custom: totalCustom
+    }, grandTotal);
+
+    // 2. Render Elegant Chart
     const canvas = document.getElementById('expensesDistributionChart');
+    const colors = [
+        '#3b82f6', // Apple Blue (טיפולים)
+        '#10b981', // Emerald Green (ביטוחים)
+        '#f59e0b', // Amber (דלק)
+        '#ef4444', // Red Pulse (תאונות)
+        '#8b5cf6'  // Violet (שונות)
+    ];
+
     if (canvas) {
         if (expensesChartInst) {
             expensesChartInst.destroy();
+        }
+
+        // Render custom HTML legend
+        const legendContainer = document.getElementById('custom-chart-legend');
+        if (legendContainer) {
+            let legendHTML = '';
+            const categories = [
+                { name: 'טיפולים', val: totalTreatments, color: colors[0] },
+                { name: 'ביטוחים', val: totalInsurance, color: colors[1] },
+                { name: 'דלק', val: totalFuel, color: colors[2] },
+                { name: 'תאונות', val: totalAccidents, color: colors[3] },
+                { name: 'שונות', val: totalCustom, color: colors[4] }
+            ];
+
+            categories.forEach(cat => {
+                if (cat.val > 0) {
+                    const pct = Math.round((cat.val / grandTotal) * 100);
+                    legendHTML += `
+                        <div class="legend-chip">
+                            <span class="legend-color-dot" style="background-color: ${cat.color}"></span>
+                            <span style="flex:1;">${cat.name}</span>
+                            <span style="color:#64748b; font-size:0.75rem;">${pct}%</span>
+                        </div>
+                    `;
+                }
+            });
+            legendContainer.innerHTML = legendHTML;
         }
 
         expensesChartInst = new Chart(canvas, {
@@ -44,49 +141,40 @@ function loadExpenses() {
                 labels: ['טיפולים', 'ביטוחים', 'דלק', 'תאונות', 'שונות/אחר'],
                 datasets: [{
                     data: [totalTreatments, totalInsurance, totalFuel, totalAccidents, totalCustom],
-                    backgroundColor: [
-                        '#4e73df', // Primary blue
-                        '#1cc88a', // Success green
-                        '#f6c23e', // Warning yellow
-                        '#e74a3b', // Danger red
-                        '#858796'  // Secondary gray
-                    ],
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    hoverOffset: 12
+                    backgroundColor: colors,
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    borderRadius: 8,
+                    hoverOffset: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '75%', // Thinner elegant ring
-                layout: {
-                    padding: 10
-                },
+                cutout: '80%', // Thinner elegant ring Apple style
+                layout: { padding: 10 },
                 plugins: {
+                    datalabels: {
+                        display: false // OVERRIDE GLOBAL PLUGIN SO WE DON'T GET UGLY NUMBERS ON SLICES
+                    },
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: { family: "'Segoe UI', system-ui, sans-serif", size: 13 }
-                        }
+                        display: false // We use our HTML custom legend that never overlaps!
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255,255,255,0.9)',
-                        titleColor: '#333',
-                        bodyColor: '#555',
-                        borderColor: '#e3e6f0',
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        titleColor: '#000',
+                        bodyColor: '#333',
+                        borderColor: 'rgba(0,0,0,0.05)',
                         borderWidth: 1,
-                        padding: 10,
-                        boxPadding: 5,
+                        padding: 12,
+                        boxPadding: 8,
+                        titleFont: { size: 14, family: "-apple-system, sans-serif" },
+                        bodyFont: { size: 13, family: "-apple-system, sans-serif" },
                         usePointStyle: true,
                         callbacks: {
                             label: function (context) {
                                 let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
+                                if (label) label += ': ';
                                 if (context.parsed !== null) {
                                     label += new Intl.NumberFormat('he-IL').format(context.parsed) + ' ₪';
                                 }
@@ -95,77 +183,53 @@ function loadExpenses() {
                         }
                     }
                 }
-            },
-            plugins: [{
-                id: 'textCenter',
-                beforeDraw: function (chart) {
-                    if (!chart.chartArea) return; // Prevent crash if chart is hidden or initializing
-                    var width = chart.width, height = chart.height, ctx = chart.ctx;
-                    ctx.save();
-                    var text = "₪" + new Intl.NumberFormat('he-IL').format(grandTotal);
-
-                    // Responsive text based on width and text length
-                    var maxFontSize = 1.3;
-                    var dynamicFontSize = (width / 200).toFixed(2);
-                    var fontSize = Math.min(maxFontSize, dynamicFontSize);
-
-                    ctx.font = "bold " + fontSize + "em sans-serif";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "#333";
-
-                    var textX = Math.round((width - ctx.measureText(text).width) / 2);
-                    // Use chartArea to find the exact geometric center of the doughnut, ignoring the legend space
-                    var textY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-
-                    if (grandTotal > 0) ctx.fillText(text, textX, textY);
-                    ctx.restore();
-                }
-            }]
+            }
         });
     }
 
-    // 3. Render Custom Expenses List
+    // 3. Render Custom Expenses List Apple-Pay style
     const listContainer = document.getElementById('custom-expenses-list');
     if (!listContainer) return;
 
     if (!currentCar.expenses || currentCar.expenses.length === 0) {
         listContainer.innerHTML = `
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-receipt fa-3x mb-3 opacity-25"></i>
-                <p>אין הוצאות שונות להצגה.</p>
+            <div class="text-center py-5 text-muted" style="opacity: 0.6;">
+                <i class="fas fa-wallet fa-3x mb-3"></i>
+                <p>הארנק ריק! אין טרנזאקציות להצגה.</p>
             </div>
         `;
         return;
     }
 
-    // Sort descending by date
     const sortedExpenses = [...currentCar.expenses].sort((a, b) => (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0));
 
-    let html = '<div class="db-list-group db-list-group-flush">';
+    let html = '<div class="px-2 pb-2">';
     sortedExpenses.forEach(exp => {
         let typeLabel = exp.type;
         let icon = 'fa-receipt';
-        let bg = 'bg-secondary';
+        let bgStr = 'background: #f1f5f9; color: #64748b;';
 
-        if (exp.type === 'test') { typeLabel = 'טסט'; icon = 'fa-stamp'; bg = 'bg-primary'; }
-        else if (exp.type === 'cosmetics') { typeLabel = 'קוסמטיקה'; icon = 'fa-spray-can'; bg = 'bg-info'; }
-        else if (exp.type === 'wash') { typeLabel = 'שטיפה'; icon = 'fa-tint'; bg = 'bg-success'; }
-        else if (exp.type === 'other') { typeLabel = exp.typeOther || 'אחר'; icon = 'fa-ellipsis-h'; bg = 'bg-warning'; }
+        if (exp.type === 'test') { typeLabel = 'טסט תקופתי'; icon = 'fa-stamp'; bgStr = 'background: #e0f2fe; color: #0284c7;'; }
+        else if (exp.type === 'cosmetics') { typeLabel = 'מוצרי קוסמטיקה'; icon = 'fa-spray-can'; bgStr = 'background: #fce7f3; color: #db2777;'; }
+        else if (exp.type === 'wash') { typeLabel = 'שטיפת רכב'; icon = 'fa-tint'; bgStr = 'background: #dcfce7; color: #16a34a;'; }
+        else if (exp.type === 'other') { typeLabel = exp.typeOther || 'אחר'; icon = 'fa-shopping-bag'; bgStr = 'background: #fef9c3; color: #ca8a04;'; }
 
         html += `
-            <div class="db-list-item d-flex justify-content-between align-items-center flex-wrap" style="border-left:none; border-right:none; border-top:none;">
-                <div class="d-flex align-items-center mb-2 mb-sm-0">
-                    <div class="icon-lg-wrapper ${bg} text-white ms-3 rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+            <div class="transaction-item">
+                <div class="d-flex align-items-center">
+                    <div class="tx-icon-bg" style="${bgStr}">
                         <i class="fas ${icon}"></i>
                     </div>
-                    <div>
-                        <h6 class="m-0 fw-bold primary-text">${typeLabel}</h6>
-                        <small class="text-muted">${window.formatDate(exp.date)} ${exp.notes ? ' | ' + exp.notes : ''}</small>
+                    <div class="tx-details">
+                        <h6>${typeLabel}</h6>
+                        <small>${window.formatDate(exp.date)} ${exp.notes ? ' • ' + exp.notes : ''}</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center">
-                    <h5 class="m-0 fw-bold me-3 text-dark">₪${new Intl.NumberFormat('he-IL').format(exp.amount)}</h5>
-                    <button class="db-btn db-btn-sm text-danger p-1" onclick="deleteCustomExpense('${exp.id}')" title="מחק"><i class="fas fa-trash"></i></button>
+                    <div class="tx-amount me-3">₪${new Intl.NumberFormat('he-IL').format(exp.amount)}</div>
+                    <button class="btn btn-link text-danger p-0 border-0" onclick="deleteCustomExpense('${exp.id}')" title="מחק">
+                        <i class="fas fa-minus-circle"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -174,13 +238,14 @@ function loadExpenses() {
     listContainer.innerHTML = html;
 }
 
-function openAddExpenseModal() {
+// Global modal triggers map over
+window.openAddExpenseModal = function() {
     document.getElementById('add-expense-form').reset();
     toggleOtherExpenseInput();
     new bootstrap.Modal(document.getElementById('addExpenseModal')).show();
 }
 
-function toggleOtherExpenseInput() {
+window.toggleOtherExpenseInput = function() {
     const type = document.getElementById('expenseType').value;
     const otherDiv = document.getElementById('otherExpenseDiv');
     if (type === 'other') {
@@ -190,7 +255,7 @@ function toggleOtherExpenseInput() {
     }
 }
 
-function saveCustomExpense() {
+window.saveCustomExpense = function() {
     const type = document.getElementById('expenseType').value;
     const amount = document.getElementById('expenseAmount').value;
     const date = document.getElementById('expenseDate').value;
@@ -219,23 +284,21 @@ function saveCustomExpense() {
     if (!currentCar.expenses) currentCar.expenses = [];
     currentCar.expenses.push(newExpense);
 
-    // Automation: If Test, update next test date (assume +1 year)
     if (type === 'test') {
         const testDate = new Date(date);
         testDate.setFullYear(testDate.getFullYear() + 1);
-        currentCar.testDate = testDate.toLocaleDateString('en-GB'); // DD/MM/YYYY approx
+        currentCar.testDate = testDate.toLocaleDateString('en-GB'); 
     }
 
     saveToLocalStorage();
     bootstrap.Modal.getInstance(document.getElementById('addExpenseModal')).hide();
 
-    // Refresh completely
     loadExpenses();
-    loadOverview(); // In case we updated test date and need to refresh header etc.
+    if(typeof loadOverview === 'function') loadOverview(); 
 }
 
-function deleteCustomExpense(id) {
-    if (confirm('האם אתה בטוח שברצונך למחוק הוצאה זו?')) {
+window.deleteCustomExpense = function(id) {
+    if (confirm('האם אתה בטוח שברצונך למחוק הוצאה זו? היא תוסר סופית מהארנק שלך.')) {
         currentCar.expenses = currentCar.expenses.filter(e => e.id !== id);
         saveToLocalStorage();
         loadExpenses();

@@ -1,0 +1,383 @@
+/* --- AFTER LOGIN PREMIUM STYLES --- */
+:root {
+    --apple-bg: #f5f5f7;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --primary-blue: #0071e3;
+    --accent-gradient: linear-gradient(135deg, #0071e3 0%, #00c6ff 100%);
+    --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+body {
+    background: var(--apple-bg);
+    overflow-x: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --- DYNAMIC MESH BACKGROUND --- */
+.mesh-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #f5f5f7;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(210,100%,93%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,100%,93%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(250,100%,93%,1) 0, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(190,100%,93%,1) 0, transparent 50%);
+    animation: meshFlow 20s ease-in-out infinite alternate;
+}
+
+@keyframes meshFlow {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+/* --- LAYOUT WRAPPER --- */
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- SIDEBAR GLASSMORPHISM --- */
+.sidebar {
+    width: 280px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+    padding: 2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.sidebar-header h2 {
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    color: var(--primary-blue);
+    margin-bottom: 2.5rem;
+    font-size: 1.8rem;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    color: #424245;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 10px;
+}
+
+.sidebar-item i {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar-item:hover {
+    background: rgba(0, 113, 227, 0.08);
+    color: var(--primary-blue);
+    transform: translateX(-5px);
+}
+
+.sidebar-item.active {
+    background: var(--primary-blue);
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 113, 227, 0.25);
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+    flex: 1;
+    padding: 3rem 4rem;
+    max-width: 1400px;
+}
+
+/* --- HERO SECTION --- */
+.hero-header {
+    margin-bottom: 3.5rem;
+    animation: fadeInDown 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #1d1d1f;
+    margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #86868b;
+    max-width: 600px;
+}
+
+/* --- FLEET STATS --- */
+.fleet-stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 2rem;
+}
+
+.stat-chip {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    padding: 10px 20px;
+    border-radius: 100px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #424245;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.stat-chip i {
+    color: var(--primary-blue);
+}
+
+/* --- SEARCH BAR --- */
+.search-container {
+    margin-bottom: 2.5rem;
+    position: relative;
+    max-width: 450px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 45px 14px 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    outline: none;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.search-input:focus {
+    background: white;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #86868b;
+    font-size: 1.1rem;
+}
+
+/* --- PREMIUM VEHICLE CARDS --- */
+.premium-card-wrapper {
+    margin-bottom: 30px;
+    perspective: 1000px;
+}
+
+.premium-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 32px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--card-shadow);
+    padding: 35px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.premium-card:hover {
+    transform: translateY(-12px) rotateX(2deg) rotateY(-2deg);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+    border-color: var(--primary-blue);
+}
+
+/* Card Ribbon for Reliability */
+.reliability-ribbon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+}
+
+.score-high { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.score-mid { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.score-low { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+.card-logo-container {
+    width: 140px;
+    height: 140px;
+    margin: 10px auto 25px;
+    background: white;
+    border-radius: 50%;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s;
+}
+
+.premium-card:hover .card-logo-container {
+    transform: scale(1.05);
+}
+
+.card-logo-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.car-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1d1d1f;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.car-year {
+    font-size: 1.1rem;
+    color: #86868b;
+    margin-bottom: 25px;
+}
+
+.btn-premium-enter {
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 16px;
+    padding: 14px;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: all 0.3s;
+    margin-top: auto;
+}
+
+.btn-premium-enter:hover {
+    background: #0077ed;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 113, 227, 0.4);
+    transform: scale(1.02);
+}
+
+/* Card Kebab Menu */
+.kebab-menu {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+}
+
+.kebab-btn {
+    background: rgba(0,0,0,0.03);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #424245;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.kebab-btn:hover { background: rgba(0,0,0,0.08); }
+
+/* --- ADD NEW CARD --- */
+.add-premium-card {
+    border: 2px dashed rgba(0, 113, 227, 0.2);
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.add-premium-card:hover { border-style: solid; border-color: var(--primary-blue); background: rgba(0, 113, 227, 0.04); }
+
+.add-icon-circle {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--primary-blue);
+    margin: 30px auto 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: transform 0.4s;
+}
+
+.add-premium-card:hover .add-icon-circle { transform: rotate(90deg) scale(1.1); }
+
+/* --- ANIMATIONS --- */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.premium-card-wrapper {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 1024px) {
+    .main-content { padding: 2rem; }
+    .hero-header h1 { font-size: 2.2rem; }
+}
+
+@media (max-width: 768px) {
+    .layout-container { flex-direction: column; }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        position: static; 
+        padding: 1rem; 
+        display: flex; 
+        justify-content: space-around;
+        border-bottom: 1px solid var(--glass-border);
+        border-left: none;
+    }
+    .sidebar-header, .sidebar-profile { display: none; }
+    .sidebar-nav { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; }
+    .sidebar-item { margin-bottom: 0; padding: 10px; }
+    .sidebar-item span { display: none; }
+    .hero-header { text-align: center; }
+    .fleet-stats { justify-content: center; }
+    .search-container { margin: 0 auto 2rem; }
+}

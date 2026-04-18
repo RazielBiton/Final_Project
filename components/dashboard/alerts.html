@@ -1,21 +1,67 @@
 <div id="alerts-section" class="dashboard-section d-none">
+    
+    <!-- Hero Header & KPIs -->
     <div class="db-row mb-4">
         <div class="db-col-12">
-            <div class="db-card primary-bg text-white p-4" style="border-radius: 12px;">
-                <div class="d-flex flex-column align-items-start" style="gap: 1.25rem;">
+            <div class="alerts-premium-header shadow-sm">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-4" style="position: relative; z-index: 2;">
                     <div>
-                        <h4 class="fw-bold mb-1">ניהול התראות אישיות</h4>
-                        <p class="m-0 opacity-75" id="alertsSummaryText">טוען נתונים...</p>
+                        <h3 class="fw-bold mb-2 text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">רכזת תזכורות ופעולות (<span id="alertsCountTitle">0</span>)</h3>
+                        <p class="m-0" style="color: rgba(255,255,255,0.85); font-size: 1.05rem;" id="alertsSummaryText">טוען נתונים פיננסיים...</p>
                     </div>
-                    <button class="db-btn-add-alert" onclick="openAddAlertModal()">
-                        <i class="fas fa-plus"></i> הוסף התראה אישית
-                    </button>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="kpi-circle text-white">
+                            <i class="fas fa-check-double mb-1"></i>
+                            <strong id="alertsDoneKPI" style="font-size: 1.1rem; line-height: 1;">0</strong>
+                        </div>
+                        <div class="kpi-circle text-white">
+                            <i class="fas fa-exclamation-triangle mb-1"></i>
+                            <strong id="alertsUrgentKPI" style="font-size: 1.1rem; line-height: 1;">0</strong>
+                        </div>
+                        <button class="db-btn" onclick="openAddAlertModal()" style="background: white; color: #0f172a; border-radius: 20px; padding: 10px 24px; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none;">
+                            <i class="fas fa-plus me-1"></i> הוסף אירוע
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="db-row" id="alertsGrid">
-        <!-- JS renders here -->
+    <!-- Smart "One-Click" Suggestions (AI Feel) -->
+    <div class="db-row mb-2">
+        <div class="db-col-12">
+            <h6 class="text-muted fw-bold mb-2 ps-1" style="font-size: 0.85rem;"><i class="fas fa-magic me-1 text-primary"></i> יצירה מהירה (מומלץ)</h6>
+            <div class="smart-suggestions-track" id="smartSuggestionsContainer">
+                <div class="smart-suggestion-chip" onclick="smartAddAlert('טיפול 10,000 קרוב', 'warning', 'once', 14)">
+                    <i class="fas fa-wrench text-secondary"></i> טיפול 10,000 קרוב
+                </div>
+                <div class="smart-suggestion-chip" onclick="smartAddAlert('חידוש ביטוח חובה + מקיף', 'danger', 'yearly', 30)">
+                    <i class="fas fa-shield-alt text-success"></i> חידוש ביטוח (עוד 30 יום)
+                </div>
+                <div class="smart-suggestion-chip" onclick="smartAddAlert('החלפת מגבים נגד חורף', 'gray', 'once', 7)">
+                    <i class="fas fa-cloud-rain text-info"></i> החלפת מגבים לחורף
+                </div>
+                <div class="smart-suggestion-chip" onclick="smartAddAlert('בדיקת לחץ אוויר בצמיגים', 'gray', 'monthly', 3)">
+                    <i class="fas fa-car-side text-dark"></i> בדיקת לחץ אוויר חודשית
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Board -->
+    <div class="db-row mt-3">
+        <div class="db-col-12">
+            <!-- Apple Style Segmented Control -->
+            <div class="apple-segmented-control mx-auto mx-md-0" id="alertsSegmentFilter">
+                <button class="segment-btn active" onclick="filterAlerts('all')">הכל</button>
+                <button class="segment-btn" onclick="filterAlerts('upcoming')">פתוחות וקרובות</button>
+                <button class="segment-btn" onclick="filterAlerts('done')">הושלמו (היסטוריה)</button>
+            </div>
+
+            <!-- The Vertical Timeline UI -->
+            <div class="premium-timeline" id="alertsTimelineContainer">
+                <!-- JS will inject timeline nodes here -->
+            </div>
+        </div>
     </div>
 </div>

@@ -58,12 +58,21 @@
                 </a>
             </div>
             
-            <div class="sidebar-profile p-3 text-center" style="border-top: 1px solid #dee2e6; background: #f8f9fa;">
-                <div class="stat-widget bg-white rounded p-3 mb-2 shadow-sm border border-light">
+            <!-- Active Vehicles Count Widget -->
+            <div class="px-3 pt-3" style="border-top: 1px solid #dee2e6; background: #f8f9fa;">
+                <div class="stat-widget bg-white rounded p-3 mb-2 shadow-sm border border-light text-center">
                     <span class="fs-4 fw-bold text-primary" id="totalDbCarsSidebar">0</span>
                     <div class="text-muted small fw-bold mt-1">רכבים פעילים במערכת</div>
                 </div>
-                <small class="text-muted fw-bold">מערכת החיפוש הלאומית</small>
+            </div>
+
+            <!-- User Profile Section at Bottom -->
+            <div class="sidebar-profile p-3" style="background: #f8f9fa; display: flex; align-items: center;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle border border-primary p-1 db-me-3" width="50" height="50" style="object-fit: cover; background: #fff; flex-shrink:0;" alt="User">
+                <div class="text-end" style="margin-right: 10px;">
+                    <h6 id="sidebarUserName" class="m-0 fw-bold primary-text" style="font-size: 0.95rem;">טוען פרופיל...</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;">מחובר למערכת</small>
+                </div>
             </div>
         </div>
 
@@ -71,31 +80,54 @@
         <div id="page-content-wrapper" style="flex: 1; min-width: 0; background: #f4f7fb;">
 
             <!-- Top Nav -->
-            <nav class="db-navbar shadow-sm sticky-top blur-bg border-bottom px-3 px-md-4 d-flex align-items-center">
-                <i class="fas fa-bars primary-text fs-3 me-3 d-md-none" id="menu-toggle" style="cursor: pointer;"></i>
-                
+            <nav class="db-navbar">
+                <div class="db-nav-content">
+                    <i class="fas fa-bars primary-text fs-2 db-me-3" id="menu-toggle" style="cursor: pointer; font-size: 1.5rem;"></i>
+                    <h2 class="m-0" id="pageTitle" style="font-size: 1.5rem;">חיפוש מתקדם</h2>
+                </div>
+
                 <!-- Search Bar -->
-                <div class="flex-grow-1 d-flex justify-content-center px-1">
-                    <form class="position-relative w-100 search-form" onsubmit="event.preventDefault(); window.searchVehicles();">
+                <div class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
+                    <form class="position-relative w-100 search-form" style="max-width: 400px;" onsubmit="event.preventDefault(); window.searchVehicles();">
                         <div class="search-input-wrapper position-relative">
-                            <input type="tel" pattern="[0-9]*" id="topSearchInput" autocomplete="off" class="form-control rounded-pill premium-search-input py-2" placeholder="חפש לפי מספר רישוי..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="direction: ltr; text-align: right;">
-                            <button type="submit" class="btn search-btn position-absolute top-50 start-0 translate-middle-y me-2">
-                                <i class="fas fa-search"></i>
+                            <input type="tel" pattern="[0-9]*" id="topSearchInput" autocomplete="off" class="form-control rounded-pill pe-4" placeholder="חפש לפי מספר רישוי..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: ltr; text-align: right;">
+                            <button type="submit" class="btn position-absolute top-50 start-0 translate-middle-y" style="background:none; border:none; color: #2d74d7; padding-left: 12px;">
+                                <i class="fas fa-search fs-5"></i>
                             </button>
                             <div id="searchSpinner" class="spinner-border text-primary spinner-border-sm position-absolute d-none" style="right: 15px; top: 12px;"></div>
                         </div>
-                        <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow custom-autocomplete d-none text-end mt-1"></ul>
+                        <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow custom-autocomplete d-none text-end mt-1" style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; border-radius: 12px; font-size: 0.9rem;"></ul>
                     </form>
                 </div>
 
-                <!-- Database Stat Widget Top -->
-                <div class="ms-auto d-none d-lg-flex db-stat-widget align-items-center p-2 rounded-pill bg-white shadow-sm border border-light">
-                    <div class="stat-icon-wrapper p-2 bg-primary bg-opacity-10 text-primary rounded-circle mx-2">
-                        <i class="fas fa-database"></i>
+                <!-- Vehicle Info + Edit Button (like dashboard) -->
+                <div class="db-nav-content" style="margin-right: auto; display: flex; align-items: center; gap: 15px;">
+                    <div id="navVehicleWidget" class="d-none" style="display: flex; align-items: center; background: #ffffff; border-radius: 50px; padding: 6px 20px 6px 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; transition: all 0.3s ease;">
+                        <div class="text-end me-3" style="line-height: 1.3;">
+                            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;" id="vehicleName">--</div>
+                            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600;" id="vehicleLicense">--</div>
+                        </div>
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+                            <img src="" id="vehicleLogo" width="38" height="38" alt="Logo" style="object-fit: contain;">
+                        </div>
                     </div>
-                    <div>
-                        <div class="fw-bold text-dark lh-1" style="font-size: 1.1rem;" id="totalDbCarsTop">0</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">רכבים במאגר</div>
+
+                    <button id="navEditBtn" class="d-none db-btn" onclick="openEditModal()" title="ערוך פרטי רכב"
+                        style="border-radius: 12px; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #e2e8f0; color: #64748b; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"
+                        onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'; this.style.transform='translateY(-2px)';"
+                        onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b'; this.style.transform='translateY(0)';">
+                        <i class="fas fa-edit" style="font-size: 1.15rem;"></i>
+                    </button>
+
+                    <!-- Fallback DB counter when no vehicle selected -->
+                    <div id="dbStatFallback" class="d-none d-lg-flex db-stat-widget align-items-center p-2 rounded-pill bg-white shadow-sm border border-light">
+                        <div class="stat-icon-wrapper p-2 bg-primary bg-opacity-10 text-primary rounded-circle mx-2">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark lh-1" style="font-size: 1.1rem;" id="totalDbCarsTop">0</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">רכבים במאגר</div>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -165,12 +197,103 @@
         </div>
     </div>
 
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">עריכת פרטי רכב</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editVehicleForm">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">שם יצרן</label>
+                                <input type="text" class="form-control form-control-sm" id="editBrand" maxlength="15" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">דגם רכב</label>
+                                <input type="text" class="form-control form-control-sm" id="editModel" maxlength="15" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">שנת ייצור</label>
+                                <input type="number" class="form-control form-control-sm" id="editYear">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">צבע</label>
+                                <input type="text" class="form-control form-control-sm" id="editColor">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">מד אוץ (ק"מ)</label>
+                                <input type="number" class="form-control form-control-sm" id="editKm">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">תוקף טסט</label>
+                                <input type="text" class="form-control form-control-sm" id="editTestDate" placeholder="DD/MM/YYYY">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">סטטוס רכב</label>
+                                <select class="form-control form-control-sm" id="editStatus">
+                                    <option value="פעיל">פעיל</option>
+                                    <option value="במוסך">במוסך</option>
+                                    <option value="נמכר">נמכר</option>
+                                    <option value="מושבת">מושבת</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">ציון אמינות (0-100)</label>
+                                <input type="number" min="0" max="100" class="form-control form-control-sm" id="editReliabilityScore" placeholder="לדוג': 85">
+                            </div>
+                        </div>
+                        <h6 class="text-primary mt-4 mb-3 border-bottom pb-2" style="font-size: 0.9rem;">מפרט טכני</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">סוג דלק</label>
+                                <input type="text" class="form-control form-control-sm" id="editFuel">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted small mb-1">כוח סוס</label>
+                                <input type="text" class="form-control form-control-sm" id="editHP">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label text-muted small mb-1">נפח מנוע (סמ"ק)</label>
+                                <input type="text" class="form-control form-control-sm" id="editEngine">
+                            </div>
+                        </div>
+                        <h6 class="text-primary mt-4 mb-3 border-bottom pb-2" style="font-size: 0.9rem;">תמונת לוגו</h6>
+                        <div class="mb-3">
+                            <label class="form-label">לוגו רכב</label>
+                            <input type="file" class="form-control" id="editLogoInput" accept="image/*">
+                            <div class="mt-2 text-center">
+                                <img id="editLogoPreview" src="" class="rounded-circle border" width="80" height="80" style="object-fit: cover;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" onclick="saveVehicleDetails()">שמור שינויים</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/brand-map.js"></script>
     <script src="js/search_results.js"></script>
     <script src="js/global_footer.js"></script>
     <script src="js/global-autosave.js"></script>
     <script>
+        // Sidebar toggle
         var el = document.getElementById("wrapper");
         var toggleButton = document.getElementById("menu-toggle");
         var closeButton = document.getElementById("close-sidebar");
@@ -180,12 +303,154 @@
                 el.classList.toggle("toggled");
             };
         }
-
         if (closeButton) {
             closeButton.onclick = function () {
                 el.classList.remove("toggled");
             };
         }
+
+        // ============================================================
+        // Load user profile into sidebar (same as dashboard)
+        // ============================================================
+        (function loadUserProfile() {
+            try {
+                let userStr = localStorage.getItem('loggedInUser');
+                if (!userStr && localStorage.getItem('userId')) {
+                    const fallbackUser = {
+                        id: localStorage.getItem('userId'),
+                        fullName: localStorage.getItem('userName') || 'משתמש',
+                        email: localStorage.getItem('userEmail') || ''
+                    };
+                    userStr = JSON.stringify(fallbackUser);
+                    localStorage.setItem('loggedInUser', userStr);
+                }
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    const nameEl = document.getElementById('sidebarUserName');
+                    const imgEl  = document.getElementById('sidebarUserImg');
+                    if (nameEl) nameEl.textContent = user.fullName || user.email || 'משתמש לא ידוע';
+                    if (imgEl) {
+                        imgEl.src = user.avatar
+                            ? user.avatar
+                            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.fullName || user.email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                    }
+                    // Background sync with DB
+                    if (user.id) {
+                        fetch('/api/user/me', { headers: { 'userid': user.id } })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success && data.user) {
+                                    const u = data.user;
+                                    if (nameEl) nameEl.textContent = u.FullName || u.Email || 'משתמש לא ידוע';
+                                    if (imgEl) {
+                                        imgEl.src = u.Avatar
+                                            ? u.Avatar
+                                            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.FullName || u.Email || 'U') + '&background=2d74d7&color=fff&rounded=true';
+                                    }
+                                }
+                            }).catch(() => {});
+                    }
+                } else {
+                    const nameEl = document.getElementById('sidebarUserName');
+                    const imgEl  = document.getElementById('sidebarUserImg');
+                    if (nameEl) nameEl.textContent = 'אורח';
+                    if (imgEl) imgEl.src = 'https://ui-avatars.com/api/?name=Guest&background=bbbec5&color=fff&rounded=true';
+                }
+            } catch(e) { console.error('Profile load error:', e); }
+        })();
+
+        // ============================================================
+        // Load vehicle widget in top nav (if lastVehicleId is in session)
+        // ============================================================
+        let _srCurrentCar = null;
+
+        window.openEditModal = function() {
+            if (!_srCurrentCar) return;
+            document.getElementById('editBrand').value = _srCurrentCar.brandHeb || _srCurrentCar.brand || '';
+            document.getElementById('editModel').value = _srCurrentCar.model || '';
+            document.getElementById('editYear').value  = _srCurrentCar.year || '';
+            document.getElementById('editColor').value = _srCurrentCar.color || '';
+            document.getElementById('editKm').value    = _srCurrentCar.km || '';
+            document.getElementById('editTestDate').value = _srCurrentCar.testDate || '';
+            document.getElementById('editStatus').value = _srCurrentCar.status || 'פעיל';
+            document.getElementById('editReliabilityScore').value = _srCurrentCar.reliabilityScore !== undefined ? _srCurrentCar.reliabilityScore : 100;
+            document.getElementById('editFuel').value  = _srCurrentCar.fuelType || '';
+            document.getElementById('editHP').value    = _srCurrentCar.horsePower || '';
+            document.getElementById('editEngine').value = _srCurrentCar.engineVolume || '';
+            const preview = document.getElementById('editLogoPreview');
+            preview.src = _srCurrentCar.logo || 'images/logos/default.png';
+            preview.onerror = () => { preview.src = 'images/logos/default.png'; };
+            new bootstrap.Modal(document.getElementById('editVehicleModal')).show();
+        };
+
+        window.saveVehicleDetails = async function() {
+            if (!_srCurrentCar) return;
+            _srCurrentCar.brandHeb = document.getElementById('editBrand').value;
+            _srCurrentCar.model    = document.getElementById('editModel').value;
+            const yr = document.getElementById('editYear').value;     if (yr) _srCurrentCar.year = yr;
+            const cl = document.getElementById('editColor').value;    if (cl) _srCurrentCar.color = cl;
+            const km = document.getElementById('editKm').value;       if (km) _srCurrentCar.km = parseInt(km);
+            const td = document.getElementById('editTestDate').value; if (td) _srCurrentCar.testDate = td;
+            _srCurrentCar.status = document.getElementById('editStatus').value || 'פעיל';
+            _srCurrentCar.reliabilityScore = parseInt(document.getElementById('editReliabilityScore').value) || 100;
+            const fl = document.getElementById('editFuel').value;  if (fl) _srCurrentCar.fuelType = fl;
+            const hp = document.getElementById('editHP').value;    if (hp) _srCurrentCar.horsePower = hp;
+            const en = document.getElementById('editEngine').value; if (en) _srCurrentCar.engineVolume = en;
+
+            // Handle logo file upload
+            const file = document.getElementById('editLogoInput').files[0];
+            const doSave = (logoData) => {
+                if (logoData) _srCurrentCar.logo = logoData;
+                fetch(`/api/vehicles/sync/${_srCurrentCar.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(_srCurrentCar)
+                }).catch(e => console.error('Save error:', e));
+                // Update header widgets
+                document.getElementById('vehicleName').textContent = (_srCurrentCar.brandHeb || '') + ' ' + (_srCurrentCar.model || '');
+                document.getElementById('vehicleLogo').src = _srCurrentCar.logo || 'images/logos/default.png';
+                bootstrap.Modal.getInstance(document.getElementById('editVehicleModal')).hide();
+            };
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => doSave(e.target.result);
+                reader.readAsDataURL(file);
+            } else {
+                doSave(null);
+            }
+        };
+
+        (async function loadNavVehicle() {
+            const vehicleId = sessionStorage.getItem('lastVehicleId');
+            if (!vehicleId) {
+                // No vehicle - show DB count widget instead
+                const fallback = document.getElementById('dbStatFallback');
+                if (fallback) fallback.classList.remove('d-none');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/vehicles/sync/${vehicleId}`);
+                if (!res.ok) throw new Error('Not found');
+                _srCurrentCar = await res.json();
+
+                const fullName = `${_srCurrentCar.brandHeb || _srCurrentCar.brand || ''} ${_srCurrentCar.model || ''}`;
+                document.getElementById('vehicleName').textContent = fullName;
+                document.getElementById('vehicleLicense').textContent = _srCurrentCar.licensePlate || '';
+                const logoImg = document.getElementById('vehicleLogo');
+                logoImg.src = _srCurrentCar.logo || 'images/logos/default.png';
+                logoImg.onerror = () => { logoImg.src = 'images/logos/default.png'; };
+
+                // Show vehicle widget + edit button
+                const widget = document.getElementById('navVehicleWidget');
+                const editBtn = document.getElementById('navEditBtn');
+                if (widget) { widget.classList.remove('d-none'); widget.style.display = 'flex'; }
+                if (editBtn) editBtn.classList.remove('d-none');
+            } catch(e) {
+                // Vehicle not found - show DB count
+                const fallback = document.getElementById('dbStatFallback');
+                if (fallback) fallback.classList.remove('d-none');
+            }
+        })();
     </script>
 </body>
 </html>

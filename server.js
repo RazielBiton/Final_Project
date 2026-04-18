@@ -199,7 +199,7 @@ app.get('/api/user/me', async (req, res) => {
 // API ROUTES FOR VEHICLES
 // ========================
 
-// Get all vehicles for the logged-in user
+// Get all vehicles for the logged-in user with comprehensive data
 app.get('/api/vehicles', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -207,14 +207,34 @@ app.get('/api/vehicles', async (req, res) => {
             .input('UserId', sql.Int, req.userId)
             .query('SELECT * FROM Vehicles WHERE UserId = @UserId');
 
-        // Let's also fetch related data (treatments, fuel, etc) to mimic the old `userCars` structure
-        // For simplicity right now, we will return just the cars.
         const vehicles = result.recordset;
 
-        // In the future we will loop over vehicles and fetch their Treatments, Expenses, etc.
-        // so the frontend receives the same object structure.
+        // Fetch related data for each vehicle to enable accurate reliability scoring on the main dashboard
+        const comprehensiveVehicles = await Promise.all(vehicles.map(async (car) => {
+            const vehicleId = car.Id;
+            
+            const treatments = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Treatments WHERE VehicleId=@Vid');
+            const fuelLog = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM FuelLogs WHERE VehicleId=@Vid');
+            const insurance = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Insurance WHERE VehicleId=@Vid');
+            const accidents = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Accidents WHERE VehicleId=@Vid');
+            const alerts = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Alerts WHERE VehicleId=@Vid');
+            
+            return {
+                ...car,
+                treatments: treatments.recordset.map(t => ({ id: t.Id, date: t.Date, cost: t.Cost, invoice: t.DocumentBase64 })),
+                fuelLog: fuelLog.recordset.map(f => ({ id: f.Id, date: f.Date, cost: f.TotalCost })),
+                insurance: insurance.recordset.reduce((acc, ins) => {
+                    const typeMap = { 'חובה': 'mandatory', 'מקיף': 'comprehensive', 'צד ג': 'thirdparty' };
+                    const key = typeMap[ins.Type] || ins.Type.toLowerCase();
+                    acc[key] = { date: ins.ExpiryDate, file: ins.DocumentBase64 };
+                    return acc;
+                }, {}),
+                accidents: accidents.recordset.map(a => ({ id: a.Id, date: a.Date, cost: a.Cost })),
+                alerts: alerts.recordset.map(a => ({ id: a.Id, title: a.Title, date: a.Date, isActive: a.IsActive }))
+            };
+        }));
 
-        res.json(vehicles);
+        res.json(comprehensiveVehicles);
     } catch (err) {
         console.error('Failed to get vehicles:', err);
         res.status(500).json({ error: 'Database error' });
@@ -676,10 +696,17 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             DELETE FROM VehicleGallery WHERE VehicleId = @Vid;
         `);
 
+        // Helper to convert DD/MM/YYYY or YYYY-MM-DD to SQL valid format
+        const parseDateForSql = (d) => {
+            if (!d) return new Date();
+            if (typeof d === 'string' && d.includes('/')) return d.split('/').reverse().join('-');
+            return d;
+        };
+
         // 3. Insert fresh arrays
         if (car.treatments && car.treatments.length) {
             for (let t of car.treatments) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, t.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(t.date))
                     .input('Type', sql.NVarChar, t.type || 'Treatment').input('Description', sql.NVarChar, t.type || '')
                     .input('Garage', sql.NVarChar, t.garage || '').input('Cost', sql.Decimal(10, 2), t.cost || 0).input('Km', sql.Int, t.km || 0).input('Doc', sql.NVarChar, t.invoice || '')
                     .query('INSERT INTO Treatments (VehicleId, Date, Type, Description, GarageName, Cost, Odometer, DocumentBase64) VALUES (@Vid, @Date, @Type, @Description, @Garage, @Cost, @Km, @Doc)');
@@ -687,21 +714,21 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         }
         if (car.fuelLog && car.fuelLog.length) {
             for (let f of car.fuelLog) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, f.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(f.date))
                     .input('Liters', sql.Decimal(8, 2), f.amount || 0).input('Cost', sql.Decimal(10, 2), f.cost || 0).input('Price', sql.Decimal(8, 2), 0)
                     .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost) VALUES (@Vid, @Date, @Liters, @Price, @Cost)');
             }
         }
         if (car.expenses && car.expenses.length) {
             for (let e of car.expenses) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, e.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(e.date))
                     .input('Cat', sql.NVarChar, e.type || e.typeOther || '').input('Amt', sql.Decimal(10, 2), e.amount || 0).input('Desc', sql.NVarChar, e.notes || '')
                     .query('INSERT INTO Expenses (VehicleId, Date, Category, Amount, Description) VALUES (@Vid, @Date, @Cat, @Amt, @Desc)');
             }
         }
         if (car.accidents && car.accidents.length) {
             for (let a of car.accidents) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, a.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(a.date))
                     .input('Desc', sql.NVarChar, a.description || '').input('Cost', sql.Decimal(10, 2), a.repairCost || 0)
                     .query('INSERT INTO Accidents (VehicleId, Date, Description, EstimatedCost) VALUES (@Vid, @Date, @Desc, @Cost)');
             }
@@ -710,7 +737,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             for (let r of car.reports) {
                 const reportType = r.typeVal || r.offenseType || '';
                 const isPaid = (r.status === 'paid' || r.isHandled === true);
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, r.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(r.date))
                     .input('Type', sql.NVarChar, reportType).input('Amt', sql.Decimal(10, 2), r.amount || 0)
                     .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, isPaid ? 1 : 0)
                     .input('Doc', sql.NVarChar, (r.images && r.images.length ? r.images[0] : ''))
@@ -719,7 +746,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         }
         if (car.alerts && car.alerts.length) {
             for (let a of car.alerts) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, a.date || new Date())
+                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(a.date))
                     .input('Title', sql.NVarChar, a.title || '').input('Urg', sql.NVarChar, a.urgency || '').input('Freq', sql.NVarChar, a.frequency || '')
                     .query('INSERT INTO Alerts (VehicleId, Date, Title, Urgency, Frequency) VALUES (@Vid, @Date, @Title, @Urg, @Freq)');
             }
@@ -981,26 +1008,44 @@ app.get('/api/current-fuel-ai', async (req, res) => {
 
     // 4. Fetch fresh data from Gemini
     isFetchingAI = true;
+    const FALLBACK_PRICES = { fuel95: "8.05", fuel98: "9.80", elecKwh: "0.6186" };
     try {
         console.log("Fetching fresh Energy Prices from Gemini...");
         const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-        const prompt = `אתה עוזר מידע ישראלי המשיב רק ב-JSON. מהו המחיר הרשמי המעודכן בישראל (נכון להיום אפריל 2026) עבור בנזין 95, 98 וקוט"ש חשמל. {"fuel95": "8.05", "fuel98": "9.80", "elecKwh": "0.6186"}`;
+        const prompt = `You are an Israeli fuel price assistant. Reply ONLY with a valid JSON object containing the latest known official fuel prices in Israel. Use only numeric string values (no N/A, no text). Example format: {"fuel95": "8.05", "fuel98": "9.80", "elecKwh": "0.6186"}`;
         const result = await model.generateContent(prompt);
-        const text = (await result.response).text().trim().replace(/```json|```/g, '').trim();
-        const newPrices = JSON.parse(text);
+        const rawText = (await result.response).text().trim().replace(/\`\`\`json|\`\`\`/g, '').trim();
         
-        cache = { ...newPrices, lastFetch: now };
+        // Extract JSON object from response
+        const jsonMatch = rawText.match(/\{[\s\S]*?\}/);
+        if (!jsonMatch) throw new Error('No valid JSON found in Gemini response');
+        
+        const newPrices = JSON.parse(jsonMatch[0]);
+        
+        // Validate each value - reject N/A or non-numeric, use fallback
+        const validated = {
+            fuel95:  (newPrices.fuel95  && String(newPrices.fuel95)  !== 'N/A' && !isNaN(parseFloat(newPrices.fuel95)))  ? String(newPrices.fuel95)  : FALLBACK_PRICES.fuel95,
+            fuel98:  (newPrices.fuel98  && String(newPrices.fuel98)  !== 'N/A' && !isNaN(parseFloat(newPrices.fuel98)))  ? String(newPrices.fuel98)  : FALLBACK_PRICES.fuel98,
+            elecKwh: (newPrices.elecKwh && String(newPrices.elecKwh) !== 'N/A' && !isNaN(parseFloat(newPrices.elecKwh))) ? String(newPrices.elecKwh) : FALLBACK_PRICES.elecKwh
+        };
+        
+        cache = { ...validated, lastFetch: now };
         fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
-        console.log("Gemini Price Cache updated successfully.");
-        res.json(newPrices);
+        console.log("Gemini Price Cache updated:", validated);
+        res.json(validated);
     } catch (error) {
         if (error.message.includes('429')) {
-            console.log("Gemini Quota Exceeded for prices - Serving cached data silently.");
+            console.log("Gemini Quota Exceeded for prices - Serving fallback data.");
         } else {
             console.error("Gemini Energy Price Error:", error.message);
         }
-        // On error, return old cache but don't update lastFetch so we try again next time (or keep current)
-        res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+        // On error, return cached values if valid, otherwise use hardcoded fallback
+        const safeResponse = {
+            fuel95:  (cache.fuel95  && cache.fuel95  !== 'N/A' && !isNaN(parseFloat(cache.fuel95)))  ? cache.fuel95  : FALLBACK_PRICES.fuel95,
+            fuel98:  (cache.fuel98  && cache.fuel98  !== 'N/A' && !isNaN(parseFloat(cache.fuel98)))  ? cache.fuel98  : FALLBACK_PRICES.fuel98,
+            elecKwh: (cache.elecKwh && cache.elecKwh !== 'N/A' && !isNaN(parseFloat(cache.elecKwh))) ? cache.elecKwh : FALLBACK_PRICES.elecKwh
+        };
+        res.json(safeResponse);
     } finally {
         isFetchingAI = false;
     }

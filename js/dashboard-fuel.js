@@ -22,10 +22,11 @@ window.loadFuel = function () {
     if (!window.fetchedEnergyPrices) {
         window.fetchIsraelEnergyPrices();
     } else {
-        // If already fetched, just ensure UI is updated with what we have
-        if (typeof updateFuelPriceUI === 'function') updateFuelPriceUI();
-        else if (window.updateFuelPriceUI) window.updateFuelPriceUI();
+        // Already fetched - update UI now that DOM is ready
+        updateFuelPriceUI();
     }
+    // Always update price UI after a small tick (ensures DOM is ready)
+    setTimeout(() => updateFuelPriceUI(), 50);
 
     // 2. Determine Vehicle Type Details
     const ft = currentCar.fuelType || "";
@@ -75,10 +76,30 @@ window.loadFuel = function () {
 
         const dateFormatted = window.formatDate(f.date);
 
+        // Calculate price per unit for display
+        let pricePerUnit = f.pricePerUnit || null;
+        if (!pricePerUnit && f.amount && f.cost && Number(f.amount) > 0) {
+            pricePerUnit = (Number(f.cost) / Number(f.amount)).toFixed(2);
+        }
+        const unitLabel = isElectricity ? 'קוט"ש' : 'ליטר';
+        const pricePerUnitBadge = pricePerUnit
+            ? `<span style="
+                display: inline-flex; align-items: center; gap: 5px;
+                background: ${isElectricity ? 'linear-gradient(135deg, #d1fae5, #ecfdf5)' : 'linear-gradient(135deg, #fef9c3, #fefce8)'};
+                color: ${isElectricity ? '#065f46' : '#92400e'};
+                font-size: 0.75rem; font-weight: 700;
+                padding: 3px 10px; border-radius: 20px;
+                border: 1px solid ${isElectricity ? '#6ee7b7' : '#fde68a'};
+                margin-top: 4px; white-space: nowrap;
+              ">
+                <i class="fas fa-tag" style="font-size:0.65rem;"></i> ₪${pricePerUnit}/${unitLabel}
+              </span>`
+            : '';
+
         html += `
             <div class="p-3 mb-3 d-flex justify-content-between align-items-center flex-wrap" style="background:#fff; border:1px solid #f1f5f9; border-radius:18px; transition:all 0.2s; border-right: 4px solid ${isElectricity ? '#10b981' : '#f59e0b'};">
                 <div class="d-flex align-items-center mb-3 mb-md-0">
-                    <div style="width:48px; height:48px; background:${iconBg}; border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-inline-start: 15px;">
+                    <div style="width:48px; height:48px; background:${iconBg}; border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-inline-start: 15px; flex-shrink: 0;">
                         <i class="fas ${iconClass}" style="color:white; font-size:1.1rem;"></i>
                     </div>
                     <div>
@@ -88,11 +109,13 @@ window.loadFuel = function () {
                             <span class="mx-2 opacity-25">|</span>
                             <i class="fas ${isElectricity ? 'fa-battery-three-quarters' : 'fa-tint'} ms-1"></i> ${amountText}
                         </div>
+                        <div>${pricePerUnitBadge}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-4">
                     <div style="text-align: left;">
                         <h5 class="m-0 fw-bold" style="color:#0f172a; font-size:1.2rem;">₪${new Intl.NumberFormat('he-IL').format(f.cost)}</h5>
+                        <div style="font-size:0.75rem; color:#94a3b8; text-align: left; margin-top: 2px;">עלות כוללת</div>
                     </div>
                     <div class="d-flex gap-1">
                         <button class="btn btn-sm text-primary" style="background: #eff6ff; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" onclick="window.editFuel('${f.id}')" title="ערוך"><i class="fas fa-pen fa-xs"></i></button>
@@ -252,6 +275,12 @@ window.saveFuel = function () {
 
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
 
+    // Calculate price per unit for storage
+    const pricePerUnitVal = document.getElementById('fPricePerUnit').value;
+    const pricePerUnit = pricePerUnitVal ? Number(parseFloat(pricePerUnitVal).toFixed(4)) : (
+        (amount && Number(amount) > 0 && cost) ? Number((Number(cost) / Number(amount)).toFixed(4)) : null
+    );
+
     if (editId) {
         const idx = currentCar.fuelLog.findIndex(f => String(f.id) === String(editId));
         if (idx > -1) {
@@ -260,6 +289,7 @@ window.saveFuel = function () {
                 cost: Number(cost),
                 date: date,
                 amount: amount ? Number(amount) : null,
+                pricePerUnit: pricePerUnit,
                 energyType: energyType
             };
         }
@@ -269,6 +299,7 @@ window.saveFuel = function () {
             cost: Number(cost),
             date: date,
             amount: amount ? Number(amount) : null,
+            pricePerUnit: pricePerUnit,
             energyType: energyType
         };
         currentCar.fuelLog.push(newFuel);
@@ -300,18 +331,24 @@ window.deleteFuel = function (id) {
 window.fetchIsraelEnergyPrices = async function () {
     const CACHE_KEY = 'fuel_prices_cache';
     const CACHE_DURATION = 1000 * 60 * 60 * 12; // 12 hours
+    const FALLBACK = { fuel95: '8.05', fuel98: '9.80', elecKwh: '0.6186' };
     const cachedData = localStorage.getItem(CACHE_KEY);
     
     if (cachedData) {
         try {
             const { prices, timestamp } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < CACHE_DURATION) {
+            const isValid = prices && prices.fuel95 && prices.fuel95 !== 'N/A' && !isNaN(parseFloat(prices.fuel95));
+            if (isValid && Date.now() - timestamp < CACHE_DURATION) {
                 console.log("Using cached fuel prices:", prices);
                 window.livePrices = prices;
                 updateFuelPriceUI();
                 return;
+            } else if (!isValid) {
+                // Corrupt/N/A cache - clear it and re-fetch
+                console.warn("Cached fuel prices contain N/A - clearing cache and re-fetching.");
+                localStorage.removeItem(CACHE_KEY);
             }
-        } catch(e) { console.warn("Cache parse failed", e); }
+        } catch(e) { console.warn("Cache parse failed", e); localStorage.removeItem(CACHE_KEY); }
     }
 
     if (fetchedEnergyPrices) return;

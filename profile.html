@@ -4,137 +4,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הגדרות ופרופיל אישי - EasyCare</title>
+    <title>EasyCare - פרופיל אישי</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/global_footer.css?v=4">
-    <link rel="stylesheet" href="css/profile.css">
+    <!-- Use identical CSS as after_login for perfect sidebar parity -->
+    <link rel="stylesheet" href="css/after_login_styles.css">
+    <link rel="stylesheet" href="css/profile_styles.css">
 </head>
 
-<body>
+<body class="homepage is-loading">
+    <div class="mesh-bg"></div>
+
     <div class="layout-container">
-        <!-- Sidebar Navigation (Main Fleet Level) -->
+        <!-- ═══ SIDEBAR — Exact copy from after_login.html ═══ -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
             </div>
             <nav class="sidebar-nav">
                 <a href="after_login.html" class="sidebar-item">
-                    <i class="fas fa-home"></i> לוח בקרה ראשי
+                    <i class="fas fa-th-large"></i>
+                    <span>לוח בקרה ראשי</span>
                 </a>
                 <a href="profile.html" class="sidebar-item active">
-                    <i class="fas fa-user-cog"></i> הגדרות ופרופיל אישי
+                    <i class="fas fa-user-circle"></i>
+                    <span>פרופיל אישי</span>
                 </a>
-                <a href="login.html" class="sidebar-item text-danger mt-auto"
-                    onclick="localStorage.removeItem('userCars');">
-                    <i class="fas fa-sign-out-alt"></i> התנתקות
-                </a>
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <a href="login.html" class="sidebar-item text-danger"
+                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                        <i class="fas fa-power-off"></i>
+                        <span>התנתקות</span>
+                    </a>
+                </div>
             </nav>
+
+            <!-- User Profile Section at Bottom — Exact copy from after_login.html -->
+            <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
+                    class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                <div class="text-end me-3">
+                    <h6 id="sidebarUserName" class="m-0 fw-bold" style="font-size: 0.9rem; color: #1d1d1f;">טוען...</h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">משתמש רשום</small>
+                </div>
+            </div>
         </aside>
 
-        <!-- Main Workspace -->
+        <!-- ═══ MAIN CONTENT ═══ -->
         <main class="main-content">
-            <header class="page-header">
-                <h1>הגדרות ופרופיל אישי</h1>
-                <p>ניהול פרטים מזהים, התראות ואבטחת חשבון</p>
-            </header>
+            <!-- Profile Hero -->
+            <section class="profile-hero">
+                <div class="avatar-wrapper">
+                    <img id="profileAvatarPreview"
+                        src="https://ui-avatars.com/api/?name=User&background=0071e3&color=fff&rounded=true"
+                        alt="Profile Avatar">
+                    <label for="avatarUpload" class="avatar-edit-label">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                </div>
+                <div class="hero-info">
+                    <div class="badge-member"><i class="fas fa-user-check"></i> משתמש רשום</div>
+                    <h1 id="heroNameText">טוען פרופיל...</h1>
+                    <div class="account-stats">
+                        <div class="stat-item"><i class="fas fa-car"></i> <b id="statCarCount">0</b> רכבים בצי</div>
+                        <div class="stat-item"><i class="fas fa-bell"></i> <b id="statActiveAlerts">0</b> התראות פתוחות</div>
+                    </div>
+                </div>
+            </section>
 
-            <div class="cards-grid">
-                <!-- Personal Details Card -->
-                <section class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-id-card"></i> פרטים אישיים</h2>
-                    </div>
-                    <div class="card-body">
-                        <form class="profile-form" id="profileDetailsForm">
-                            <div class="form-group text-center mb-4" style="text-align: center;">
-                                <div style="display: inline-block; position: relative;">
-                                    <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=2d74d7&color=fff&rounded=true" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #dee2e6;">
-                                    <label for="avatarUpload" style="position: absolute; bottom: 0; left: 0; background-color: #2d74d7; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                                        <i class="fas fa-camera"></i>
-                                    </label>
-                                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="fullName">שם מלא</label>
-                                <input type="text" id="fullName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">כתובת אימייל</label>
-                                <input type="email" id="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone">מספר טלפון</label>
-                                <input type="tel" id="phone" dir="ltr" style="text-align: right;">
-                                <small class="help-text">קריטי לקבלת התראות עתידיות בוואטסאפ או במסרונים</small>
-                            </div>
-                            <button type="submit" class="btn btn-primary">שמור שינויים</button>
-                        </form>
-                    </div>
-                </section>
-
-                <!-- Notification Preferences Card -->
-                <section class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-bell"></i> העדפות התראות</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="toggle-list">
-                            <div class="toggle-item">
-                                <div class="toggle-info">
-                                    <span class="toggle-title">הזכר לי חודש לפני תוקף טסט</span>
-                                </div>
-                                <label class="css-toggle" aria-label="Toggle test reminder">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="toggle-item">
-                                <div class="toggle-info">
-                                    <span class="toggle-title">הזכר לי שבוע לפני פקיעת ביטוח</span>
-                                </div>
-                                <label class="css-toggle" aria-label="Toggle insurance reminder">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <!-- Third toggle removed as requested -->
+            <!-- Settings Grid -->
+            <div class="settings-grid">
+                <!-- Personal Details -->
+                <section class="settings-card">
+                    <h2><i class="fas fa-id-card"></i> פרטים אישיים</h2>
+                    <form id="profileDetailsForm">
+                        <div class="form-group">
+                            <label for="fullName">שם מלא</label>
+                            <input type="text" id="fullName" class="premium-input" placeholder="הזן שם מלא" required>
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label for="email">כתובת אימייל</label>
+                            <input type="email" id="email" class="premium-input" placeholder="email@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">מספר טלפון</label>
+                            <input type="tel" id="phone" class="premium-input" dir="ltr" placeholder="050-0000000">
+                        </div>
+                        <button type="submit" class="btn-premium">שמור שינויים</button>
+                    </form>
                 </section>
 
-                <!-- Security Card -->
-                <section class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-shield-alt"></i> אבטחה וסיסמה</h2>
-                    </div>
-                    <div class="card-body">
-                        <form class="security-form" id="securityForm">
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <!-- Security -->
+                    <section class="settings-card">
+                        <h2><i class="fas fa-shield-alt"></i> אבטחת חשבון</h2>
+                        <form id="securityForm">
                             <div class="form-group">
                                 <label for="currentPassword">סיסמה נוכחית</label>
-                                <input type="password" id="currentPassword" required>
+                                <input type="password" id="currentPassword" class="premium-input" required>
                             </div>
                             <div class="form-group">
                                 <label for="newPassword">סיסמה חדשה</label>
-                                <input type="password" id="newPassword" required>
+                                <input type="password" id="newPassword" class="premium-input" required>
                             </div>
-                            <div class="form-group">
-                                <label for="confirmPassword">אימות סיסמה חדשה</label>
-                                <input type="password" id="confirmPassword" required>
-                            </div>
-                            <button type="submit" class="btn btn-danger">עדכן סיסמה</button>
+                            <button type="submit" class="btn-premium btn-danger-premium">עדכן סיסמה</button>
                         </form>
-                    </div>
-                </section>
+                    </section>
+
+                    <!-- Notifications -->
+                    <section class="settings-card">
+                        <h2><i class="fas fa-bell"></i> העדפות התראות</h2>
+                        <div class="toggle-list">
+                            <div class="toggle-item">
+                                <span class="toggle-label">תזכורת חודש לפני טסט</span>
+                                <input type="checkbox" checked>
+                            </div>
+                            <div class="toggle-item">
+                                <span class="toggle-label">תזכורת שבוע לפני ביטוח</span>
+                                <input type="checkbox" checked>
+                            </div>
+                        </div>
+                    </section>
+                </div>
             </div>
         </main>
     </div>
 
-    <footer class="global-footer"></footer>
-
-    <script src="js/global_footer.js"></script>
     <script src="js/profile.js"></script>
-<script src="js/global-autosave.js"></script>
+    <script src="js/global-autosave.js"></script>
 </body>
-
 </html>

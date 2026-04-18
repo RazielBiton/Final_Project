@@ -1,63 +1,135 @@
 <!-- 6. SELL SECTION (COMPREHENSIVE) -->
 <div id="sell-section" class="dashboard-section d-none">
 
-
-
     <!-- ADMIN HERO SECTION -->
     <div class="row">
         <div class="col-12">
-            <div class="sell-hero-banner text-center">
+            <div class="sell-hero-banner text-center" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 40px 20px; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                <!-- Abstract Apple style glow -->
+                <div style="position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(255,255,255,0) 70%); transform: rotate(30deg); pointer-events: none;"></div>
+                
                 <div class="position-relative z-1 mb-3">
-                    <div class="d-inline-flex justify-content-center align-items-center bg-white text-primary rounded-circle mb-3"
+                    <div class="d-inline-flex justify-content-center align-items-center bg-white text-primary rounded-circle mb-3 shadow-sm"
                         style="width: 70px; height: 70px; font-size: 2rem;">
-                        <i class="fas fa-file-signature"></i>
+                        <i class="fas fa-file-signature text-dark"></i>
                     </div>
-                    <h2 class="fw-bold mb-2">דוח שקיפות מלא למכירת רכב</h2>
-                    <p class="fs-6 opacity-75 mx-auto" style="max-width: 700px;">
-                        מכירת רכב בפן קצת אחר ממה שהכרתם:
-                        הפיקו דוח היסטוריה מקיף הכולל טיפולים, הוצאות, ביטוחים, תאונות, קנסות ודיווחי דלק.
-                        תוכלו ליצור מדבקת QR להדפסה וההדבקה על הרכב, כך קונים פוטנציאליים יוכלו לקבל את פרטי הרכב בקלות
-                        ונוחות.
+                    <h2 class="fw-bold mb-2">דוח שקיפות וניהול מכירה</h2>
+                    <p class="fs-6 opacity-75 mx-auto" style="max-width: 650px;">
+                        פורטל השקיפות האישי שלך. שלוט במוניטין של הרכב, החלט מה להציג לקונים, והפק מסמכי מכירה יוקרתיים מתוך ההיסטוריה המתועדת של המערכת.
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="row g-4 mb-4">
+        
+        <!-- UI FILTERS & TRANSPARENCY TOGGLES (Apple Configurator Style) -->
+        <div class="col-md-7">
+            <div class="sell-settings-card h-100">
+                <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3 ms-0" style="width: 48px; height: 48px;">
+                        <i class="fas fa-sliders-h fs-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">הגדרות שקיפות ובניית מפרט</h4>
+                        <p class="text-muted small mb-0 mt-1">בחר אילו פרטים תרצה להכלול בפלט המודפס ולערוך עבור הקונים.</p>
+                    </div>
+                </div>
+
+                <!-- Toggles Container -->
+                <div class="toggles-list">
+                    
+                    <div class="sell-feature-row d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-1"><i class="fas fa-wrench me-2 text-primary"></i> פירוט טיפולים מלא</h6>
+                            <p class="text-muted small mb-0">מציג את טבלת הטיפולים המלאה ותאריכיהם בדוח.</p>
+                        </div>
+                        <div class="form-check form-switch ios-switch">
+                            <input class="form-check-input" type="checkbox" id="toggleTreatments" checked onchange="window.saveSellSettings()">
+                        </div>
+                    </div>
+
+                    <div class="sell-feature-row d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-1"><i class="fas fa-hand-holding-usd me-2 text-success"></i> חשיפת העלויות שלי (₪)</h6>
+                            <p class="text-muted small mb-0">מאפשר לקונים לראות כמה בדיוק השקעת בכל טיפול או פוליסה.</p>
+                        </div>
+                        <div class="form-check form-switch ios-switch">
+                            <input class="form-check-input" type="checkbox" id="toggleCosts" checked onchange="window.saveSellSettings()">
+                        </div>
+                    </div>
+
+                    <div class="sell-feature-row d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-1"><i class="fas fa-shield-alt me-2 text-info"></i> מידע ביטוחי</h6>
+                            <p class="text-muted small mb-0">תצוגת פוליסות ביטוח ועלויות (יעיל כטיעון ערך).</p>
+                        </div>
+                        <div class="form-check form-switch ios-switch">
+                            <input class="form-check-input" type="checkbox" id="toggleInsurance" checked onchange="window.saveSellSettings()">
+                        </div>
+                    </div>
+
+                    <div class="sell-feature-row d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-1"><i class="fas fa-car-crash me-2 text-danger"></i> היסטוריית חריגים (תאונות)</h6>
+                            <p class="text-muted small mb-0">לעין כל: חשיפת תאונות ונזקים. (ברירת מחדל: מופעל לפי דרישת שקיפות)</p>
+                        </div>
+                        <div class="form-check form-switch ios-switch">
+                            <input class="form-check-input" type="checkbox" id="toggleAccidents" checked onchange="window.saveSellSettings()">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SELLER CUSTOM TEXT (Pitch) -->
+        <div class="col-md-5">
+            <div class="sell-settings-card h-100" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fas fa-quote-right text-muted fs-4 me-2"></i>
+                    <h5 class="fw-bold mb-0">דבר המוכר (אופציונלי)</h5>
+                </div>
+                <p class="text-muted small mb-3">
+                    ספר לקונים קצת מעבר לנתונים היבשים. הוסף מידע על השימוש ברכב, המצב המכני, או מדוע כדאי לקנות אותו ממך. הפסקה תשולב בפתיח הדוח!
+                </p>
+                <textarea id="sellerCommentBox" class="form-control seller-comment-textarea" placeholder="למשל: 'רכב במצב תצוגה, ננהג על ידי נהג יחיד זהיר, חונה בחניה מקורה קבועה, ללא עישון מיום היוולדו...'..." onblur="window.saveSellSettings()"></textarea>
+            </div>
+        </div>
+
+    </div>
+
     <!-- GENERATOR CARDS -->
-    <div class="row g-4 mt-1 mb-5">
+    <div class="row g-4 mb-5">
         <!-- PDF Report Card -->
         <div class="col-md-6">
-            <div class="action-card" onclick="window.generateFullPDFReport()" style="cursor: pointer;">
-                <div class="action-icon-wrapper pdf-icon">
+            <div class="generator-card pdf-action" onclick="window.generateFullPDFReport()" style="cursor: pointer;">
+                <div class="icon-wrapper">
                     <i class="fas fa-file-pdf"></i>
                 </div>
-                <h4 class="fw-bold mb-2">דוח PDF מקיף</h4>
-                <p class="text-muted small mb-4">
-                    הפקת מסמך רשמי להדפסה או שליחה בוואטסאפ המכיל את כל המידע המתועד: טיפולים, קילומטראז', ציון אמינות
-                    והיסטוריה מלאה.
+                <h4 class="fw-bold mb-2 text-dark">הפקת Certificate (דוח PDF)</h4>
+                <p class="text-muted small mb-4 flex-grow-1">
+                    הפקת מסמך ברושור רשמי של חברת EasyCare להדפסה או שליחה בוואטסאפ. המסמך ייגזר ויעוצב באופן אוטומטי בהתאם לבחירות השקיפות שסימנת לעיל.
                 </p>
-                <button class="btn btn-outline-danger rounded-pill px-4 fw-bold w-100"
-                    onclick="event.stopPropagation(); window.generateFullPDFReport();">
-                    <i class="fas fa-download me-2"></i> הפק דוח עכשיו
+                <button class="btn w-100 fw-bold" style="background:#0f172a; color:white; border-radius: 14px; padding: 12px; transition: all 0.2s;" onmouseover="this.style.background='#1e293b';" onmouseout="this.style.background='#0f172a';" onclick="event.stopPropagation(); window.generateFullPDFReport();">
+                    <i class="fas fa-cloud-download-alt me-2"></i> מחולל דוח רישמי עכשיו
                 </button>
             </div>
         </div>
 
         <!-- QR Sticker Card -->
         <div class="col-md-6">
-            <div class="action-card" data-bs-toggle="modal" data-bs-target="#qrModal"
-                onclick="window.generateStickerQR()" style="cursor: pointer;">
-                <div class="action-icon-wrapper qr-icon">
+            <div class="generator-card qr-action" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="window.generateStickerQR()" style="cursor: pointer;">
+                <div class="icon-wrapper">
                     <i class="fas fa-qrcode"></i>
                 </div>
-                <h4 class="fw-bold mb-2">מדבקת חלון חכמה (QR)</h4>
-                <p class="text-muted small mb-4">
-                    הפקת ברקוד לסריקה שמוביל ישירות לדף נחיתה אטרקטיבי עם נתוני הרכב. הדפס והדבק על חלון הרכב כדי למשוך
-                    קונים.
+                <h4 class="fw-bold mb-2 text-dark">מדבקת חלון חכמה (QR)</h4>
+                <p class="text-muted small mb-4 flex-grow-1">
+                    יצירת ברקוד סריקה ייעודי להדפסה. כאשר עובר אורח או קונה יסרוק אותו מהחלון, הוא יועבר לדף שקיפות רשמי המכיל את נתוני המכירה שאפיינת.
                 </p>
-                <button class="btn btn-outline-dark rounded-pill px-4 fw-bold w-100">
-                    <i class="fas fa-print me-2"></i> צור מדבקת סריקה
+                <button class="btn w-100 fw-bold" style="background:#ffffff; color:#3b82f6; border: 2px solid #e0f2fe; border-radius: 14px; padding: 10px; transition: all 0.2s;" onmouseover="this.style.background='#f0f9ff';" onmouseout="this.style.background='#ffffff';">
+                    <i class="fas fa-print me-2"></i> צור ברקוד סריקה
                 </button>
             </div>
         </div>
@@ -66,16 +138,17 @@
     <!-- CAR PHOTO GALLERY ADMIN SECTION -->
     <div class="row mt-4 pb-5 mb-5">
         <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h4 class="fw-bold text-primary mb-1"><i class="fas fa-images me-2"></i> גלריית תמונות הרכב</h4>
-                    <p class="text-muted small mb-0">הוסף תמונות של הרכב שיוצגו בדף השקיפות הפומבי עבור הקונים.</p>
+            <div class="card border-0 rounded-4" style="box-shadow: 0 4px 25px rgba(0,0,0,0.03);">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h4 class="fw-bold mb-1" style="color: #0f172a;"><i class="fas fa-camera-retro me-2 text-primary"></i> גלריית תמונות מצורפות</h4>
+                    <p class="text-muted small mb-0">עד 10 תמונות נבחרות מהרכב שייכנסו לדוח ולמערכת הסריקה. <strong class="text-danger">(חובה לפחות 3 תמונות להפקת דוח)</strong></p>
                 </div>
                 <div class="card-body">
                     <div class="mb-4">
-                        <label class="form-label fw-bold">העלאת תמונות מרובות</label>
-                        <input class="form-control" type="file" id="sellGalleryUpload" accept="image/*" multiple
-                            onchange="window.handleGalleryUpload(event)">
+                        <label for="sellGalleryUpload" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm" style="cursor: pointer;">
+                            <i class="fas fa-plus me-1"></i> העלאת תמונות נוספות
+                        </label>
+                        <input class="d-none" type="file" id="sellGalleryUpload" accept="image/*" multiple onchange="window.handleGalleryUpload(event)">
                     </div>
 
                     <div id="sellGalleryGrid" class="row g-3">
