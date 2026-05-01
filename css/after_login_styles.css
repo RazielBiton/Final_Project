@@ -104,6 +104,7 @@ body {
     flex: 1;
     padding: 3rem 4rem;
     max-width: 1400px;
+    padding-bottom: 120px; /* Added spacing at the bottom */
 }
 
 /* --- HERO SECTION --- */
@@ -362,22 +363,97 @@ body {
 }
 
 @media (max-width: 768px) {
-    .layout-container { flex-direction: column; }
+    .layout-container { 
+        flex-direction: column; 
+    }
+    
     .sidebar { 
         width: 100%; 
         height: auto; 
-        position: static; 
-        padding: 1rem; 
+        position: sticky; 
+        top: 0; 
+        padding: 0.8rem 1rem; 
         display: flex; 
-        justify-content: space-around;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         border-bottom: 1px solid var(--glass-border);
-        border-left: none;
+        border-right: none;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 1100;
     }
-    .sidebar-header, .sidebar-profile { display: none; }
-    .sidebar-nav { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; }
-    .sidebar-item { margin-bottom: 0; padding: 10px; }
-    .sidebar-item span { display: none; }
-    .hero-header { text-align: center; }
-    .fleet-stats { justify-content: center; }
-    .search-container { margin: 0 auto 2rem; }
+
+    .sidebar-header { 
+        display: block; 
+        margin: 0; 
+    }
+    
+    .sidebar-header h2 { 
+        font-size: 1.2rem; 
+        margin-bottom: 0; 
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-nav { 
+        display: flex; 
+        flex-direction: row; 
+        gap: 8px; 
+        margin: 0;
+        width: auto;
+    }
+
+    .sidebar-item { 
+        margin-bottom: 0; 
+        padding: 8px 12px; 
+        font-size: 0.9rem;
+        border-radius: 10px;
+        background: transparent;
+    }
+
+    .sidebar-item i {
+        font-size: 1rem;
+        width: auto;
+    }
+
+    .sidebar-item span { 
+        display: none; /* Keep labels hidden on very small screens, or show on tablets */
+    }
+
+    /* Show labels on small tablets */
+    @media (min-width: 480px) {
+        .sidebar-item span { display: inline; font-size: 0.8rem; }
+        .sidebar-item { gap: 6px; }
+    }
+
+    .sidebar-profile { 
+        display: none; 
+    }
+
+    .main-content { 
+        padding: 2rem 1.5rem; 
+        padding-bottom: 80px;
+    }
+
+    .hero-header { 
+        text-align: center; 
+        margin-bottom: 2rem;
+    }
+    
+    .hero-header h1 { 
+        font-size: 1.8rem; 
+    }
+
+    .fleet-stats { 
+        justify-content: center; 
+        flex-wrap: wrap;
+    }
+
+    .search-container { 
+        margin: 0 auto 2rem; 
+        max-width: 100%;
+    }
 }

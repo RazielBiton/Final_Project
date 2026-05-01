@@ -521,16 +521,60 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
     });
 }
 
+function calculateReliability(carData) {
+    let score = 100;
+    
+    // Penalty for missing or expired test
+    if (!carData.testDate || carData.testDate === 'אין נתונים') {
+        score -= 15;
+    } else {
+        const today = new Date();
+        let testD;
+        if (typeof carData.testDate === 'string' && carData.testDate.includes('/')) {
+            const [d, m, y] = carData.testDate.split('/');
+            testD = new Date(`${y}-${m}-${d}`);
+        } else {
+            testD = new Date(carData.testDate);
+        }
+        
+        if (isNaN(testD.getTime()) || testD < today) score -= 15;
+    }
+    
+    // Penalty for high km
+    const mileage = parseInt(carData.km);
+    if (!isNaN(mileage)) {
+        const kmPenalty = Math.floor(mileage / 100000) * 5;
+        score -= kmPenalty;
+    }
+    
+    // Penalty for accidents
+    if (carData.accidents && Array.isArray(carData.accidents)) {
+        score -= (carData.accidents.length * 10);
+    }
+    
+    return Math.max(0, score);
+}
+
 function openEditModal() {
     document.getElementById('editBrand').value = currentCar.brandHeb || currentCar.brand || '';
     document.getElementById('editModel').value = currentCar.model || '';
-
     document.getElementById('editYear').value = currentCar.year || '';
     document.getElementById('editColor').value = currentCar.color || '';
     document.getElementById('editKm').value = currentCar.km || '';
-    document.getElementById('editTestDate').value = currentCar.testDate !== 'אין נתונים' ? (currentCar.testDate || '') : '';
+    
+    let parsedTestDate = '';
+    if (currentCar.testDate && currentCar.testDate !== 'אין נתונים') {
+        if (currentCar.testDate.includes('/')) {
+            parsedTestDate = currentCar.testDate.split('/').reverse().join('-');
+        } else {
+            parsedTestDate = currentCar.testDate.split('T')[0];
+        }
+    }
+    document.getElementById('editTestDate').value = parsedTestDate;
     document.getElementById('editStatus').value = currentCar.status || 'פעיל';
-    document.getElementById('editReliabilityScore').value = currentCar.reliabilityScore !== undefined ? currentCar.reliabilityScore : 100;
+    
+    const newScore = calculateReliability(currentCar);
+    document.getElementById('editReliabilityScore').value = newScore;
 
     document.getElementById('editFuel').value = currentCar.fuelType || '';
     document.getElementById('editHP').value = currentCar.horsePower || '';
@@ -539,118 +583,134 @@ function openEditModal() {
     document.getElementById('editTireR').value = currentCar.tireRear || '';
 
     const preview = document.getElementById('editLogoPreview');
-    preview.src = currentCar.logo || 'images/logos/default.png';
-    preview.onerror = () => { preview.src = 'images/logos/default.png'; };
+    preview.src = currentCar.logo || 'https://ui-avatars.com/api/?name=Car&background=random';
+    preview.onerror = () => { preview.src = 'https://ui-avatars.com/api/?name=Car&background=random'; };
 
+    const errorMsg = document.getElementById('editVehicleErrorMsg');
+    if(errorMsg) errorMsg.classList.add('d-none');
+    
     new bootstrap.Modal(document.getElementById('editVehicleModal')).show();
 }
 
-function saveVehicleDetails() {
-    const newBrand = document.getElementById('editBrand').value;
-    const newModel = document.getElementById('editModel').value;
+async function saveVehicleDetails() {
+    const btn = document.getElementById('btnSaveVehicleDetails');
+    const normalText = btn.querySelector('.normal-text');
+    const loadingText = btn.querySelector('.loading-text');
+    const errorMsg = document.getElementById('editVehicleErrorMsg');
+    
+    const brand = document.getElementById('editBrand').value.trim();
+    const model = document.getElementById('editModel').value.trim();
+    const km = parseInt(document.getElementById('editKm').value) || 0;
+    
+    if (!brand || !model) {
+        errorMsg.textContent = 'שדות יצרן ודגם הם חובה.';
+        errorMsg.classList.remove('d-none');
+        return;
+    }
+    if (km < 0) {
+        errorMsg.textContent = 'קילומטראז לא יכול להיות שלילי.';
+        errorMsg.classList.remove('d-none');
+        return;
+    }
+    errorMsg.classList.add('d-none');
+    
+    btn.disabled = true;
+    normalText.classList.add('d-none');
+    loadingText.classList.remove('d-none');
 
-    const newYear = document.getElementById('editYear').value;
-    const newColor = document.getElementById('editColor').value;
-    const newKm = document.getElementById('editKm').value;
     const newTestDate = document.getElementById('editTestDate').value;
-    const newStatus = document.getElementById('editStatus').value;
-    const newReliabiliy = document.getElementById('editReliabilityScore').value;
-    const newFuel = document.getElementById('editFuel').value;
-    const newHP = document.getElementById('editHP').value;
-    const newEngine = document.getElementById('editEngine').value;
-    const newTireF = document.getElementById('editTireF').value;
-    const newTireR = document.getElementById('editTireR').value;
+    const tempCar = { ...currentCar, testDate: newTestDate, km: km };
+    const autoScore = calculateReliability(tempCar);
 
     const fileInput = document.getElementById('editLogoInput');
     const file = fileInput.files[0];
 
-    const saveDetails = (logoData) => {
-        currentCar.brandHeb = newBrand;
-        currentCar.model = newModel;
+    const executeSave = async (logoData) => {
+        try {
+            const payload = {
+                brandHeb: brand,
+                model: model,
+                year: parseInt(document.getElementById('editYear').value) || currentCar.year,
+                color: document.getElementById('editColor').value,
+                km: km,
+                testDate: newTestDate,
+                status: document.getElementById('editStatus').value || 'פעיל',
+                reliabilityScore: autoScore,
+                fuelType: document.getElementById('editFuel').value,
+                horsePower: document.getElementById('editHP').value,
+                engineVolume: document.getElementById('editEngine').value,
+                tireFront: document.getElementById('editTireF').value,
+                tireRear: document.getElementById('editTireR').value,
+                logo: logoData || currentCar.logo
+            };
 
-        if (newYear) currentCar.year = newYear;
-        if (newColor) currentCar.color = newColor;
-        if (newKm) currentCar.km = parseInt(newKm);
-        if (newTestDate) currentCar.testDate = newTestDate;
-        
-        currentCar.status = newStatus || 'פעיל';
-        currentCar.reliabilityScore = newReliabiliy ? parseInt(newReliabiliy) : 100;
+            // Call the direct PUT endpoint
+            const res = await fetch(`/api/vehicles/${currentCar.id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'userid': localStorage.getItem('userId') || 1
+                },
+                body: JSON.stringify(payload)
+            });
 
-        if (newFuel) currentCar.fuelType = newFuel;
-        if (newHP) currentCar.horsePower = newHP;
-        if (newEngine) currentCar.engineVolume = newEngine;
-        if (newTireF) currentCar.tireFront = newTireF;
-        if (newTireR) currentCar.tireRear = newTireR;
+            if (!res.ok) throw new Error('שגיאה בשמירת הנתונים במסד הנתונים.');
 
-        if (logoData) {
-            currentCar.logo = logoData;
+            // Update local memory and UI
+            Object.assign(currentCar, payload);
+            renderHeader(); 
+            if (typeof window.loadOverview === 'function') window.loadOverview();
+            
+            // Full Sync for background
+            saveToLocalStorage();
+            
+            bootstrap.Modal.getInstance(document.getElementById('editVehicleModal')).hide();
+        } catch (err) {
+            console.error('Save Error:', err);
+            errorMsg.textContent = err.message;
+            errorMsg.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            normalText.classList.remove('d-none');
+            loadingText.classList.add('d-none');
         }
-
-        saveToLocalStorage();
-        loadVehicleData(); // updates DOM header
-        bootstrap.Modal.getInstance(document.getElementById('editVehicleModal')).hide();
     };
 
     if (file) {
-        // User uploaded a manual logo
         const reader = new FileReader();
         reader.onload = function (e) {
-            saveDetails(e.target.result);
+            executeSave(e.target.result);
         };
         reader.readAsDataURL(file);
-    } else if (newBrand && newBrand !== (currentCar.brandHeb || '')) {
-        // User changed the brand but didn't upload a picture - Auto-assign logo!
-        const hebrewBrand = newBrand.split('-')[0].trim();
-
-        const brandOverrides = {
-            'לינק אנד קו': 'lynk-and-co'
-        };
-
+    } else if (brand && brand !== (currentCar.brandHeb || '')) {
+        const hebrewBrand = brand.split('-')[0].trim();
+        const brandOverrides = { 'לינק אנד קו': 'lynk-and-co' };
         if (brandOverrides[hebrewBrand]) {
-            saveDetails(`images/logos/${brandOverrides[hebrewBrand]}.png`);
+            executeSave(`images/logos/${brandOverrides[hebrewBrand]}.png`);
             return;
         }
 
-        // Show loading state on button while fetching
-        const btnSave = document.querySelector('#editVehicleModal .btn-primary');
-        if (btnSave) {
-            const origText = btnSave.innerHTML;
-            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> מתרגם...';
-            btnSave.disabled = true;
-
-            fetch(`https://api.mymemory.translated.net/get?q=${hebrewBrand}&langpair=he|en`)
-                .then(res => res.json())
-                .then(data => {
-                    let englishBrand = data.responseData.translatedText.toLowerCase().trim();
-                    englishBrand = englishBrand.replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
-                    saveDetails(`images/logos/${englishBrand}.png`);
-                })
-                .catch(err => {
-                    console.error('Translation error:', err);
-                    saveDetails(null);
-                })
-                .finally(() => {
-                    btnSave.innerHTML = origText;
-                    btnSave.disabled = false;
-                });
-        } else {
-            fetch(`https://api.mymemory.translated.net/get?q=${hebrewBrand}&langpair=he|en`)
-                .then(res => res.json())
-                .then(data => {
-                    let englishBrand = data.responseData.translatedText.toLowerCase().trim();
-                    englishBrand = englishBrand.replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
-                    saveDetails(`images/logos/${englishBrand}.png`);
-                })
-                .catch(err => {
-                    console.error('Translation error:', err);
-                    saveDetails(null);
-                });
+        try {
+            const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${hebrewBrand}&langpair=he|en`);
+            const data = await transRes.json();
+            let englishBrand = data.responseData.translatedText.toLowerCase().trim();
+            englishBrand = englishBrand.replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+            executeSave(`images/logos/${englishBrand}.png`);
+        } catch (err) {
+            console.error('Translation error:', err);
+            executeSave(null);
         }
     } else {
-        // No file, no brand change
-        saveDetails(null);
+        executeSave(null);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnSave = document.getElementById('btnSaveVehicleDetails');
+    if (btnSave) {
+        btnSave.addEventListener('click', saveVehicleDetails);
+    }
+});
 
 function attachAutocomplete(inputId, listId, allVehiclesArr) {
     const input = document.getElementById(inputId);

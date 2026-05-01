@@ -29,7 +29,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(__dirname));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = "gemini-2.5-flash"; 
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 
 // Initialize DB Connection
@@ -37,8 +37,8 @@ const { sql, poolPromise } = require('./db');
 
 // Authentication middleware - expects 'userid' header
 app.use((req, res, next) => {
-    // Skip auth for login, register, and static files
-    if (req.path === '/api/login' || req.path === '/api/register' || !req.path.startsWith('/api')) {
+    // Skip auth for login, register, auth-related (OTP), and static files
+    if (req.path === '/api/login' || req.path === '/api/register' || req.path.startsWith('/api/auth/') || !req.path.startsWith('/api')) {
         return next();
     }
     const userId = req.headers['userid'];
@@ -127,17 +127,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
             return res.status(404).json({ error: 'משתמש עם אימייל זה לא נמצא במערכת.' });
         }
 
-        // Send OTP via Supabase (creating a mock user in Supabase auth if they don't exist there, strictly for email OTP)
+        // Send OTP via Supabase
         const { data, error } = await supabase.auth.signInWithOtp({
             email: email,
             options: { shouldCreateUser: true }
         });
 
         if (error) {
-            console.error('Supabase OTP Error:', error);
-            return res.status(500).json({ error: 'שגיאה בשליחת קוד לאימייל. ודא שהגדרות ה-Supabase תקינות.' });
+            console.error('Supabase OTP Send Error:', error);
+            return res.status(500).json({ error: 'שגיאה בשליחת קוד לאימייל: ' + error.message });
         }
 
+        console.log('OTP sent successfully to:', email);
         res.json({ success: true, message: 'OTP sent successfully' });
     } catch (err) {
         console.error('OTP send error:', err);
@@ -160,7 +161,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
         if (error) {
             console.error('OTP Verify Error:', error);
-            return res.status(400).json({ error: 'קוד OTP שגוי או פג תוקף.' });
+            return res.status(400).json({ error: 'קוד OTP שגוי או פג תוקף: ' + error.message });
         }
 
         // OTP Valid! Update password in Azure SQL database
@@ -173,6 +174,63 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         console.error('OTP verify error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Verify OTP Only (no password change) — used by Profile page
+app.post('/api/auth/verify-otp-only', async (req, res) => {
+    try {
+        const { email, token } = req.body;
+        if (!email || !token) return res.status(400).json({ error: 'Missing parameters' });
+
+        const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: 'email'
+        });
+
+        if (error) {
+            console.error('OTP Verify-Only Error:', error);
+            return res.status(400).json({ error: 'קוד OTP שגוי או פג תוקף: ' + error.message });
+        }
+
+        console.log('OTP verified successfully for:', email);
+        res.json({ success: true, message: 'OTP verified successfully' });
+    } catch (err) {
+        console.error('OTP verify-only error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Reset password directly — used by Profile page
+app.post('/api/auth/reset-password-direct', async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing parameters' });
+
+        const pool = await poolPromise;
+        // 1. Verify current password
+        const user = await pool.request()
+            .input('Id', sql.Int, req.userId)
+            .query('SELECT PasswordHash FROM Users WHERE Id = @Id');
+
+        if (user.recordset.length === 0) return res.status(404).json({ error: 'User not found' });
+
+        const storedPassword = user.recordset[0].PasswordHash;
+        if (storedPassword !== currentPassword) {
+            return res.status(401).json({ error: 'הסיסמה הנוכחית שהזנת אינה נכונה.' });
+        }
+
+        // 2. Update to new password
+        await pool.request()
+            .input('Id', sql.Int, req.userId)
+            .input('PasswordHash', sql.NVarChar, newPassword)
+            .query('UPDATE Users SET PasswordHash = @PasswordHash WHERE Id = @Id');
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Direct password reset error:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -205,20 +263,20 @@ app.get('/api/vehicles', async (req, res) => {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('UserId', sql.Int, req.userId)
-            .query('SELECT * FROM Vehicles WHERE UserId = @UserId');
+            .query('SELECT * FROM Vehicles WHERE UserId = @UserId AND IsDeleted = 0');
 
         const vehicles = result.recordset;
 
         // Fetch related data for each vehicle to enable accurate reliability scoring on the main dashboard
         const comprehensiveVehicles = await Promise.all(vehicles.map(async (car) => {
             const vehicleId = car.Id;
-            
+
             const treatments = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Treatments WHERE VehicleId=@Vid');
             const fuelLog = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM FuelLogs WHERE VehicleId=@Vid');
             const insurance = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Insurance WHERE VehicleId=@Vid');
             const accidents = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Accidents WHERE VehicleId=@Vid');
             const alerts = await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Alerts WHERE VehicleId=@Vid');
-            
+
             return {
                 ...car,
                 treatments: treatments.recordset.map(t => ({ id: t.Id, date: t.Date, cost: t.Cost, invoice: t.DocumentBase64 })),
@@ -245,7 +303,9 @@ app.get('/api/vehicles', async (req, res) => {
 app.get('/api/vehicles/all', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.request().query('SELECT * FROM Vehicles');
+        const result = await pool.request()
+            .input('UserId', sql.Int, req.userId)
+            .query('SELECT * FROM Vehicles WHERE UserId = @UserId AND IsDeleted = 0');
         res.json(result.recordset);
     } catch (err) {
         res.status(500).json({ error: 'Database error' });
@@ -258,6 +318,12 @@ app.post('/api/vehicles', async (req, res) => {
         const car = req.body;
         const pool = await poolPromise;
 
+        const parseDateForSql = (d) => {
+            if (!d || d === '' || d === 'אין נתונים') return null;
+            if (typeof d === 'string' && d.includes('/')) return d.split('/').reverse().join('-');
+            return d;
+        };
+
         const result = await pool.request()
             .input('UserId', sql.Int, req.userId)
             .input('LicensePlate', sql.NVarChar, car.licensePlate)
@@ -266,15 +332,15 @@ app.post('/api/vehicles', async (req, res) => {
             .input('Year', sql.Int, car.year)
             .input('Color', sql.NVarChar, car.color)
             .input('FuelType', sql.NVarChar, car.fuelType)
-            .input('TestDate', sql.NVarChar, car.testDate)
-            .input('LicenseExpiry', sql.NVarChar, car.licenseExpiry)
-            .input('Pollution', sql.NVarChar, car.pollution)
+            .input('TestDate', sql.Date, parseDateForSql(car.testDate))
+            .input('LicenseExpiry', sql.Date, parseDateForSql(car.licenseExpiry))
+            .input('Pollution', sql.Int, car.pollution ? parseInt(car.pollution) : null)
             .input('TireFront', sql.NVarChar, car.tireFront)
             .input('TireRear', sql.NVarChar, car.tireRear)
-            .input('EngineVolume', sql.NVarChar, car.engineVolume)
-            .input('HorsePower', sql.NVarChar, car.horsePower)
-            .input('Km', sql.Int, car.km)
-            .input('Status', sql.NVarChar, car.status || 'Active')
+            .input('EngineVolume', sql.Int, car.engineVolume ? parseInt(car.engineVolume) : null)
+            .input('HorsePower', sql.Int, car.horsePower ? parseInt(car.horsePower) : null)
+            .input('Km', sql.Int, car.km ? parseInt(car.km) : 0)
+            .input('Status', sql.NVarChar, car.status || 'פעיל')
             .input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
             .input('HasDisabledTag', sql.Bit, car.hasDisabledTag ? 1 : 0)
             .input('Logo', sql.NVarChar, car.logo)
@@ -297,20 +363,52 @@ app.post('/api/vehicles', async (req, res) => {
 app.put('/api/vehicles/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { brandHeb, model, logo, status, reliabilityScore } = req.body;
+        const { brandHeb, model, logo, status, reliabilityScore, year, color, fuelType, testDate, pollution, tireFront, tireRear, engineVolume, horsePower, km } = req.body;
         const pool = await poolPromise;
+
+        const parseDateForSql = (d) => {
+            if (d === undefined) return undefined; 
+            if (!d || d === '' || d === 'אין נתונים') return null;
+            if (typeof d === 'string' && d.includes('/')) return d.split('/').reverse().join('-');
+            return d;
+        };
+
+        const parsedTestDate = parseDateForSql(testDate);
 
         await pool.request()
             .input('Id', sql.Int, id)
             .input('UserId', sql.Int, req.userId)
             .input('BrandHeb', sql.NVarChar, brandHeb)
             .input('Model', sql.NVarChar, model)
-            .input('Status', sql.NVarChar, status)
-            .input('ReliabilityScore', sql.Int, reliabilityScore)
-            .input('Logo', sql.NVarChar, logo)
+            .input('Year', sql.Int, year !== undefined ? (year ? parseInt(year) : null) : undefined)
+            .input('Color', sql.NVarChar, color !== undefined ? color : undefined)
+            .input('FuelType', sql.NVarChar, fuelType !== undefined ? fuelType : undefined)
+            .input('TestDate', sql.Date, parsedTestDate)
+            .input('TireFront', sql.NVarChar, tireFront !== undefined ? tireFront : undefined)
+            .input('TireRear', sql.NVarChar, tireRear !== undefined ? tireRear : undefined)
+            .input('EngineVolume', sql.Int, engineVolume !== undefined ? (engineVolume ? parseInt(engineVolume) : null) : undefined)
+            .input('HorsePower', sql.Int, horsePower !== undefined ? (horsePower ? parseInt(horsePower) : null) : undefined)
+            .input('Km', sql.Int, km !== undefined ? (km ? parseInt(km) : 0) : undefined)
+            .input('Status', sql.NVarChar, status !== undefined ? (status || 'פעיל') : undefined)
+            .input('ReliabilityScore', sql.Int, reliabilityScore !== undefined ? (!isNaN(parseInt(reliabilityScore)) ? parseInt(reliabilityScore) : 100) : undefined)
+            .input('Logo', sql.NVarChar, logo !== undefined ? logo : undefined)
             .query(`
                 UPDATE Vehicles 
-                SET BrandHeb = @BrandHeb, Model = @Model, Logo = @Logo, Status = @Status, ReliabilityScore = @ReliabilityScore
+                SET BrandHeb = ISNULL(@BrandHeb, BrandHeb), 
+                    Model = ISNULL(@Model, Model), 
+                    Year = ISNULL(@Year, Year), 
+                    Color = ISNULL(@Color, Color), 
+                    FuelType = ISNULL(@FuelType, FuelType), 
+                    TestDate = ISNULL(@TestDate, TestDate), 
+                    TireFront = ISNULL(@TireFront, TireFront), 
+                    TireRear = ISNULL(@TireRear, TireRear), 
+                    EngineVolume = ISNULL(@EngineVolume, EngineVolume), 
+                    HorsePower = ISNULL(@HorsePower, HorsePower), 
+                    Km = ISNULL(@Km, Km), 
+                    Logo = ISNULL(@Logo, Logo), 
+                    Status = ISNULL(@Status, Status), 
+                    ReliabilityScore = ISNULL(@ReliabilityScore, ReliabilityScore), 
+                    UpdatedAt = GETDATE()
                 WHERE Id = @Id AND UserId = @UserId
             `);
 
@@ -552,7 +650,7 @@ app.get('/api/insurance/:vehicleId', async (req, res) => {
 app.post('/api/insurance', async (req, res) => {
     try {
         const { vehicleId, companyName, policyNumber, expiryDate, type, cost, documentBase64,
-                towing, replacement, glass, agentName, agentPhone, driverLimit, deductible, protection } = req.body;
+            towing, replacement, glass, agentName, agentPhone, driverLimit, deductible, protection } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('CompanyName', sql.NVarChar, companyName)
             .input('PolicyNumber', sql.NVarChar, policyNumber).input('ExpiryDate', sql.Date, expiryDate)
@@ -577,8 +675,11 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
     try {
         const vehicleId = parseInt(req.params.id);
         const pool = await poolPromise;
-        const vRes = await pool.request().input('Id', sql.Int, vehicleId).query('SELECT * FROM Vehicles WHERE Id = @Id');
-        if (vRes.recordset.length === 0) return res.status(404).json({ error: 'Not found' });
+        const vRes = await pool.request()
+            .input('Id', sql.Int, vehicleId)
+            .input('UserId', sql.Int, req.userId)
+            .query('SELECT * FROM Vehicles WHERE Id = @Id AND UserId = @UserId AND IsDeleted = 0');
+        if (vRes.recordset.length === 0) return res.status(404).json({ error: 'Not found or access denied' });
 
         const car = vRes.recordset[0];
 
@@ -612,6 +713,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             reliabilityScore: car.ReliabilityScore,
             hasDisabledTag: car.HasDisabledTag,
             logo: car.Logo,
+            sellSettings: car.SellSettings ? JSON.parse(car.SellSettings) : null,
 
             treatments: car.treatments.map(t => ({ id: t.Id, date: t.Date, type: t.Type || t.Description, garage: t.GarageName, km: t.Odometer, cost: t.Cost, invoice: t.DocumentBase64 })),
             fuelLog: car.fuelLog.map(f => ({ id: f.Id, date: f.Date, amount: f.Liters, cost: f.TotalCost, energyType: f.Liters ? 'fuel' : 'electricity' })),
@@ -619,29 +721,29 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             accidents: car.accidents.map(a => ({ id: a.Id, date: a.Date, description: a.Description, repairCost: a.EstimatedCost || a.Cost })),
             alerts: car.alerts.map(a => ({ id: a.Id, title: a.Title, date: a.Date, isActive: a.IsActive, urgency: a.Urgency, frequency: a.Frequency })),
             insurance: car.insurance.length > 0 ? {
-                mandatory: (() => { 
-                    const i = car.insurance.find(x => x.Type === 'חובה'); 
-                    return i ? { 
+                mandatory: (() => {
+                    const i = car.insurance.find(x => x.Type === 'חובה');
+                    return i ? {
                         company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
                         agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
-                    } : null; 
+                    } : null;
                 })(),
-                comprehensive: (() => { 
-                    const i = car.insurance.find(x => x.Type === 'מקיף'); 
-                    return i ? { 
+                comprehensive: (() => {
+                    const i = car.insurance.find(x => x.Type === 'מקיף');
+                    return i ? {
                         company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
                         agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
-                    } : null; 
+                    } : null;
                 })(),
-                thirdparty: (() => { 
-                    const i = car.insurance.find(x => x.Type === 'צד ג'); 
-                    return i ? { 
+                thirdparty: (() => {
+                    const i = car.insurance.find(x => x.Type === 'צד ג');
+                    return i ? {
                         company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName, 
+                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
                         agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
-                    } : null; 
+                    } : null;
                 })()
             } : {},
             gallery: car.gallery.map(g => g.ImageBase64),
@@ -677,12 +779,23 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         const vehicleId = parseInt(req.params.id);
         const car = req.body;
         const pool = await poolPromise;
+        
+        // 0. Verify ownership (Tenant Isolation)
+        const checkOwnership = await pool.request()
+            .input('Id', sql.Int, vehicleId)
+            .input('UserId', sql.Int, req.userId)
+            .query('SELECT Id FROM Vehicles WHERE Id = @Id AND UserId = @UserId AND IsDeleted = 0');
+        
+        if (checkOwnership.recordset.length === 0) {
+            return res.status(403).json({ error: 'Access denied or vehicle deleted' });
+        }
 
         // 1. Update Vehicle basic fields
         await pool.request()
             .input('Id', sql.Int, vehicleId).input('Km', sql.Int, car.km || 0)
-            .input('Status', sql.NVarChar, car.status || '').input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
-            .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore WHERE Id=@Id');
+            .input('Status', sql.NVarChar, car.status || 'פעיל').input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
+            .input('SellSettings', sql.NVarChar, car.sellSettings ? JSON.stringify(car.sellSettings) : null)
+            .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore, SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id');
 
         // 2. Clear old children to perform full sync from frontend array
         await pool.request().input('Vid', sql.Int, vehicleId).query(`
@@ -760,7 +873,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                     await pool.request().input('Vid', sql.Int, vehicleId).input('Type', sql.NVarChar, typeHebrew)
                         .input('Comp', sql.NVarChar, ins.company || ins.companyName || '')
                         .input('Pol', sql.NVarChar, ins.policyNum || ins.policyNumber || '')
-                        .input('Exp', sql.Date, expiry ? 
+                        .input('Exp', sql.Date, expiry ?
                             (String(expiry).includes('/') ? String(expiry).split('/').reverse().join('-') : expiry) : null)
                         .input('Cost', sql.Decimal(10, 2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || ins.documentBase64 || '')
                         .input('Towing', sql.NVarChar, ins.towing || ins.towingService || '')
@@ -969,7 +1082,7 @@ ${typeContext}
         // Find the JSON object if there's extra text
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('No valid JSON in response');
-        
+
         const data = JSON.parse(jsonMatch[0]);
         res.json({ success: true, data: data });
     } catch (err) {
@@ -986,7 +1099,7 @@ let isFetchingAI = false;
 
 app.get('/api/current-fuel-ai', async (req, res) => {
     let cache = { fuel95: "8.05", fuel98: "9.80", elecKwh: "0.6186", lastFetch: 0 };
-    
+
     // 1. Try to load from file
     if (fs.existsSync(CACHE_FILE)) {
         try {
@@ -1015,20 +1128,20 @@ app.get('/api/current-fuel-ai', async (req, res) => {
         const prompt = `You are an Israeli fuel price assistant. Reply ONLY with a valid JSON object containing the latest known official fuel prices in Israel. Use only numeric string values (no N/A, no text). Example format: {"fuel95": "8.05", "fuel98": "9.80", "elecKwh": "0.6186"}`;
         const result = await model.generateContent(prompt);
         const rawText = (await result.response).text().trim().replace(/\`\`\`json|\`\`\`/g, '').trim();
-        
+
         // Extract JSON object from response
         const jsonMatch = rawText.match(/\{[\s\S]*?\}/);
         if (!jsonMatch) throw new Error('No valid JSON found in Gemini response');
-        
+
         const newPrices = JSON.parse(jsonMatch[0]);
-        
+
         // Validate each value - reject N/A or non-numeric, use fallback
         const validated = {
-            fuel95:  (newPrices.fuel95  && String(newPrices.fuel95)  !== 'N/A' && !isNaN(parseFloat(newPrices.fuel95)))  ? String(newPrices.fuel95)  : FALLBACK_PRICES.fuel95,
-            fuel98:  (newPrices.fuel98  && String(newPrices.fuel98)  !== 'N/A' && !isNaN(parseFloat(newPrices.fuel98)))  ? String(newPrices.fuel98)  : FALLBACK_PRICES.fuel98,
+            fuel95: (newPrices.fuel95 && String(newPrices.fuel95) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel95))) ? String(newPrices.fuel95) : FALLBACK_PRICES.fuel95,
+            fuel98: (newPrices.fuel98 && String(newPrices.fuel98) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel98))) ? String(newPrices.fuel98) : FALLBACK_PRICES.fuel98,
             elecKwh: (newPrices.elecKwh && String(newPrices.elecKwh) !== 'N/A' && !isNaN(parseFloat(newPrices.elecKwh))) ? String(newPrices.elecKwh) : FALLBACK_PRICES.elecKwh
         };
-        
+
         cache = { ...validated, lastFetch: now };
         fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
         console.log("Gemini Price Cache updated:", validated);
@@ -1041,8 +1154,8 @@ app.get('/api/current-fuel-ai', async (req, res) => {
         }
         // On error, return cached values if valid, otherwise use hardcoded fallback
         const safeResponse = {
-            fuel95:  (cache.fuel95  && cache.fuel95  !== 'N/A' && !isNaN(parseFloat(cache.fuel95)))  ? cache.fuel95  : FALLBACK_PRICES.fuel95,
-            fuel98:  (cache.fuel98  && cache.fuel98  !== 'N/A' && !isNaN(parseFloat(cache.fuel98)))  ? cache.fuel98  : FALLBACK_PRICES.fuel98,
+            fuel95: (cache.fuel95 && cache.fuel95 !== 'N/A' && !isNaN(parseFloat(cache.fuel95))) ? cache.fuel95 : FALLBACK_PRICES.fuel95,
+            fuel98: (cache.fuel98 && cache.fuel98 !== 'N/A' && !isNaN(parseFloat(cache.fuel98))) ? cache.fuel98 : FALLBACK_PRICES.fuel98,
             elecKwh: (cache.elecKwh && cache.elecKwh !== 'N/A' && !isNaN(parseFloat(cache.elecKwh))) ? cache.elecKwh : FALLBACK_PRICES.elecKwh
         };
         res.json(safeResponse);
@@ -1052,6 +1165,13 @@ app.get('/api/current-fuel-ai', async (req, res) => {
 });
 
 const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Chatbot Server is running on http://localhost:${PORT}`);
+app.listen(PORT, async () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    
+    // Eagerly connect to the database on startup so the connection log appears
+    try {
+        await poolPromise;
+    } catch (err) {
+        console.error("Failed to connect to database on startup:", err);
+    }
 });

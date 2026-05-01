@@ -18,9 +18,15 @@ window.calculateReliability = function (car) {
     let score = 0;
 
     const isDateFuture = (dateStr) => {
-        if (!dateStr) return false;
-        const d = new Date(dateStr);
-        return d > new Date();
+        if (!dateStr || dateStr === 'אין נתונים') return false;
+        let d;
+        if (typeof dateStr === 'string' && dateStr.includes('/')) {
+            const [day, month, year] = dateStr.split('/');
+            d = new Date(`${year}-${month}-${day}`);
+        } else {
+            d = new Date(dateStr);
+        }
+        return !isNaN(d.getTime()) && d > new Date();
     };
 
     // 1. Treatments with invoice (30%)
@@ -85,16 +91,23 @@ async function fetchAndRenderFleet() {
             brandHeb: car.BrandHeb,
             model: car.Model,
             year: car.Year,
+            color: car.Color,
+            fuelType: car.FuelType,
+            testDate: car.TestDate,
+            tireFront: car.TireFront,
+            tireRear: car.TireRear,
+            engineVolume: car.EngineVolume,
+            horsePower: car.HorsePower,
+            km: car.Km,
+            status: car.Status,
             logo: car.Logo || 'images/logos/default.png',
             licensePlate: car.LicensePlate,
-            km: car.Km,
-            testDate: car.TestDate,
-            // Full data now coming from the updated comprehensive API
+            reliabilityScore: car.ReliabilityScore,
+            // Nested data
             treatments: car.treatments || [],
             accidents: car.accidents || [],
             fuelLog: car.fuelLog || [],
-            insurance: car.insurance || {},
-            reliabilityScore: car.ReliabilityScore
+            insurance: car.insurance || {}
         }));
         
         localStorage.setItem('userCars', JSON.stringify(memCars));
@@ -102,26 +115,14 @@ async function fetchAndRenderFleet() {
         // Clear existing injected cards
         document.querySelectorAll('.premium-card-wrapper:not(#addCardWrapper)').forEach(c => c.remove());
 
-        let totalFleetScore = 0;
-
         memCars.forEach(car => {
-            const relScore = window.calculateReliability(car);
-            totalFleetScore += relScore;
 
             const col = document.createElement('div');
             col.className = 'col-12 col-md-6 col-lg-4 col-xl-3 premium-card-wrapper fleet-item';
             col.setAttribute('data-search', `${car.brandHeb} ${car.model} ${car.licensePlate}`.toLowerCase());
-            
-            let statusColorClass = 'score-low';
-            if (relScore >= 80) statusColorClass = 'score-high';
-            else if (relScore >= 50) statusColorClass = 'score-mid';
 
             col.innerHTML = `
                 <div class="premium-card">
-                    <div class="reliability-ribbon ${statusColorClass}">
-                        <i class="fas fa-microchip"></i>
-                        <span>${relScore}% Reliability</span>
-                    </div>
 
                     <div class="kebab-menu">
                         <button class="kebab-btn" onclick="toggleCardActions(event, this)">
@@ -156,8 +157,6 @@ async function fetchAndRenderFleet() {
 
         // Update stats
         document.getElementById('carCountStat').textContent = `${memCars.length} רכבים רשומים`;
-        const avgScore = memCars.length > 0 ? Math.round(totalFleetScore / memCars.length) : 0;
-        document.getElementById('avgReliabilityStat').textContent = `ציון אמינות צי: ${avgScore}%`;
 
     } catch (err) {
         console.error('Error fetching cars:', err);
@@ -259,22 +258,98 @@ function editCar(id) {
 }
 
 async function saveVehicleDetails() {
+    const btn = document.getElementById('btnSaveVehicleDetails');
+    const normalText = btn.querySelector('.normal-text');
+    const loadingText = btn.querySelector('.loading-text');
+    const errorMsg = document.getElementById('editVehicleErrorMsg');
+    
     const brand = document.getElementById('editBrand').value.trim();
     const model = document.getElementById('editModel').value.trim();
-    const logoSrc = document.getElementById('editLogoPreview').src;
     const userId = localStorage.getItem('userId');
 
-    try {
-        const payload = { brandHeb: brand, model: model, logo: logoSrc };
-        const res = await fetch(`/api/vehicles/${currentEditingCarId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'userid': userId },
-            body: JSON.stringify(payload)
-        });
+    if (!brand || !model) {
+        errorMsg.textContent = 'אנא מלא את כל שדות החובה.';
+        errorMsg.classList.remove('d-none');
+        return;
+    }
+    errorMsg.classList.add('d-none');
 
-        if (res.ok) location.reload();
-    } catch (err) { console.error(err); }
+    btn.disabled = true;
+    normalText.classList.add('d-none');
+    loadingText.classList.remove('d-none');
+
+    // Get the existing car to preserve other fields
+    const cars = JSON.parse(localStorage.getItem('userCars')) || [];
+    const car = cars.find(c => c.id === currentEditingCarId);
+    
+    let autoScore = 100;
+    if (car && window.calculateReliability) {
+        autoScore = window.calculateReliability(car);
+    }
+
+    const fileInput = document.getElementById('editLogoInput');
+    const file = fileInput.files[0];
+
+    const executeSave = async (logoData) => {
+        try {
+            const payload = { 
+                ...car, // Preserve all existing fields (km, year, testDate, etc)
+                brandHeb: brand, 
+                model: model, 
+                logo: logoData || (car ? car.logo : null),
+                status: car ? car.status : 'פעיל',
+                reliabilityScore: autoScore
+            };
+            
+            const res = await fetch(`/api/vehicles/${currentEditingCarId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'userid': userId },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error('שגיאה בעת שמירת הנתונים.');
+            
+            location.reload();
+        } catch (err) { 
+            console.error(err); 
+            errorMsg.textContent = err.message;
+            errorMsg.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            normalText.classList.remove('d-none');
+            loadingText.classList.add('d-none');
+        }
+    };
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            executeSave(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else if (brand && (!car || brand !== car.brandHeb)) {
+        // Auto-assign logo if brand changes
+        const hebrewBrand = brand.split('-')[0].trim();
+        try {
+            const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${hebrewBrand}&langpair=he|en`);
+            const data = await transRes.json();
+            let englishBrand = data.responseData.translatedText.toLowerCase().trim();
+            englishBrand = englishBrand.replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+            executeSave(`images/logos/${englishBrand}.png`);
+        } catch(err) {
+            executeSave(null);
+        }
+    } else {
+        executeSave(null);
+    }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnSave = document.getElementById('btnSaveVehicleDetails');
+    if (btnSave) {
+        btnSave.addEventListener('click', saveVehicleDetails);
+    }
+});
 
 /* ── PROFILE SYNC ───────────────────────────────────────────────────────────── */
 function loadUserProfile() {

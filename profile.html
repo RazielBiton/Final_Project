@@ -4,44 +4,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyCare - פרופיל אישי</title>
+    <link rel="stylesheet" href="css/after_login.css?v=3" />
+    <link rel="stylesheet" href="css/after_login_styles.css?v=4" />
+    <link rel="stylesheet" href="css/global_footer.css?v=3" />
+    <link rel="stylesheet" href="css/profile.css?v=3" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Use identical CSS as after_login for perfect sidebar parity -->
-    <link rel="stylesheet" href="css/after_login_styles.css">
-    <link rel="stylesheet" href="css/profile_styles.css">
+    <title>EasyCare - פרופיל אישי</title>
+    <style>
+        /* ── Profile-specific inline styles ── */
+        .profile-section-card {
+            background: var(--glass-bg, rgba(255,255,255,0.7));
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 28px;
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.3));
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.07);
+            padding: 2.2rem 2.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s;
+        }
+        .profile-section-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(31,38,135,0.10);
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.8rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        .section-title .icon-box {
+            width: 42px; height: 42px;
+            background: rgba(0,113,227,0.08);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-blue, #0071e3);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Avatar area */
+        .avatar-area {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .avatar-frame {
+            position: relative;
+            width: 110px; height: 110px;
+            flex-shrink: 0;
+        }
+        .avatar-frame img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
+        .avatar-frame .cam-btn {
+            position: absolute;
+            bottom: 2px; left: 2px;
+            width: 34px; height: 34px;
+            background: var(--primary-blue, #0071e3);
+            color: #fff;
+            border: none; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,113,227,0.35);
+            transition: transform 0.25s;
+            font-size: 0.85rem;
+        }
+        .avatar-frame .cam-btn:hover { transform: scale(1.12); }
+        .avatar-meta h2 {
+            font-size: 1.6rem; font-weight: 800; color: #1d1d1f;
+            margin: 0 0 0.3rem;
+        }
+        .avatar-meta .badge-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(0,113,227,0.08); color: var(--primary-blue, #0071e3);
+            padding: 4px 14px; border-radius: 100px;
+            font-size: 0.82rem; font-weight: 600;
+        }
+
+        /* Form elements */
+        .pf-form-group { margin-bottom: 1.3rem; }
+        .pf-form-group label {
+            display: block;
+            font-size: 0.88rem; font-weight: 600; color: #86868b;
+            margin-bottom: 6px;
+        }
+        .pf-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.03);
+            border: 1.5px solid transparent;
+            border-radius: 14px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            color: #1d1d1f;
+            font-family: inherit;
+        }
+        .pf-input:focus {
+            background: #fff;
+            border-color: var(--primary-blue, #0071e3);
+            box-shadow: 0 0 0 4px rgba(0,113,227,0.08);
+        }
+        .pf-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .pw-wrapper { position: relative; }
+        .pw-wrapper .pf-input { padding-left: 44px; }
+        .pw-toggle {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: #86868b; cursor: pointer;
+            font-size: 1rem; padding: 0;
+        }
+        .pw-toggle:hover { color: var(--primary-blue, #0071e3); }
+
+        .btn-pf {
+            width: 100%;
+            padding: 13px;
+            border: none; border-radius: 14px;
+            font-weight: 600; font-size: 0.95rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+            color: #fff;
+            background: var(--primary-blue, #0071e3);
+        }
+        .btn-pf:hover {
+            background: #0077ed;
+            box-shadow: 0 8px 24px rgba(0,113,227,0.30);
+            transform: translateY(-2px);
+        }
+        .btn-pf.danger {
+            background: linear-gradient(135deg, #ff3b30, #ff6b6b);
+        }
+        .btn-pf.danger:hover {
+            background: linear-gradient(135deg, #e0342b, #ff5252);
+            box-shadow: 0 8px 24px rgba(255,59,48,0.30);
+        }
+
+        /* Verification code area */
+        .verify-row {
+            display: flex; gap: 10px; align-items: flex-end;
+        }
+        .verify-row .pf-form-group { flex: 1; margin-bottom: 0; }
+        .btn-send-code {
+            padding: 12px 18px;
+            background: rgba(0,113,227,0.08);
+            color: var(--primary-blue, #0071e3);
+            border: none; border-radius: 14px;
+            font-weight: 600; font-size: 0.88rem;
+            cursor: pointer; white-space: nowrap;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+        .btn-send-code:hover {
+            background: rgba(0,113,227,0.15);
+        }
+        .btn-send-code:disabled {
+            opacity: 0.5; cursor: not-allowed;
+        }
+
+        /* Toggle switches */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-info { display: flex; align-items: center; gap: 12px; }
+        .toggle-info .t-icon {
+            width: 36px; height: 36px;
+            background: rgba(0,113,227,0.06);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-blue, #0071e3);
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .toggle-info .t-label { font-weight: 600; color: #1d1d1f; font-size: 0.92rem; }
+        .toggle-info .t-desc { font-size: 0.78rem; color: #86868b; margin-top: 1px; }
+        .sw { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+        .sw input { opacity: 0; width: 0; height: 0; }
+        .sw .sl {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #e0e0e5; border-radius: 26px;
+            transition: 0.35s;
+        }
+        .sw .sl:before {
+            position: absolute; content: "";
+            height: 20px; width: 20px;
+            right: 3px; bottom: 3px;
+            background: #fff; border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: 0.35s;
+        }
+        .sw input:checked + .sl { background: var(--primary-blue, #0071e3); }
+        .sw input:checked + .sl:before { transform: translateX(-22px); }
+
+        /* Custom reminder modal */
+        .reminder-list { margin-top: 1rem; }
+        .reminder-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .reminder-item .ri-text { font-size: 0.9rem; color: #1d1d1f; font-weight: 500; }
+        .reminder-item .ri-date { font-size: 0.8rem; color: #86868b; }
+        .reminder-item .ri-del {
+            background: none; border: none;
+            color: #ff3b30; cursor: pointer;
+            font-size: 0.9rem; padding: 4px;
+        }
+        .add-reminder-row {
+            display: flex; gap: 8px; margin-top: 1rem;
+        }
+        .add-reminder-row .pf-input { flex: 1; }
+        .add-reminder-row input[type="date"] { max-width: 170px; }
+        .btn-add-reminder {
+            padding: 10px 16px;
+            background: var(--primary-blue, #0071e3);
+            color: #fff; border: none;
+            border-radius: 12px;
+            font-weight: 600; font-size: 0.88rem;
+            cursor: pointer; white-space: nowrap;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+        .btn-add-reminder:hover { background: #0077ed; }
+
+        /* Toast */
+        .pf-toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1d1d1f; color: #fff;
+            padding: 14px 28px; border-radius: 16px;
+            font-weight: 600; font-size: 0.95rem;
+            display: flex; align-items: center; gap: 10px;
+            z-index: 9999;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+            pointer-events: none;
+        }
+        .pf-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .profile-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 1100px) {
+            .profile-grid-2col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 900px) {
+            .avatar-area { flex-direction: column; text-align: center; }
+            .pf-row-2 { grid-template-columns: 1fr; }
+            .verify-row { flex-direction: column; }
+            .add-reminder-row { flex-direction: column; }
+        }
+    </style>
 </head>
 
 <body class="homepage is-loading">
+    <!-- Animated Mesh Background -->
     <div class="mesh-bg"></div>
 
     <div class="layout-container">
-        <!-- ═══ SIDEBAR — Exact copy from after_login.html ═══ -->
+        <!-- Sidebar Navigation (Main Fleet Level) — EXACT COPY from after_login.html -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
             </div>
             <nav class="sidebar-nav">
                 <a href="after_login.html" class="sidebar-item">
-                    <i class="fas fa-th-large"></i>
+                    <i class="fas fa-th-large"></i> 
                     <span>לוח בקרה ראשי</span>
                 </a>
                 <a href="profile.html" class="sidebar-item active">
-                    <i class="fas fa-user-circle"></i>
+                    <i class="fas fa-user-circle"></i> 
                     <span>פרופיל אישי</span>
                 </a>
                 <div style="margin-top: auto; padding-top: 20px;">
-                    <a href="login.html" class="sidebar-item text-danger"
+                    <a href="login.html" class="sidebar-item text-danger" 
                         onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
-                        <i class="fas fa-power-off"></i>
+                        <i class="fas fa-power-off"></i> 
                         <span>התנתקות</span>
                     </a>
                 </div>
             </nav>
-
-            <!-- User Profile Section at Bottom — Exact copy from after_login.html -->
+            
+            <!-- User Profile Section at Bottom -->
             <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
-                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
-                    class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                 <div class="text-end me-3">
                     <h6 id="sidebarUserName" class="m-0 fw-bold" style="font-size: 0.9rem; color: #1d1d1f;">טוען...</h6>
                     <small class="text-muted" style="font-size: 0.75rem;">משתמש רשום</small>
@@ -49,88 +324,183 @@
             </div>
         </aside>
 
-        <!-- ═══ MAIN CONTENT ═══ -->
         <main class="main-content">
-            <!-- Profile Hero -->
-            <section class="profile-hero">
-                <div class="avatar-wrapper">
-                    <img id="profileAvatarPreview"
-                        src="https://ui-avatars.com/api/?name=User&background=0071e3&color=fff&rounded=true"
-                        alt="Profile Avatar">
-                    <label for="avatarUpload" class="avatar-edit-label">
-                        <i class="fas fa-camera"></i>
-                    </label>
-                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
-                </div>
-                <div class="hero-info">
-                    <div class="badge-member"><i class="fas fa-user-check"></i> משתמש רשום</div>
-                    <h1 id="heroNameText">טוען פרופיל...</h1>
-                    <div class="account-stats">
-                        <div class="stat-item"><i class="fas fa-car"></i> <b id="statCarCount">0</b> רכבים בצי</div>
-                        <div class="stat-item"><i class="fas fa-bell"></i> <b id="statActiveAlerts">0</b> התראות פתוחות</div>
+            <!-- Hero Greeting — same style as after_login -->
+            <header class="hero-header">
+                <h1 id="heroGreeting">הגדרות פרופיל</h1>
+                <p class="hero-subtitle">עדכן את הפרטים האישיים, אבטחת החשבון והתזכורות שלך.</p>
+            </header>
+
+            <!-- ═══ PROFILE CONTENT ═══ -->
+
+            <!-- 1 · Avatar + Personal Details -->
+            <div class="profile-section-card">
+                <div class="avatar-area">
+                    <div class="avatar-frame">
+                        <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=0071e3&color=fff&rounded=true" alt="Avatar">
+                        <button class="cam-btn" onclick="document.getElementById('avatarFile').click()">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <input type="file" id="avatarFile" accept="image/*" style="display:none">
+                    </div>
+                    <div class="avatar-meta">
+                        <h2 id="profileDisplayName">טוען...</h2>
+                        <div class="badge-tag"><i class="fas fa-user-check"></i> משתמש רשום</div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Settings Grid -->
-            <div class="settings-grid">
-                <!-- Personal Details -->
-                <section class="settings-card">
-                    <h2><i class="fas fa-id-card"></i> פרטים אישיים</h2>
-                    <form id="profileDetailsForm">
-                        <div class="form-group">
+            <div class="profile-grid-2col">
+                <!-- 2 · Personal Details -->
+                <div class="profile-section-card">
+                    <div class="section-title">
+                        <div class="icon-box"><i class="fas fa-id-card"></i></div>
+                        פרטים אישיים
+                    </div>
+                    <form id="detailsForm">
+                        <div class="pf-form-group">
                             <label for="fullName">שם מלא</label>
-                            <input type="text" id="fullName" class="premium-input" placeholder="הזן שם מלא" required>
+                            <input type="text" id="fullName" class="pf-input" placeholder="הזן שם מלא" required>
                         </div>
-                        <div class="form-group">
-                            <label for="email">כתובת אימייל</label>
-                            <input type="email" id="email" class="premium-input" placeholder="email@example.com" required>
+                        <div class="pf-row-2">
+                            <div class="pf-form-group">
+                                <label for="email">כתובת אימייל</label>
+                                <input type="email" id="email" class="pf-input" placeholder="email@example.com" required>
+                            </div>
+                            <div class="pf-form-group">
+                                <label for="phone">מספר טלפון</label>
+                                <input type="tel" id="phone" class="pf-input" dir="ltr" placeholder="050-0000000">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="phone">מספר טלפון</label>
-                            <input type="tel" id="phone" class="premium-input" dir="ltr" placeholder="050-0000000">
-                        </div>
-                        <button type="submit" class="btn-premium">שמור שינויים</button>
+                        <button type="submit" class="btn-pf"><i class="fas fa-check-circle"></i> שמור שינויים</button>
                     </form>
-                </section>
+                </div>
 
-                <div style="display: flex; flex-direction: column; gap: 2rem;">
-                    <!-- Security -->
-                    <section class="settings-card">
-                        <h2><i class="fas fa-shield-alt"></i> אבטחת חשבון</h2>
-                        <form id="securityForm">
-                            <div class="form-group">
-                                <label for="currentPassword">סיסמה נוכחית</label>
-                                <input type="password" id="currentPassword" class="premium-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="newPassword">סיסמה חדשה</label>
-                                <input type="password" id="newPassword" class="premium-input" required>
-                            </div>
-                            <button type="submit" class="btn-premium btn-danger-premium">עדכן סיסמה</button>
-                        </form>
-                    </section>
+                <!-- 3 · Password Change -->
+                <div class="profile-section-card" style="position:relative;">
+                    <div class="section-title">
+                        <div class="icon-box"><i class="fas fa-shield-alt"></i></div>
+                        שינוי סיסמה
+                    </div>
 
-                    <!-- Notifications -->
-                    <section class="settings-card">
-                        <h2><i class="fas fa-bell"></i> העדפות התראות</h2>
-                        <div class="toggle-list">
-                            <div class="toggle-item">
-                                <span class="toggle-label">תזכורת חודש לפני טסט</span>
-                                <input type="checkbox" checked>
-                            </div>
-                            <div class="toggle-item">
-                                <span class="toggle-label">תזכורת שבוע לפני ביטוח</span>
-                                <input type="checkbox" checked>
+                    <!-- Password Change Area -->
+                    <div id="pwDirectArea">
+                        <p style="color:#86868b;font-size:0.9rem;margin-bottom:1.5rem;">להחלפת סיסמה, הזן את הסיסמה הנוכחית ואת הסיסמה החדשה.</p>
+                        
+                        <div class="pf-form-group">
+                            <label for="currentPassword">סיסמה נוכחית</label>
+                            <div class="pw-wrapper">
+                                <input type="password" id="currentPassword" class="pf-input" placeholder="הזן סיסמה נוכחית" required>
+                                <button type="button" class="pw-toggle" onclick="togglePwd('currentPassword',this)"><i class="fas fa-eye"></i></button>
                             </div>
                         </div>
-                    </section>
+
+                        <div class="pf-form-group">
+                            <label for="newPassword">סיסמה חדשה</label>
+                            <div class="pw-wrapper">
+                                <input type="password" id="newPassword" class="pf-input" placeholder="לפחות 6 תווים" minlength="6" required>
+                                <button type="button" class="pw-toggle" onclick="togglePwd('newPassword',this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="pf-form-group">
+                            <label for="confirmPassword">אימות סיסמה חדשה</label>
+                            <div class="pw-wrapper">
+                                <input type="password" id="confirmPassword" class="pf-input" placeholder="הזן שוב" minlength="6" required>
+                                <button type="button" class="pw-toggle" onclick="togglePwd('confirmPassword',this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-pf" id="btnUpdatePassword" onclick="updatePasswordDirectly()">
+                            <i class="fas fa-save"></i> עדכן סיסמה חדשה
+                        </button>
+
+                        <div id="pwSpinner" style="display:none;text-align:center;margin-top:1rem;">
+                            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                            <span style="margin-right:8px;color:#86868b;font-size:0.85rem;">מעדכן...</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Success -->
+                    <div id="pwStep3" style="display:none;text-align:center;padding:2rem 0;">
+                        <i class="fas fa-check-circle" style="font-size:3rem;color:#34c759;"></i>
+                        <h3 style="margin-top:1rem;color:#1d1d1f;">הסיסמה שונתה בהצלחה!</h3>
+                        <p style="color:#86868b;">ניתן להמשיך לגלוש באתר.</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- 4 · Reminders -->
+            <div class="profile-section-card" style="margin-top: 0;">
+                <div class="section-title">
+                    <div class="icon-box"><i class="fas fa-bell"></i></div>
+                    תזכורות
+                </div>
+
+                <!-- Built-in toggles -->
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <div class="t-icon"><i class="fas fa-clipboard-check"></i></div>
+                        <div>
+                            <div class="t-label">תזכורת טסט שנתי</div>
+                            <div class="t-desc">התראה חודש לפני תפוגת הטסט</div>
+                        </div>
+                    </div>
+                    <label class="sw"><input type="checkbox" id="remTest" checked><span class="sl"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <div class="t-icon"><i class="fas fa-file-shield"></i></div>
+                        <div>
+                            <div class="t-label">תזכורת חידוש ביטוח</div>
+                            <div class="t-desc">התראה שבוע לפני תפוגת הביטוח</div>
+                        </div>
+                    </div>
+                    <label class="sw"><input type="checkbox" id="remInsurance" checked><span class="sl"></span></label>
+                </div>
+
+                <!-- Custom Reminders -->
+                <hr style="border-color: rgba(0,0,0,0.05); margin: 1.5rem 0;">
+                <div class="section-title" style="font-size: 1.1rem; margin-bottom: 0.8rem;">
+                    <div class="icon-box" style="width:34px;height:34px;font-size:1rem;"><i class="fas fa-plus-circle"></i></div>
+                    תזכורות ידניות
+                </div>
+                <div class="add-reminder-row">
+                    <input type="text" id="reminderText" class="pf-input" placeholder="תיאור התזכורת...">
+                    <input type="date" id="reminderDate" class="pf-input">
+                    <select id="reminderRecurrence" class="pf-input" style="max-width:160px;">
+                        <option value="once">חד פעמי</option>
+                        <option value="daily">יומי</option>
+                        <option value="weekly">שבועי</option>
+                        <option value="monthly">חודשי</option>
+                        <option value="yearly">שנתי</option>
+                        <option value="custom">מותאם אישית...</option>
+                    </select>
+                    <button type="button" class="btn-add-reminder" onclick="addCustomReminder()"><i class="fas fa-plus"></i> הוסף</button>
+                </div>
+                <!-- Custom interval row (shown only when 'custom' selected) -->
+                <div id="customIntervalRow" class="add-reminder-row" style="display:none;margin-top:0.5rem;">
+                    <label style="color:#86868b;font-size:0.85rem;white-space:nowrap;align-self:center;">כל</label>
+                    <input type="number" id="customIntervalNum" class="pf-input" min="1" value="2" style="max-width:80px;">
+                    <select id="customIntervalUnit" class="pf-input" style="max-width:120px;">
+                        <option value="days">ימים</option>
+                        <option value="weeks">שבועות</option>
+                        <option value="months">חודשים</option>
+                    </select>
+                </div>
+                <div class="reminder-list" id="reminderList">
+                    <!-- custom reminders injected here -->
+                </div>
+            </div>
+
+            <footer class="global-footer"></footer>
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/profile.js"></script>
+    <script src="js/global_footer.js"></script>
     <script src="js/global-autosave.js"></script>
 </body>
+
 </html>

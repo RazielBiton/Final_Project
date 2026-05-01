@@ -40,9 +40,12 @@ function calculateFinancialAIInsights(totalsMap, grandTotal) {
     } else if (maxKey === 'insurance') {
         title = "פרמיות ביטוח גבוהות";
         text = `ביטוחים תופסים השנה חלק משמעותי (${percentage}%). לקראת מועד סיום הפוליסה, כדאי לשבת עם סוכן לעשות סקר שוק תחרותי.`;
+    } else if (maxKey === 'reports') {
+        title = "תשלום דוחות וקנסות";
+        text = `חלק ניכר מהתקציב הולך על דוחות תנועה וחניה (${percentage}%). מומלץ לשים לב לתמרור ולחניה חוקית כדי לחסוך אלפי שקלים בשנה.`;
     } else {
         title = "הוצאות כלליות גבוהות";
-        text = `ההוצאות החופשיות שיא (${percentage}%). שווה לשים לב מה החריגות המוזרות בדף כדי לאבד שליטה פיננסית.`;
+        text = `ההוצאות החופשיות בשיא (${percentage}%). שווה לשים לב מה החריגות המוזרות בדף כדי לא לאבד שליטה פיננסית.`;
     }
 
     titleEl.textContent = title;
@@ -61,16 +64,18 @@ function loadExpenses() {
 
     let totalInsurance = 0;
     if (currentCar.insurance) {
-        if (currentCar.insurance.compulsoryCost) totalInsurance += Number(currentCar.insurance.compulsoryCost);
-        if (currentCar.insurance.comprehensiveCost) totalInsurance += Number(currentCar.insurance.comprehensiveCost);
-        if (currentCar.insurance.thirdPartyCost) totalInsurance += Number(currentCar.insurance.thirdPartyCost);
+        ['mandatory', 'comprehensive', 'thirdparty'].forEach(k => {
+            const ins = currentCar.insurance[k];
+            if (ins && ins.cost) totalInsurance += Number(ins.cost) || 0;
+        });
     }
 
     let totalFuel = currentCar.fuelLog ? currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0) : 0;
     let totalCustom = currentCar.expenses ? currentCar.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) : 0;
-    let totalAccidents = currentCar.accidents ? currentCar.accidents.reduce((sum, a) => sum + (Number(a.repairCost) || 0), 0) : 0;
+    let totalAccidents = currentCar.accidents ? currentCar.accidents.reduce((sum, a) => sum + (Number(a.cost) || Number(a.repairCost) || 0), 0) : 0;
+    let totalReports = currentCar.reports ? currentCar.reports.filter(r => r.status === 'paid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0) : 0;
 
-    const grandTotal = totalTreatments + totalInsurance + totalFuel + totalCustom + totalAccidents;
+    const grandTotal = totalTreatments + totalInsurance + totalFuel + totalCustom + totalAccidents + totalReports;
     const avgMonthly = Math.round(grandTotal / 12);
 
     // Update KPIs with counter animation effect
@@ -90,6 +95,7 @@ function loadExpenses() {
         insurance: totalInsurance,
         fuel: totalFuel,
         accidents: totalAccidents,
+        reports: totalReports,
         custom: totalCustom
     }, grandTotal);
 
@@ -100,6 +106,7 @@ function loadExpenses() {
         '#10b981', // Emerald Green (ביטוחים)
         '#f59e0b', // Amber (דלק)
         '#ef4444', // Red Pulse (תאונות)
+        '#f43f5e', // Rose (דוחות)
         '#8b5cf6'  // Violet (שונות)
     ];
 
@@ -117,7 +124,8 @@ function loadExpenses() {
                 { name: 'ביטוחים', val: totalInsurance, color: colors[1] },
                 { name: 'דלק', val: totalFuel, color: colors[2] },
                 { name: 'תאונות', val: totalAccidents, color: colors[3] },
-                { name: 'שונות', val: totalCustom, color: colors[4] }
+                { name: 'דוחות', val: totalReports, color: colors[4] },
+                { name: 'שונות', val: totalCustom, color: colors[5] }
             ];
 
             categories.forEach(cat => {
@@ -138,9 +146,9 @@ function loadExpenses() {
         expensesChartInst = new Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: ['טיפולים', 'ביטוחים', 'דלק', 'תאונות', 'שונות/אחר'],
+                labels: ['טיפולים', 'ביטוחים', 'דלק', 'תאונות', 'דוחות', 'שונות/אחר'],
                 datasets: [{
-                    data: [totalTreatments, totalInsurance, totalFuel, totalAccidents, totalCustom],
+                    data: [totalTreatments, totalInsurance, totalFuel, totalAccidents, totalReports, totalCustom],
                     backgroundColor: colors,
                     borderWidth: 3,
                     borderColor: '#ffffff',

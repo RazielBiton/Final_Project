@@ -3,13 +3,13 @@ require('dotenv').config();
 
 const connectionString = process.env.AZURE_SQL_CONNECTION_STRING;
 
-let poolPromise;
+
 
 // Robust connection string parser to inject advanced tuning for Heavy I/O workloads (Base64)
 const parseAzureConnectionString = (str) => {
     const config = { 
         server: '', database: '', user: '', password: '', 
-        options: { encrypt: true, enableArithAbort: true }, 
+        options: { encrypt: true, enableArithAbort: true, connectTimeout: 60000 }, 
         pool: { max: 50, min: 0, idleTimeoutMillis: 30000, acquireTimeoutMillis: 120000 }, 
         requestTimeout: 120000 
     };
@@ -28,23 +28,33 @@ const parseAzureConnectionString = (str) => {
 
 if (!connectionString) {
     console.error("❌ AZURE_SQL_CONNECTION_STRING is missing in .env");
-} else {
-    // Inject enhanced configuration for resilience against large Base64 uploads
-    const enhancedConfig = parseAzureConnectionString(connectionString);
-    
-    poolPromise = new sql.ConnectionPool(enhancedConfig)
-        .connect()
-        .then(pool => {
-            console.log('✅ Connected to Azure SQL Database (Enhanced Pool)');
-            return pool;
-        })
-        .catch(err => {
-            console.error('❌ Database Connection Failed! Will retry on next request.', err.message);
-            // DO NOT re-throw — returning null keeps the server alive.
-            // Routes will receive null pool and should handle gracefully.
-            return null;
-        });
 }
+
+let pool = null;
+
+const getPool = async () => {
+    if (pool) {
+        return pool;
+    }
+    
+    try {
+        const enhancedConfig = parseAzureConnectionString(connectionString);
+        pool = await new sql.ConnectionPool(enhancedConfig).connect();
+        console.log('✅ Connected to Azure SQL Database (Enhanced Pool)');
+        return pool;
+    } catch (err) {
+        console.error('❌ Database Connection Failed!', err.message);
+        pool = null; // Reset pool so it retries next time
+        throw err;
+    }
+};
+
+// Create a proxy/getter object to maintain backward compatibility with server.js 'await poolPromise'
+const poolPromise = {
+    then: function(resolve, reject) {
+        return getPool().then(resolve).catch(reject);
+    }
+};
 
 // Global safety net – prevents Azure timeouts / transient errors from killing the process
 process.on('unhandledRejection', (reason) => {

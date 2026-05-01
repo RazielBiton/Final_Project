@@ -160,3 +160,61 @@
     </div>
 
 </div>
+
+<!-- HIDDEN PDF TEMPLATE (Injected when generating PDF) -->
+<div id="pdf-export-container">
+    <div class="pdf-document">
+        
+        <header class="pdf-header">
+            <div class="pdf-header-text">
+                <span class="pdf-cert-label">Transparency Certificate</span>
+                <h1 class="pdf-title">תעודת מערכת - דוח רכב</h1>
+                <p class="pdf-subtitle" id="pdf-subtitle">סוזוקי סוויפט - מספר רישוי: 1234567</p>
+            </div>
+            <img src="" alt="Logo" class="pdf-logo" id="pdf-logo">
+        </header>
+
+        <div class="pdf-seller-pitch" id="pdf-seller-pitch-container">
+            <p class="pdf-pitch-text" id="pdf-seller-pitch-text"></p>
+            <p class="pdf-pitch-author">-- הערות המוכר</p>
+        </div>
+
+        <div class="pdf-metrics">
+            <div class="pdf-metric-box">
+                <div class="pdf-metric-label">שנת ייצור</div>
+                <div class="pdf-metric-value" id="pdf-metric-year"></div>
+            </div>
+            <div class="pdf-metric-box">
+                <div class="pdf-metric-label">קילומטראז'</div>
+                <div class="pdf-metric-value" id="pdf-metric-km"></div>
+            </div>
+            <div class="pdf-metric-box">
+                <div class="pdf-metric-label">מועד טסט הבא</div>
+                <div class="pdf-metric-value" id="pdf-metric-test"></div>
+            </div>
+            <div class="pdf-metric-box highlight">
+                <div class="pdf-metric-label">ציון אמינות</div>
+                <div class="pdf-metric-value" id="pdf-metric-score"></div>
+            </div>
+        </div>
+
+        <h3 class="pdf-section-title">מפרט טכני</h3>
+        <div class="pdf-specs-grid">
+            <div class="pdf-spec-item"><span class="pdf-spec-label">סוג מנוע:</span><span class="pdf-spec-value" id="pdf-spec-fuel"></span></div>
+            <div class="pdf-spec-item"><span class="pdf-spec-label">צבע רכב:</span><span class="pdf-spec-value" id="pdf-spec-color"></span></div>
+            <div class="pdf-spec-item"><span class="pdf-spec-label">כוח סוס:</span><span class="pdf-spec-value" id="pdf-spec-hp"></span></div>
+            <div class="pdf-spec-item"><span class="pdf-spec-label">נפח מנוע:</span><span class="pdf-spec-value" id="pdf-spec-engine"></span></div>
+            <div class="pdf-spec-item"><span class="pdf-spec-label">צמיגים קדמיים:</span><span class="pdf-spec-value" dir="ltr" id="pdf-spec-tiref"></span></div>
+            <div class="pdf-spec-item"><span class="pdf-spec-label">צמיגים אחוריים:</span><span class="pdf-spec-value" dir="ltr" id="pdf-spec-tirer"></span></div>
+        </div>
+
+        <div id="pdf-dynamic-content">
+            <!-- Treatments, Insurance, Accidents injected here -->
+        </div>
+
+        <footer class="pdf-footer">
+            מסמך שקיפות זה הופק רשמית ממערכת EasyCare.<br>
+            <span id="pdf-footer-time"></span>
+        </footer>
+    </div>
+</div>
