@@ -413,14 +413,23 @@ window.saveToLocalStorage = async function () {
     do {
         pendingSync = false;
         try {
-            await fetch(`/api/vehicles/sync/${currentCar.id}`, {
+            const userId = localStorage.getItem('userId') || '1';
+            const resp = await fetch(`/api/vehicles/sync/${currentCar.id}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'userid': userId
+                },
                 body: JSON.stringify(currentCar)
             });
-            console.log("Successfully synced Vehicle Data to Azure DB.");
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                console.error("Azure DB Sync failed:", errData.error || resp.status);
+            } else {
+                console.log("Successfully synced Vehicle Data to Azure DB.");
+            }
         } catch (e) {
-            console.error("Azure DB Sync failed", e);
+            console.error("Azure DB Sync failed (network error):", e);
         }
     } while (pendingSync);
     

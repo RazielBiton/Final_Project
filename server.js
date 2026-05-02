@@ -872,6 +872,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
 });
 
 app.post('/api/vehicles/sync/:id', async (req, res) => {
+    let transaction;
     try {
         const vehicleId = parseInt(req.params.id);
         const car = req.body;
@@ -887,92 +888,143 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             return res.status(403).json({ error: 'Access denied or vehicle deleted' });
         }
 
-        // 1. Update Vehicle basic fields
-        await pool.request()
-            .input('Id', sql.Int, vehicleId).input('Km', sql.Int, car.km || 0)
-            .input('Status', sql.NVarChar, car.status || 'פעיל').input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
-            .input('SellSettings', sql.NVarChar, car.sellSettings ? JSON.stringify(car.sellSettings) : null)
-            .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore, SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id');
-
-        // 2. Clear old children to perform full sync from frontend array
-        await pool.request().input('Vid', sql.Int, vehicleId).query(`
-            DELETE FROM Treatments WHERE VehicleId = @Vid;
-            DELETE FROM FuelLogs WHERE VehicleId = @Vid;
-            DELETE FROM Expenses WHERE VehicleId = @Vid;
-            DELETE FROM Accidents WHERE VehicleId = @Vid;
-            DELETE FROM Alerts WHERE VehicleId = @Vid;
-            DELETE FROM Fines WHERE VehicleId = @Vid;
-            DELETE FROM Insurance WHERE VehicleId = @Vid;
-            DELETE FROM VehicleGallery WHERE VehicleId = @Vid;
-        `);
-
         // Helper to convert DD/MM/YYYY or YYYY-MM-DD to SQL valid format
         const parseDateForSql = (d) => {
-            if (!d) return new Date();
+            if (!d) return null;
             if (typeof d === 'string' && d.includes('/')) return d.split('/').reverse().join('-');
             return d;
         };
 
-        // 3. Insert fresh arrays
-        if (car.treatments && car.treatments.length) {
-            for (let t of car.treatments) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(t.date))
-                    .input('Type', sql.NVarChar, t.type || 'Treatment').input('Description', sql.NVarChar, t.type || '')
-                    .input('Garage', sql.NVarChar, t.garage || '').input('Cost', sql.Decimal(10, 2), t.cost || 0).input('Km', sql.Int, t.km || 0).input('Doc', sql.NVarChar, t.invoice || '')
+        // ─── TRANSACTIONAL SYNC ──────────────────────────────────────
+        // Using a transaction so if ANY insert fails, nothing is committed
+        // and the old data remains intact. 
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+        const req2 = () => new sql.Request(transaction);
+
+        // 1. Update Vehicle basic fields (always)
+        await req2()
+            .input('Id', sql.Int, vehicleId)
+            .input('Km', sql.Int, car.km || 0)
+            .input('Status', sql.NVarChar, car.status || 'פעיל')
+            .input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
+            .input('SellSettings', sql.NVarChar, car.sellSettings ? JSON.stringify(car.sellSettings) : null)
+            .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore, SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id');
+
+        // 2. SAFE SYNC: Only replace a collection if the frontend sent it (not undefined)
+        //    This prevents wiping DB data when a partial car object arrives.
+
+        if (Array.isArray(car.treatments)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Treatments WHERE VehicleId = @Vid');
+            for (const t of car.treatments) {
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(t.date) || new Date())
+                    .input('Type', sql.NVarChar, t.type || 'Treatment')
+                    .input('Description', sql.NVarChar, t.type || '')
+                    .input('Garage', sql.NVarChar, t.garage || '')
+                    .input('Cost', sql.Decimal(10, 2), parseFloat(t.cost) || 0)
+                    .input('Km', sql.Int, parseInt(t.km) || 0)
+                    .input('Doc', sql.NVarChar, t.invoice || null)
                     .query('INSERT INTO Treatments (VehicleId, Date, Type, Description, GarageName, Cost, Odometer, DocumentBase64) VALUES (@Vid, @Date, @Type, @Description, @Garage, @Cost, @Km, @Doc)');
             }
         }
-        if (car.fuelLog && car.fuelLog.length) {
-            for (let f of car.fuelLog) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(f.date))
-                    .input('Liters', sql.Decimal(8, 2), f.amount || 0).input('Cost', sql.Decimal(10, 2), f.cost || 0).input('Price', sql.Decimal(8, 2), 0)
-                    .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost) VALUES (@Vid, @Date, @Liters, @Price, @Cost)');
+
+        if (Array.isArray(car.fuelLog)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM FuelLogs WHERE VehicleId = @Vid');
+            for (const f of car.fuelLog) {
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(f.date) || new Date())
+                    .input('Liters', sql.Decimal(8, 2), parseFloat(f.amount) || 0)
+                    .input('Cost', sql.Decimal(10, 2), parseFloat(f.cost) || 0)
+                    .input('Price', sql.Decimal(8, 2), parseFloat(f.pricePerLiter) || 0)
+                    .input('Odometer', sql.Int, parseInt(f.odometer) || null)
+                    .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost, Odometer) VALUES (@Vid, @Date, @Liters, @Price, @Cost, @Odometer)');
             }
         }
-        if (car.expenses && car.expenses.length) {
-            for (let e of car.expenses) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(e.date))
-                    .input('Cat', sql.NVarChar, e.type || e.typeOther || '').input('Amt', sql.Decimal(10, 2), e.amount || 0).input('Desc', sql.NVarChar, e.notes || '')
+
+        if (Array.isArray(car.expenses)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Expenses WHERE VehicleId = @Vid');
+            for (const e of car.expenses) {
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(e.date) || new Date())
+                    .input('Cat', sql.NVarChar, e.type || e.typeOther || e.category || '')
+                    .input('Amt', sql.Decimal(10, 2), parseFloat(e.amount) || 0)
+                    .input('Desc', sql.NVarChar, e.notes || e.description || '')
                     .query('INSERT INTO Expenses (VehicleId, Date, Category, Amount, Description) VALUES (@Vid, @Date, @Cat, @Amt, @Desc)');
             }
         }
-        if (car.accidents && car.accidents.length) {
-            for (let a of car.accidents) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(a.date))
-                    .input('Desc', sql.NVarChar, a.description || '').input('Cost', sql.Decimal(10, 2), a.repairCost || 0)
-                    .query('INSERT INTO Accidents (VehicleId, Date, Description, EstimatedCost) VALUES (@Vid, @Date, @Desc, @Cost)');
+
+        if (Array.isArray(car.accidents)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Accidents WHERE VehicleId = @Vid');
+            for (const a of car.accidents) {
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(a.date) || new Date())
+                    .input('Desc', sql.NVarChar, a.description || '')
+                    .input('DmgDetails', sql.NVarChar, a.damageDetails || '')
+                    .input('Cost', sql.Decimal(10, 2), parseFloat(a.repairCost || a.estimatedCost || a.cost) || 0)
+                    .input('ThirdParty', sql.Bit, a.thirdPartyInvolved ? 1 : 0)
+                    .input('Handled', sql.Bit, a.isHandled ? 1 : 0)
+                    .input('Doc', sql.NVarChar, (a.images && a.images.length ? a.images[0] : null))
+                    .query('INSERT INTO Accidents (VehicleId, Date, Description, DamageDetails, EstimatedCost, ThirdPartyInvolved, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Desc, @DmgDetails, @Cost, @ThirdParty, @Handled, @Doc)');
             }
         }
-        if (car.reports && car.reports.length) {
-            for (let r of car.reports) {
+
+        if (Array.isArray(car.reports)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Fines WHERE VehicleId = @Vid');
+            for (const r of car.reports) {
                 const reportType = r.typeVal || r.offenseType || '';
                 const isPaid = (r.status === 'paid' || r.isHandled === true);
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(r.date))
-                    .input('Type', sql.NVarChar, reportType).input('Amt', sql.Decimal(10, 2), r.amount || 0)
-                    .input('Loc', sql.NVarChar, r.location || '').input('Pts', sql.Int, r.points || 0).input('Han', sql.Bit, isPaid ? 1 : 0)
-                    .input('Doc', sql.NVarChar, (r.images && r.images.length ? r.images[0] : ''))
-                    .query('INSERT INTO Fines (VehicleId, Date, OffenseType, Amount, Location, Points, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Type, @Amt, @Loc, @Pts, @Han, @Doc)');
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(r.date) || new Date())
+                    .input('Due', sql.Date, parseDateForSql(r.dueDate) || null)
+                    .input('Type', sql.NVarChar, reportType)
+                    .input('Amt', sql.Decimal(10, 2), parseFloat(r.amount) || 0)
+                    .input('Loc', sql.NVarChar, r.location || '')
+                    .input('Pts', sql.Int, parseInt(r.points) || 0)
+                    .input('Han', sql.Bit, isPaid ? 1 : 0)
+                    .input('Doc', sql.NVarChar, (r.images && r.images.length ? r.images[0] : null))
+                    .query('INSERT INTO Fines (VehicleId, Date, LastPaymentDate, OffenseType, Amount, Location, Points, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Due, @Type, @Amt, @Loc, @Pts, @Han, @Doc)');
             }
         }
-        if (car.alerts && car.alerts.length) {
-            for (let a of car.alerts) {
-                await pool.request().input('Vid', sql.Int, vehicleId).input('Date', sql.Date, parseDateForSql(a.date))
-                    .input('Title', sql.NVarChar, a.title || '').input('Urg', sql.NVarChar, a.urgency || '').input('Freq', sql.NVarChar, a.frequency || '')
-                    .query('INSERT INTO Alerts (VehicleId, Date, Title, Urgency, Frequency) VALUES (@Vid, @Date, @Title, @Urg, @Freq)');
+
+        // Alerts: Frontend stores them as 'customAlerts'
+        const alertsArray = car.customAlerts || car.alerts;
+        if (Array.isArray(alertsArray)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Alerts WHERE VehicleId = @Vid');
+            for (const a of alertsArray) {
+                await req2()
+                    .input('Vid', sql.Int, vehicleId)
+                    .input('Date', sql.Date, parseDateForSql(a.date) || new Date())
+                    .input('Title', sql.NVarChar, a.title || '')
+                    .input('Desc', sql.NVarChar, a.description || '')
+                    .input('Urg', sql.NVarChar, a.urgency || a.priority || 'normal')
+                    .input('Freq', sql.NVarChar, a.frequency || 'once')
+                    .input('IsActive', sql.Bit, a.done ? 0 : 1)
+                    .query('INSERT INTO Alerts (VehicleId, Date, Title, Description, Urgency, Frequency, IsActive) VALUES (@Vid, @Date, @Title, @Desc, @Urg, @Freq, @IsActive)');
             }
         }
-        if (car.insurance) {
+
+        // Insurance: object with keys mandatory/comprehensive/thirdparty
+        if (car.insurance && typeof car.insurance === 'object') {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Insurance WHERE VehicleId = @Vid');
             const insMap = { 'mandatory': 'חובה', 'comprehensive': 'מקיף', 'thirdparty': 'צד ג' };
-            for (let [key, typeHebrew] of Object.entries(insMap)) {
-                let ins = car.insurance[key];
+            for (const [key, typeHebrew] of Object.entries(insMap)) {
+                const ins = car.insurance[key];
                 if (ins && (ins.date || ins.expiryDate)) {
                     const expiry = ins.date || ins.expiryDate;
-                    await pool.request().input('Vid', sql.Int, vehicleId).input('Type', sql.NVarChar, typeHebrew)
+                    await req2()
+                        .input('Vid', sql.Int, vehicleId)
+                        .input('Type', sql.NVarChar, typeHebrew)
                         .input('Comp', sql.NVarChar, ins.company || ins.companyName || '')
                         .input('Pol', sql.NVarChar, ins.policyNum || ins.policyNumber || '')
-                        .input('Exp', sql.Date, expiry ?
-                            (String(expiry).includes('/') ? String(expiry).split('/').reverse().join('-') : expiry) : null)
-                        .input('Cost', sql.Decimal(10, 2), ins.cost || 0).input('Doc', sql.NVarChar, ins.file || ins.documentBase64 || '')
+                        .input('Exp', sql.Date, expiry ? (String(expiry).includes('/') ? String(expiry).split('/').reverse().join('-') : expiry) : null)
+                        .input('Cost', sql.Decimal(10, 2), parseFloat(ins.cost) || 0)
+                        .input('Doc', sql.NVarChar, ins.file || ins.documentBase64 || null)
                         .input('Towing', sql.NVarChar, ins.towing || ins.towingService || '')
                         .input('Replacement', sql.NVarChar, ins.replacement || ins.replacementCar || '')
                         .input('Glass', sql.NVarChar, ins.glass || ins.glassCoverage || '')
@@ -981,24 +1033,39 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                         .input('DriverLimit', sql.NVarChar, ins.driverLimit || '')
                         .input('Deductible', sql.NVarChar, ins.deductible || '')
                         .input('Protection', sql.NVarChar, ins.protection || ins.protectionMeasures || '')
-                        .query(`INSERT INTO Insurance (VehicleId, Type, CompanyName, PolicyNumber, ExpiryDate, Cost, DocumentBase64,
-                                                      TowingService, ReplacementCar, GlassCoverage, AgentName, AgentPhone, DriverLimit, Deductible, ProtectionMeasures) 
-                                VALUES (@Vid, @Type, @Comp, @Pol, @Exp, @Cost, @Doc, @Towing, @Replacement, @Glass, @AgentName, @AgentPhone, @DriverLimit, @Deductible, @Protection)`);
+                        .query(`INSERT INTO Insurance 
+                            (VehicleId, Type, CompanyName, PolicyNumber, ExpiryDate, Cost, DocumentBase64, TowingService, ReplacementCar, GlassCoverage, AgentName, AgentPhone, DriverLimit, Deductible, ProtectionMeasures) 
+                            VALUES (@Vid, @Type, @Comp, @Pol, @Exp, @Cost, @Doc, @Towing, @Replacement, @Glass, @AgentName, @AgentPhone, @DriverLimit, @Deductible, @Protection)`);
                 }
             }
         }
-        if (car.gallery && car.gallery.length) {
-            for (let g of car.gallery) {
+
+        if (Array.isArray(car.gallery)) {
+            await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM VehicleGallery WHERE VehicleId = @Vid');
+            for (const g of car.gallery) {
                 if (g) {
-                    await pool.request().input('Vid', sql.Int, vehicleId).input('Img', sql.NVarChar, g)
+                    await req2()
+                        .input('Vid', sql.Int, vehicleId)
+                        .input('Img', sql.NVarChar, g)
                         .query('INSERT INTO VehicleGallery (VehicleId, ImageBase64) VALUES (@Vid, @Img)');
                 }
             }
         }
 
+        // ─── COMMIT TRANSACTION ─────────────────────────────────────
+        await transaction.commit();
         res.json({ success: true });
-    } catch (err) { console.error(err); res.status(500).json({ error: 'Database error' }); }
+
+    } catch (err) {
+        // ─── ROLLBACK ON ANY ERROR ──────────────────────────────────
+        if (transaction) {
+            try { await transaction.rollback(); } catch(rbErr) { console.error('Rollback failed:', rbErr); }
+        }
+        console.error('Sync failed, rolled back:', err);
+        res.status(500).json({ error: 'Sync failed: ' + err.message });
+    }
 });
+
 
 app.post('/api/chat', async (req, res) => {
     try {
