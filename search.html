@@ -4,48 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyCare - חיפוש רכב</title>
+    <link rel="stylesheet" href="css/after_login.css?v=3" />
+    <link rel="stylesheet" href="css/after_login_styles.css?v=4" />
+    <link rel="stylesheet" href="css/global_footer.css?v=3" />
+    <link rel="stylesheet" href="css/profile.css?v=3" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/search_styles.css">
+    <link rel="stylesheet" href="css/search_styles.css?v=2">
+    <title>EasyCare - חיפוש רכב</title>
 </head>
 
-<body>
+<body class="homepage is-loading">
+    <!-- Animated Mesh Background -->
     <div class="mesh-bg"></div>
 
     <div class="layout-container">
-        <!-- ═══ SIDEBAR ═══ -->
+        <!-- Sidebar Navigation (Main Fleet Level) -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
             </div>
             <nav class="sidebar-nav">
                 <a href="after_login.html" class="sidebar-item">
-                    <i class="fas fa-th-large"></i><span>לוח בקרה ראשי</span>
-                </a>
-                <a href="search.html" class="sidebar-item active">
-                    <i class="fas fa-search"></i><span>חיפוש רכב</span>
+                    <i class="fas fa-th-large"></i> 
+                    <span>לוח בקרה ראשי</span>
                 </a>
                 <a href="profile.html" class="sidebar-item">
-                    <i class="fas fa-user-circle"></i><span>פרופיל אישי</span>
+                    <i class="fas fa-user-circle"></i> 
+                    <span>פרופיל אישי</span>
                 </a>
                 <div style="margin-top: auto; padding-top: 20px;">
                     <a href="#" class="sidebar-item text-danger" onclick="handleLogout(event)">
-                        <i class="fas fa-power-off"></i><span>התנתקות</span>
+                        <i class="fas fa-power-off"></i> 
+                        <span>התנתקות</span>
                     </a>
                 </div>
             </nav>
-            <div class="sidebar-profile">
-                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
-                    width="45" height="45" style="border-radius:50%; object-fit:cover; flex-shrink:0;">
-                <div style="margin-right: 12px;">
-                    <div id="sidebarUserName" style="font-size:0.9rem; font-weight:700; color:#1d1d1f;">טוען...</div>
-                    <div style="font-size:0.75rem; color:#86868b;">משתמש רשום</div>
+            
+            <!-- User Profile Section at Bottom -->
+            <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
+                <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                <div class="text-end me-3">
+                    <h6 id="sidebarUserName" class="m-0 fw-bold" style="font-size: 0.9rem; color: #1d1d1f;">טוען...</h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">משתמש רשום</small>
                 </div>
             </div>
         </aside>
 
-        <!-- ═══ MAIN CONTENT ═══ -->
         <main class="main-content">
+            
+            <!-- Mobile Top Nav (Visible only on mobile) -->
+            <div class="mobile-top-nav d-md-none">
+                <a href="after_login.html" class="btn-back-mobile">
+                    <i class="fas fa-arrow-right"></i> חזרה לצי הרכבים
+                </a>
+            </div>
 
             <!-- Search Hero -->
             <div class="search-hero">
@@ -117,11 +130,23 @@
                     <p>כפתור אחד — הרכב מתווסף ישירות לדשבורד הניהול שלך</p>
                 </div>
             </div>
-
+            
+            <footer class="global-footer"></footer>
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth_utils.js"></script>
+    <script src="js/global_footer.js"></script>
+    <script src="js/global-autosave.js"></script>
+
     <script>
+    // ── Remove is-loading class ──────────────────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.remove('is-loading');
+    });
+
     // ── Sidebar User Load ────────────────────────────────────
     (function() {
         const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
@@ -196,7 +221,5 @@
     // ── Init ─────────────────────────────────────────────────
     renderRecent();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/auth_utils.js"></script>
 </body>
 </html>
