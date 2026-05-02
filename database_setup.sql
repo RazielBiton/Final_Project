@@ -6,10 +6,12 @@
 CREATE TABLE [dbo].[Users] (
     [Id] INT IDENTITY(1,1) NOT NULL,
     [Email] NVARCHAR(255) NOT NULL,
-    [PasswordHash] NVARCHAR(255) NOT NULL,
+    [PasswordHash] NVARCHAR(255) NULL,
     [FullName] NVARCHAR(100) NULL,
     [Phone] NVARCHAR(20) NULL,
     [Preferences] NVARCHAR(MAX) NULL, -- JSON (Theme, language, notifications)
+    [AuthProvider] NVARCHAR(50) NULL DEFAULT 'local', -- 'local', 'google', 'apple'
+    [ProviderId] NVARCHAR(255) NULL, -- OAuth provider ID
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     [IsDeleted] BIT NOT NULL DEFAULT 0,

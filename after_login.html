@@ -33,8 +33,7 @@
                     <span>פרופיל אישי</span>
                 </a>
                 <div style="margin-top: auto; padding-top: 20px;">
-                    <a href="login.html" class="sidebar-item text-danger" 
-                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                    <a href="#" class="sidebar-item text-danger" onclick="handleLogout(event)">
                         <i class="fas fa-power-off"></i> 
                         <span>התנתקות</span>
                     </a>
@@ -136,6 +135,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth_utils.js"></script>
     <script src="js/after_login.js"></script>
     <script src="js/global_footer.js"></script>
     <script src="js/global-autosave.js"></script>

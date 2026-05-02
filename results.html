@@ -33,8 +33,7 @@
                     <i class="fas fa-user-circle"></i><span>פרופיל אישי</span>
                 </a>
                 <div style="margin-top: auto; padding-top: 20px;">
-                    <a href="login.html" class="sidebar-item text-danger"
-                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                    <a href="#" class="sidebar-item text-danger" onclick="handleLogout(event)">
                         <i class="fas fa-power-off"></i><span>התנתקות</span>
                     </a>
                 </div>
@@ -243,7 +242,10 @@
                 body: JSON.stringify(newCar)
             });
 
-            if (!response.ok) throw new Error(`Server ${response.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Server ${response.status}`);
+            }
             const data = await response.json();
 
             const existingCars = JSON.parse(localStorage.getItem('userCars')) || [];
@@ -254,11 +256,15 @@
             window.location.href = 'after_login.html';
         } catch (err) {
             console.error(err);
-            alert("שגיאה בעיבוד הנתונים. נסה שוב.");
+            alert(err.message || "שגיאה בעיבוד הנתונים. נסה שוב.");
             btn.innerHTML = '<i class="fas fa-plus-circle"></i> הוסף לרשימת הרכבים שלי';
             btn.disabled = false;
         }
     };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth_utils.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/global-autosave.js"></script>
 </body>
 </html>

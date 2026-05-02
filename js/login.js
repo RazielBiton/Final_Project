@@ -11,12 +11,112 @@ signInButton.addEventListener('click', () => {
     container.classList.remove("right-panel-active");
 });
 
-(function () {
+(async function () {
     "use strict";
 
     // 1. ברגע שהדף נטען - Fade In
     window.addEventListener('load', () => {
         document.body.classList.remove('is-loading');
+    });
+
+    // Redirect if already logged in (and not in the middle of an OAuth callback)
+    const hasAuthHash = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'));
+    if (localStorage.getItem('loggedInUser') && !hasAuthHash) {
+        window.location.href = 'after_login.html';
+        return;
+    }
+
+    // Initialize Supabase
+    let supabase;
+    try {
+        const configRes = await fetch('/api/config/supabase');
+        if (configRes.ok) {
+            const config = await configRes.json();
+            if (window.supabase) {
+                supabase = window.supabase.createClient(config.url, config.key);
+                
+                // ONLY check for social login callback if we have the hash from Supabase
+                if (hasAuthHash) {
+                    checkSocialLoginCallback(supabase);
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Failed to init Supabase:', err);
+    }
+
+    async function checkSocialLoginCallback(supabaseClient) {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (session && session.user) {
+            // User successfully logged in via OAuth
+            // Send to our backend to register/login in Azure SQL
+            try {
+                document.body.classList.add('is-loading');
+                const user = session.user;
+                const provider = user.app_metadata.provider || 'unknown';
+                
+                const res = await fetch('/api/auth/social-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: user.email,
+                        fullName: user.user_metadata.full_name || '',
+                        provider: provider,
+                        providerId: user.id
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('userName', data.fullName);
+                    localStorage.setItem('userEmail', user.email);
+
+                    localStorage.setItem('loggedInUser', JSON.stringify({
+                        id: data.userId,
+                        fullName: data.fullName,
+                        email: user.email
+                    }));
+
+                    window.location.href = 'after_login.html';
+                } else {
+                    alert('שגיאה בהתחברות דרך ' + provider);
+                    document.body.classList.remove('is-loading');
+                }
+            } catch (err) {
+                console.error('Social auth backend error:', err);
+                document.body.classList.remove('is-loading');
+            }
+        }
+    }
+
+    async function handleOAuthLogin(provider) {
+        if (!supabase) {
+            alert('שגיאת תקשורת עם שרת האימות. נסה שוב מאוחר יותר.');
+            return;
+        }
+        
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: provider,
+                options: {
+                    redirectTo: window.location.origin + '/login.html'
+                }
+            });
+            if (error) throw error;
+        } catch (error) {
+            console.error('OAuth error:', error);
+            alert('שגיאה במהלך התחברות עם ' + provider);
+        }
+    }
+
+    // Attach events to social buttons
+    document.querySelectorAll('.google-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleOAuthLogin('google');
+        });
     });
 
     // === REGISTRATION FLOW ===

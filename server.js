@@ -64,17 +64,18 @@ app.post('/api/register', async (req, res) => {
         }
 
         const pool = await poolPromise;
+        const normalizedEmail = email.trim().toLowerCase();
 
         // Basic check if exists
-        const check = await pool.request().input('Email', sql.NVarChar, email).query('SELECT Id FROM Users WHERE Email = @Email');
+        const check = await pool.request().input('Email', sql.NVarChar, normalizedEmail).query('SELECT Id FROM Users WHERE LOWER(TRIM(Email)) = @Email');
         if (check.recordset.length > 0) {
             return res.status(400).json({ error: 'User already exists' });
         }
 
-        const fullName = `${firstName} ${lastName}`;
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
         // In production, encrypt password. For MVP, keeping plain or simple.
         await pool.request()
-            .input('Email', sql.NVarChar, email)
+            .input('Email', sql.NVarChar, normalizedEmail)
             .input('PasswordHash', sql.NVarChar, password)
             .input('FullName', sql.NVarChar, fullName)
             .query('INSERT INTO Users (Email, PasswordHash, FullName) VALUES (@Email, @PasswordHash, @FullName)');
@@ -95,10 +96,11 @@ app.post('/api/login', async (req, res) => {
         }
 
         const pool = await poolPromise;
+        const normalizedEmail = email.trim().toLowerCase();
         const result = await pool.request()
-            .input('Email', sql.NVarChar, email)
+            .input('Email', sql.NVarChar, normalizedEmail)
             .input('PasswordHash', sql.NVarChar, password)
-            .query('SELECT Id, FullName FROM Users WHERE Email = @Email AND PasswordHash = @PasswordHash');
+            .query('SELECT Id, FullName FROM Users WHERE LOWER(TRIM(Email)) = @Email AND PasswordHash = @PasswordHash');
 
         if (result.recordset.length === 0) {
             return res.status(401).json({ error: 'Invalid email or password' });
@@ -112,6 +114,73 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Social Login (Google / Apple)
+app.post('/api/auth/social-login', async (req, res) => {
+    try {
+        const { email, fullName, provider, providerId } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required for social login' });
+        }
+
+        const pool = await poolPromise;
+        const normalizedEmail = email.trim().toLowerCase();
+
+        // Check if user exists (robust check against casing and spaces)
+        // We fetch all potential matches to handle existing duplicates from previous versions
+        const result = await pool.request()
+            .input('Email', sql.NVarChar, normalizedEmail)
+            .query(`
+                SELECT u.Id, u.FullName, u.AuthProvider, 
+                (SELECT COUNT(*) FROM Vehicles v WHERE v.UserId = u.Id AND v.IsDeleted = 0) as VehicleCount
+                FROM Users u 
+                WHERE LOWER(TRIM(u.Email)) = @Email
+                ORDER BY VehicleCount DESC, u.CreatedAt ASC
+            `);
+
+        if (result.recordset.length > 0) {
+            // Pick the best match (the one with cars, or the oldest one)
+            const user = result.recordset[0];
+            
+            // Link provider if not linked yet, or if it was a local account
+            // We use the ID specifically to ensure we link the right one of the duplicates
+            await pool.request()
+                .input('Id', sql.Int, user.Id)
+                .input('AuthProvider', sql.NVarChar, provider)
+                .input('ProviderId', sql.NVarChar, providerId)
+                .query('UPDATE Users SET AuthProvider = @AuthProvider, ProviderId = @ProviderId WHERE Id = @Id');
+
+            return res.json({ success: true, userId: user.Id, fullName: user.FullName });
+        } else {
+            // User does not exist, create new user
+            const newFullName = fullName || normalizedEmail.split('@')[0];
+            const insertResult = await pool.request()
+                .input('Email', sql.NVarChar, normalizedEmail)
+                .input('FullName', sql.NVarChar, newFullName)
+                .input('AuthProvider', sql.NVarChar, provider)
+                .input('ProviderId', sql.NVarChar, providerId)
+                .query(`
+                    INSERT INTO Users (Email, FullName, AuthProvider, ProviderId) 
+                    OUTPUT INSERTED.Id 
+                    VALUES (@Email, @FullName, @AuthProvider, @ProviderId)
+                `);
+
+            const newUserId = insertResult.recordset[0].Id;
+            return res.json({ success: true, userId: newUserId, fullName: newFullName });
+        }
+    } catch (err) {
+        console.error('Social login error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Expose public Supabase config to frontend
+app.get('/api/config/supabase', (req, res) => {
+    res.json({
+        url: supabaseUrl,
+        key: supabaseKey
+    });
+});
+
 // Forgot Password - Send OTP
 app.post('/api/auth/send-otp', async (req, res) => {
     try {
@@ -119,9 +188,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
         if (!email) return res.status(400).json({ error: 'Email is required' });
 
         const pool = await poolPromise;
+        const normalizedEmail = email.trim().toLowerCase();
         const check = await pool.request()
-            .input('Email', sql.NVarChar, email)
-            .query('SELECT Id FROM Users WHERE Email = @Email');
+            .input('Email', sql.NVarChar, normalizedEmail)
+            .query('SELECT Id FROM Users WHERE LOWER(TRIM(Email)) = @Email');
 
         if (check.recordset.length === 0) {
             return res.status(404).json({ error: 'משתמש עם אימייל זה לא נמצא במערכת.' });
@@ -152,9 +222,10 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         const { email, token, newPassword } = req.body;
         if (!email || !token || !newPassword) return res.status(400).json({ error: 'Missing parameters' });
 
+        const normalizedEmail = email.trim().toLowerCase();
         // Verify OTP via Supabase
         const { data, error } = await supabase.auth.verifyOtp({
-            email,
+            email: normalizedEmail,
             token,
             type: 'email'
         });
@@ -167,9 +238,9 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         // OTP Valid! Update password in Azure SQL database
         const pool = await poolPromise;
         await pool.request()
-            .input('Email', sql.NVarChar, email)
+            .input('Email', sql.NVarChar, normalizedEmail)
             .input('PasswordHash', sql.NVarChar, newPassword)
-            .query('UPDATE Users SET PasswordHash = @PasswordHash WHERE Email = @Email');
+            .query('UPDATE Users SET PasswordHash = @PasswordHash WHERE LOWER(TRIM(Email)) = @Email');
 
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
@@ -355,6 +426,32 @@ app.post('/api/vehicles', async (req, res) => {
         res.json({ success: true, vehicleId: result.recordset[0].Id });
     } catch (err) {
         console.error('Failed to add vehicle:', err);
+        
+        // Handle Duplicate License Plate
+        if (err.number === 2627 || (err.originalError && err.originalError.info && err.originalError.info.number === 2627)) {
+            try {
+                const pool = await poolPromise;
+                const ownerQuery = await pool.request()
+                    .input('LicensePlate', sql.NVarChar, req.body.licensePlate)
+                    .query(`
+                        SELECT u.FullName 
+                        FROM Vehicles v
+                        JOIN Users u ON v.UserId = u.Id
+                        WHERE v.LicensePlate = @LicensePlate
+                    `);
+                
+                if (ownerQuery.recordset.length > 0) {
+                    const ownerName = ownerQuery.recordset[0].FullName;
+                    return res.status(400).json({ 
+                        error: `הרכב עם מספר הרישוי ${req.body.licensePlate} כבר רשום במערכת תחת המשתמש: ${ownerName}.` 
+                    });
+                }
+            } catch (innerErr) {
+                console.error('Error fetching owner info:', innerErr);
+            }
+            return res.status(400).json({ error: 'רכב עם מספר רישוי זה כבר קיים במערכת.' });
+        }
+
         res.status(500).json({ error: 'Database error' });
     }
 });

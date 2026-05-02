@@ -29,8 +29,7 @@
                     <i class="fas fa-user-circle"></i><span>פרופיל אישי</span>
                 </a>
                 <div style="margin-top: auto; padding-top: 20px;">
-                    <a href="login.html" class="sidebar-item text-danger"
-                        onclick="localStorage.removeItem('userCars'); localStorage.removeItem('loggedInUser');">
+                    <a href="#" class="sidebar-item text-danger" onclick="handleLogout(event)">
                         <i class="fas fa-power-off"></i><span>התנתקות</span>
                     </a>
                 </div>
@@ -197,5 +196,7 @@
     // ── Init ─────────────────────────────────────────────────
     renderRecent();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth_utils.js"></script>
 </body>
 </html>

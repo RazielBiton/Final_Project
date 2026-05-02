@@ -294,17 +294,44 @@ body.is-loading {
 
 .social-container {
     margin: 20px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
-.social-container a {
-    border: 1px solid #DDDDDD;
-    border-radius: 50%;
-    display: inline-flex;
-    justify-content: center;
+.social-btn {
+    display: flex;
     align-items: center;
-    margin: 0 5px;
-    height: 40px;
-    width: 40px;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    height: 50px;
+    border: 1px solid #dadce0;
+    border-radius: 25px;
+    background-color: #ffffff;
+    color: #3c4043;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.social-btn:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.12), 0 4px 5px rgba(0,0,0,0.24);
+    transform: translateY(-1px);
+    border-color: #d2d2d2;
+}
+
+.social-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.social-btn span {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 /* --- 4. Mobile Adjustments --- */
