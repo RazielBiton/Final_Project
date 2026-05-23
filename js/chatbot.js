@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch user details
     async function fetchUserData() {
-        const userId = localStorage.getItem('userId') || '1';
+        const userId = sessionStorage.getItem('userId') || '1';
         try {
             const res = await fetch('/api/user/me', {
                 headers: { 'userid': userId }

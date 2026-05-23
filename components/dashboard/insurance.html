@@ -177,6 +177,26 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">מסמך פוליסה (PDF בלבד)</label>
+                        
+                        <!-- Existing Document Info -->
+                        <div id="currentDocInfo" class="d-none mb-3 p-3" style="background:#f1f5f9; border-radius:12px; display:flex; align-items:center; justify-content:space-between; border:1px solid #e2e8f0;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <i class="fas fa-file-pdf text-danger" style="font-size:1.5rem;"></i>
+                                <div>
+                                    <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">קיים מסמך פוליסה</div>
+                                    <div style="font-size:0.75rem; color:#64748b;">ניתן להחליפו ע"י העלאת קובץ חדש</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewCurrentInsuranceDoc()" style="border-radius:8px; font-weight:600; padding:4px 12px; font-size:0.8rem; background:white;">
+                                    <i class="fas fa-eye me-1"></i>צפה
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeInsuranceDoc()" style="border-radius:8px; font-weight:600; padding:4px 12px; font-size:0.8rem; background:white;">
+                                    <i class="fas fa-trash-alt me-1"></i>הסר
+                                </button>
+                            </div>
+                        </div>
+
                         <input type="file" class="db-form-control" id="insDoc" accept="application/pdf">
                     </div>
 
@@ -261,8 +281,8 @@
                 <h5 class="modal-title">מסמך ביטוח</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <img id="insuranceDocPreview" src="" style="width:100%; height:auto;">
+            <div class="modal-body p-0" style="height: 80vh; overflow: hidden;">
+                <iframe id="insuranceDocPreview" src="" style="width:100%; height:100%; border:none;"></iframe>
             </div>
         </div>
     </div>

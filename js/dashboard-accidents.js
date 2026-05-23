@@ -50,7 +50,7 @@ window.loadAccidents = function () {
     let resolvedCount = 0;
     
     currentCar.accidents.forEach(a => {
-        totalCost += Number(a.cost) || 0;
+        totalCost += Number(a.cost || a.repairCost) || 0;
         if(a.status === 'resolved') resolvedCount++;
         else pendingCount++;
     });
@@ -203,7 +203,7 @@ window.loadAccidents = function () {
                         <h5 class="fw-bold m-0" style="color: #0f172a; font-size: 1.15rem;">${acc.title}</h5>
                         <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
                             <i class="far fa-calendar-alt me-1"></i> ${window.formatDate(acc.date)} &nbsp;|&nbsp; 
-                            <i class="fas fa-coins me-1"></i> ₪${parseInt(acc.cost).toLocaleString()}
+                            <i class="fas fa-coins me-1"></i> ₪${parseInt(acc.cost || acc.repairCost || 0).toLocaleString()}
                         </div>
                     </div>
                     <div>
@@ -517,11 +517,14 @@ window.saveAccident = function () {
         id: idField ? parseInt(idField) : Date.now(),
         title: title,
         cost: cost,
+        repairCost: parseFloat(cost) || 0,      // also stored as repairCost for DB sync compatibility
         date: formattedDate,
         description: desc,
         images: currentBase64AccidentImages,
         involvedVehicles: involvedVehiclesToSave,
-        status: idField ? currentCar.accidents.find(a => a.id == idField)?.status : 'unresolved' // preserve status if edit
+        thirdPartyInvolved: involvedVehiclesToSave.length > 0,
+        isHandled: idField ? (currentCar.accidents.find(a => a.id == idField)?.isHandled || false) : false,
+        status: idField ? (currentCar.accidents.find(a => a.id == idField)?.status || 'unresolved') : 'unresolved'
     };
 
     if (!currentCar.accidents) currentCar.accidents = [];
@@ -590,11 +593,13 @@ window.editAccident = function (id) {
 
         currentInvolvedVehicles = [...acc.involvedVehicles];
         toggleInvolvedVehicle();
+        renderInvolvedVehicles(); // Ensure the list is rendered
     } else if (acc.involvedVehicle) {
         document.getElementById('accRadioYes').checked = true;
 
         currentInvolvedVehicles = [acc.involvedVehicle];
         toggleInvolvedVehicle();
+        renderInvolvedVehicles(); // Ensure the list is rendered
     } else {
         document.getElementById('accRadioNo').checked = true;
         toggleInvolvedVehicle();
@@ -607,8 +612,11 @@ window.toggleAccidentStatus = function (id) {
     const acc = currentCar.accidents.find(a => a.id === id);
     if (acc) {
         acc.status = acc.status === 'resolved' ? 'unresolved' : 'resolved';
+        acc.isHandled = (acc.status === 'resolved');
         saveToLocalStorage();
         loadAccidents();
+        if (typeof loadOverview === 'function') loadOverview();
+        if (typeof loadExpenses === 'function') loadExpenses();
     }
 }
 

@@ -64,15 +64,31 @@ function loadExpenses() {
 
     let totalInsurance = 0;
     if (currentCar.insurance) {
-        ['mandatory', 'comprehensive', 'thirdparty'].forEach(k => {
-            const ins = currentCar.insurance[k];
-            if (ins && ins.cost) totalInsurance += Number(ins.cost) || 0;
-        });
+        if (Array.isArray(currentCar.insurance)) {
+            currentCar.insurance.forEach(ins => {
+                if (ins) {
+                    const costVal = ins.cost ?? ins.Cost ?? 0;
+                    totalInsurance += parseFloat(String(costVal).replace(/[^0-9.]/g, '')) || 0;
+                }
+            });
+        } else if (typeof currentCar.insurance === 'object') {
+            Object.values(currentCar.insurance).forEach(ins => {
+                if (ins) {
+                    const costVal = ins.cost ?? ins.Cost ?? 0;
+                    totalInsurance += parseFloat(String(costVal).replace(/[^0-9.]/g, '')) || 0;
+                }
+            });
+        }
     }
 
     let totalFuel = currentCar.fuelLog ? currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0) : 0;
     let totalCustom = currentCar.expenses ? currentCar.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) : 0;
-    let totalAccidents = currentCar.accidents ? currentCar.accidents.reduce((sum, a) => sum + (Number(a.cost) || Number(a.repairCost) || 0), 0) : 0;
+    
+    // Only count accidents that are handled (status is resolved or isHandled is true)
+    let totalAccidents = currentCar.accidents ? currentCar.accidents
+        .filter(a => a.isHandled || a.status === 'resolved')
+        .reduce((sum, a) => sum + (Number(a.cost) || Number(a.repairCost) || 0), 0) : 0;
+
     let totalReports = currentCar.reports ? currentCar.reports.filter(r => r.status === 'paid').reduce((sum, r) => sum + (Number(r.amount) || 0), 0) : 0;
 
     const grandTotal = totalTreatments + totalInsurance + totalFuel + totalCustom + totalAccidents + totalReports;
@@ -130,12 +146,13 @@ function loadExpenses() {
 
             categories.forEach(cat => {
                 if (cat.val > 0) {
-                    const pct = Math.round((cat.val / grandTotal) * 100);
+                    const pctVal = (cat.val / grandTotal) * 100;
+                    const pctStr = (pctVal > 0 && pctVal < 0.99) ? pctVal.toFixed(1) : Math.round(pctVal);
                     legendHTML += `
                         <div class="legend-chip">
                             <span class="legend-color-dot" style="background-color: ${cat.color}"></span>
                             <span style="flex:1;">${cat.name}</span>
-                            <span style="color:#64748b; font-size:0.75rem;">${pct}%</span>
+                            <span style="color:#64748b; font-size:0.75rem;">${pctStr}%</span>
                         </div>
                     `;
                 }
@@ -307,8 +324,9 @@ window.saveCustomExpense = function() {
 
 window.deleteCustomExpense = function(id) {
     if (confirm('האם אתה בטוח שברצונך למחוק הוצאה זו? היא תוסר סופית מהארנק שלך.')) {
-        currentCar.expenses = currentCar.expenses.filter(e => e.id !== id);
+        currentCar.expenses = currentCar.expenses.filter(e => String(e.id) !== String(id));
         saveToLocalStorage();
         loadExpenses();
+        if(typeof loadOverview === 'function') loadOverview();
     }
 }

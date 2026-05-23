@@ -160,7 +160,7 @@ async function translateAndSave() {
         };
 
         // Saving to the new Azure SQL Database via our backend Node.js server
-        const userId = localStorage.getItem('userId');
+        const userId = sessionStorage.getItem('userId');
         
         const response = await fetch('/api/vehicles', {
             method: 'POST',
@@ -178,12 +178,12 @@ async function translateAndSave() {
         const data = await response.json();
         console.log("Vehicle saved in Azure Database! ID:", data.vehicleId);
 
-        // --- OPTIONAL: Fallback/Cache in localStorage (until we fully replace all other JS files to fetch from DB) ---
+        // --- OPTIONAL: Fallback/Cache in sessionStorage (until we fully replace all other JS files to fetch from DB) ---
         // שמירה לתוך רשימת הרכבים הקיימת בזיכרון (רק כדי שלא יישבר שאר הקוד שלא עודכן עדיין)
-        const existingCars = JSON.parse(localStorage.getItem('userCars')) || [];
+        const existingCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
         newCar.id = data.vehicleId; // Update with the real ID from database
         existingCars.push(newCar);
-        localStorage.setItem('userCars', JSON.stringify(existingCars));
+        sessionStorage.setItem('userCars', JSON.stringify(existingCars));
 
         // מעבר לדף הניהול (after_login.html)
         window.location.href = 'after_login.html';

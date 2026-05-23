@@ -128,6 +128,13 @@ window.openEditInsurance = function (type) {
 
     document.getElementById('insDoc').value = '';
 
+    const docInfo = document.getElementById('currentDocInfo');
+    if (insData.file) {
+        docInfo.classList.remove('d-none');
+    } else {
+        docInfo.classList.add('d-none');
+    }
+
     // Advanced fields Optional Block 1 (Roadside)
     document.getElementById('insTowing').value = insData.towing || '';
     document.getElementById('insReplacement').value = insData.replacement || '';
@@ -256,6 +263,7 @@ window.saveInsurance = function () {
 
         window.loadInsurance();
         if (typeof window.loadOverview === 'function') window.loadOverview();
+        if (typeof window.loadExpenses === 'function') window.loadExpenses();
 
         bootstrap.Modal.getInstance(document.getElementById('editInsuranceModal')).hide();
         document.getElementById('editInsuranceForm').reset();
@@ -279,6 +287,7 @@ window.deleteInsuranceType = function (type) {
             window.saveToLocalStorage();
             window.loadInsurance();
             if (typeof window.loadOverview === 'function') window.loadOverview();
+            if (typeof window.loadExpenses === 'function') window.loadExpenses();
         }
     }
 }
@@ -379,5 +388,21 @@ window.viewInsuranceDoc = function (type) {
     if (insData && insData.file) {
         document.getElementById('insuranceDocPreview').src = insData.file;
         new bootstrap.Modal(document.getElementById('insuranceDocModal')).show();
+    }
+}
+
+window.viewCurrentInsuranceDoc = function () {
+    const type = document.getElementById('insType').value;
+    window.viewInsuranceDoc(type);
+}
+
+window.removeInsuranceDoc = function () {
+    const type = document.getElementById('insType').value;
+    if (confirm('האם להסיר את המסמך הקיים? השינוי יישמר רק לאחר שתלחץ על "שמור שינויים".')) {
+        if (currentCar.insurance[type]) {
+            delete currentCar.insurance[type].file;
+            document.getElementById('currentDocInfo').classList.add('d-none');
+            alert('המסמך הוסר. אל תשכח לשמור את השינויים.');
+        }
     }
 }

@@ -149,7 +149,7 @@
 
     // ── Sidebar User Load ────────────────────────────────────
     (function() {
-        const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
         const nameEl = document.getElementById('sidebarUserName');
         const imgEl = document.getElementById('sidebarUserImg');
         if (nameEl) nameEl.textContent = user.fullName || 'משתמש';

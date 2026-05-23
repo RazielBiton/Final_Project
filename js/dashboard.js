@@ -37,20 +37,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.openEditModal = openEditModal;
     window.saveVehicleDetails = saveVehicleDetails;
 
-    // 2. Fetch Data from Azure DB first (fallback to LocalStorage)
     try {
-        const res = await fetch(`/api/vehicles/sync/${vehicleId}`);
+        const userId = sessionStorage.getItem('userId') || '1';
+        const res = await fetch(`/api/vehicles/sync/${vehicleId}`, {
+            headers: { 'userid': userId }
+        });
         if (res.ok) {
             currentCar = await res.json();
             // initialize savedCars so saveToLocalStorage fallback still works
-            savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+            savedCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
         } else {
-            savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+            savedCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
             currentCar = savedCars.find(c => c.id == vehicleId);
         }
     } catch(e) {
         console.error("API Fetch failed, using LocalStorage fallback", e);
-        savedCars = JSON.parse(localStorage.getItem('userCars')) || [];
+        savedCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
         currentCar = savedCars.find(c => c.id == vehicleId);
     }
 
@@ -67,23 +69,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!currentCar.expenses) currentCar.expenses = [];
     if (!currentCar.accidents) currentCar.accidents = [];
 
-    // Bridge DB 'alerts' array → 'customAlerts' used by the alerts module
-    if (currentCar.alerts && currentCar.alerts.length > 0) {
-        currentCar.customAlerts = currentCar.alerts.map(a => ({
-            id: a.id ? String(a.id) : String(Date.now()),
-            title: a.title || '',
-            description: a.description || '',
-            date: a.date || new Date().toISOString().slice(0, 10),
-            priority: a.urgency === 'critical' ? 'danger' : (a.urgency === 'important' ? 'warning' : 'gray'),
-            urgency: a.urgency || 'normal',
-            frequency: a.frequency || 'once',
-            createdAt: a.createdAt || null,
-            done: a.isActive === false
-        }));
-    } else if (!currentCar.customAlerts) {
-        currentCar.customAlerts = [];
+    // Bridge DB 'alerts' → 'customAlerts' (only if server didn't already send customAlerts)
+    if (!currentCar.customAlerts || currentCar.customAlerts.length === 0) {
+        if (currentCar.alerts && currentCar.alerts.length > 0) {
+            currentCar.customAlerts = currentCar.alerts.map(a => ({
+                id: a.id ? String(a.id) : String(Date.now()),
+                title: a.title || '',
+                description: a.description || '',
+                date: a.date ? (typeof a.date === 'string' ? a.date.split('T')[0] : new Date(a.date).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+                priority: a.urgency === 'critical' ? 'danger' : (a.urgency === 'important' ? 'warning' : 'gray'),
+                urgency: a.urgency || 'normal',
+                frequency: a.frequency || 'once',
+                done: a.isActive === false || a.isActive === 0
+            }));
+        } else {
+            currentCar.customAlerts = [];
+        }
     }
-    // ---------------------------------------
+    // Ensure arrays always exist
+    if (!currentCar.reports) currentCar.reports = [];
+    if (!currentCar.gallery) currentCar.gallery = [];
+    // -----------------------------------------------
+
 
     // Expose for chatbot
     window.currentCar = currentCar;
@@ -234,16 +241,16 @@ window.goToSection = function(sectionId) {
 
 function loadUserProfile() {
     try {
-        let userStr = localStorage.getItem('loggedInUser');
-        if (!userStr && localStorage.getItem('userId')) {
+        let userStr = sessionStorage.getItem('loggedInUser');
+        if (!userStr && sessionStorage.getItem('userId')) {
             // Backward compatibility for existing sessions
             const fallbackUser = {
-                id: localStorage.getItem('userId'),
-                fullName: localStorage.getItem('userName') || 'משתמש',
-                email: localStorage.getItem('userEmail') || ''
+                id: sessionStorage.getItem('userId'),
+                fullName: sessionStorage.getItem('userName') || 'משתמש',
+                email: sessionStorage.getItem('userEmail') || ''
             };
             userStr = JSON.stringify(fallbackUser);
-            localStorage.setItem('loggedInUser', userStr);
+            sessionStorage.setItem('loggedInUser', userStr);
         }
 
         if (userStr) {
@@ -282,7 +289,7 @@ function loadUserProfile() {
                             localUser.email = u.Email;
                             localUser.phone = u.Phone;
                             localUser.avatar = u.Avatar;
-                            localStorage.setItem('loggedInUser', JSON.stringify(localUser));
+                            sessionStorage.setItem('loggedInUser', JSON.stringify(localUser));
                         }
                     }).catch(err => console.warn("Background profile sync failed", err));
             }
@@ -400,7 +407,7 @@ window.saveToLocalStorage = async function () {
     const index = savedCars.findIndex(c => parseInt(c.id) === parseInt(currentCar.id));
     if (index !== -1) {
         savedCars[index] = currentCar;
-        localStorage.setItem('userCars', JSON.stringify(savedCars));
+        sessionStorage.setItem('userCars', JSON.stringify(savedCars));
     }
     
     // Queue synchronization to prevent Race Conditions dropping rows on fast typers/multiple images
@@ -413,7 +420,7 @@ window.saveToLocalStorage = async function () {
     do {
         pendingSync = false;
         try {
-            const userId = localStorage.getItem('userId') || '1';
+            const userId = sessionStorage.getItem('userId') || '1';
             const resp = await fetch(`/api/vehicles/sync/${currentCar.id}`, {
                 method: 'POST',
                 headers: { 
@@ -438,7 +445,7 @@ window.saveToLocalStorage = async function () {
 
 let expensesChartInstance = null;
 
-function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, accidentCost = 0, reportCost = 0) {
+function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, accidentCost = 0, reportCost = 0, otherCost = 0) {
     const canvas = document.getElementById('expensesChart');
     if (!canvas) return;
 
@@ -452,7 +459,8 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
         insurance: '#10b981',  // Emerald Green
         fuel: '#f59e0b',       // Amber/Yellow
         accidents: '#f97316',  // Bright Orange
-        reports: '#3b82f6'     // Vivid Blue
+        reports: '#3b82f6',    // Vivid Blue
+        other: '#8b5cf6'       // Violet/Purple
     };
 
     if (typeof ChartDataLabels !== 'undefined') {
@@ -462,11 +470,11 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
     expensesChartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
-            labels: ['טיפולים ותחזוקה', 'ביטוח ורישוי', 'דלק', 'תאונות ונזקים', 'דוחות וקנסות'],
+            labels: ['טיפולים ותחזוקה', 'ביטוח ורישוי', 'דלק', 'תאונות ונזקים', 'דוחות וקנסות', 'הוצאות שונות'],
             datasets: [{
-                data: [treatmentCost, insuranceCost, fuelCost, accidentCost, reportCost],
-                backgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports],
-                hoverBackgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports],
+                data: [treatmentCost, insuranceCost, fuelCost, accidentCost, reportCost, otherCost],
+                backgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports, colors.other],
+                hoverBackgroundColor: [colors.treatments, colors.insurance, colors.fuel, colors.accidents, colors.reports, colors.other],
                 borderColor: '#ffffff',
                 borderWidth: 3,
                 hoverOffset: 12,
@@ -658,7 +666,7 @@ async function saveVehicleDetails() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'userid': localStorage.getItem('userId') || 1
+                    'userid': sessionStorage.getItem('userId') || 1
                 },
                 body: JSON.stringify(payload)
             });

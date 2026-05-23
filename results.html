@@ -158,7 +158,7 @@
 
     // ── Sidebar User ──────────────────────────────────────
     (function() {
-        const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
         const nameEl = document.getElementById('sidebarUserName');
         const imgEl = document.getElementById('sidebarUserImg');
         if (nameEl) nameEl.textContent = user.fullName || 'משתמש';
@@ -273,7 +273,7 @@
                 treatments: [], accidents: [], fuelLog: [], reports: []
             };
 
-            const userId = localStorage.getItem('userId');
+            const userId = sessionStorage.getItem('userId');
             const response = await fetch('/api/vehicles', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'userid': userId || '1' },
@@ -286,10 +286,10 @@
             }
             const data = await response.json();
 
-            const existingCars = JSON.parse(localStorage.getItem('userCars')) || [];
+            const existingCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
             newCar.id = data.vehicleId;
             existingCars.push(newCar);
-            localStorage.setItem('userCars', JSON.stringify(existingCars));
+            sessionStorage.setItem('userCars', JSON.stringify(existingCars));
 
             window.location.href = 'after_login.html';
         } catch (err) {

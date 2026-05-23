@@ -9,22 +9,41 @@ window.loadOverview = function () {
 
     let totalInsurance = 0;
     if (currentCar.insurance) {
-        ['mandatory', 'comprehensive', 'thirdparty'].forEach(k => {
-            const ins = currentCar.insurance[k];
-            if (ins && ins.cost) totalInsurance += parseFloat(ins.cost) || 0;
-        });
+        if (Array.isArray(currentCar.insurance)) {
+            currentCar.insurance.forEach(ins => {
+                if (ins) {
+                    const costVal = ins.cost ?? ins.Cost ?? 0;
+                    totalInsurance += parseFloat(String(costVal).replace(/[^0-9.]/g, '')) || 0;
+                }
+            });
+        } else if (typeof currentCar.insurance === 'object') {
+            Object.values(currentCar.insurance).forEach(ins => {
+                if (ins) {
+                    const costVal = ins.cost ?? ins.Cost ?? 0;
+                    totalInsurance += parseFloat(String(costVal).replace(/[^0-9.]/g, '')) || 0;
+                }
+            });
+        }
     }
 
-    const totalAccidents = (currentCar.accidents || []).reduce((acc, a) => acc + (parseFloat(a.cost) || 0), 0);
+    const totalAccidents = (currentCar.accidents || [])
+        .filter(a => a.isHandled || a.status === 'resolved')
+        .reduce((acc, a) => acc + (parseFloat(a.cost || a.repairCost) || 0), 0);
     const totalReports = (currentCar.reports || []).filter(r => r.status === 'paid').reduce((acc, r) => acc + (parseFloat(r.amount) || 0), 0);
     const totalFuel = (currentCar.fuelLog || []).reduce((acc, f) => acc + (parseFloat(f.cost) || 0), 0);
-    const totalExpense = totalTreatments + totalInsurance + totalFuel + totalAccidents + totalReports;
+    const totalCustom = (currentCar.expenses || []).reduce((acc, e) => acc + (parseFloat(e.amount) || 0), 0);
+    const totalExpense = totalTreatments + totalInsurance + totalFuel + totalAccidents + totalReports + totalCustom;
 
     const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = Math.round(val).toLocaleString('he-IL') + ' ₪'; };
     const setPerc = (id, val) => { 
         const e = document.getElementById(id); 
         if (e) {
-            e.textContent = totalExpense === 0 ? '0%' : Math.round((val / totalExpense) * 100) + '%';
+            if (totalExpense === 0) {
+                e.textContent = '0%';
+            } else {
+                const pctVal = (val / totalExpense) * 100;
+                e.textContent = (pctVal > 0 && pctVal < 0.99) ? pctVal.toFixed(1) + '%' : Math.round(pctVal) + '%';
+            }
         }
     };
 
@@ -94,7 +113,7 @@ window.loadOverview = function () {
 
     // ── Expense Chart ─────────────────────────────────────────────
     if (typeof initExpensesChart === 'function') {
-        initExpensesChart(totalTreatments, totalInsurance, totalFuel, totalAccidents, totalReports);
+        initExpensesChart(totalTreatments, totalInsurance, totalFuel, totalAccidents, totalReports, totalCustom);
     }
 
     // ── Health Score (Reliability) ────────────────────────────────

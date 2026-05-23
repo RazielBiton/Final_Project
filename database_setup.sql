@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Users] (
     [PasswordHash] NVARCHAR(255) NULL,
     [FullName] NVARCHAR(100) NULL,
     [Phone] NVARCHAR(20) NULL,
+    [Avatar] NVARCHAR(MAX) NULL,
     [Preferences] NVARCHAR(MAX) NULL, -- JSON (Theme, language, notifications)
     [AuthProvider] NVARCHAR(50) NULL DEFAULT 'local', -- 'local', 'google', 'apple'
     [ProviderId] NVARCHAR(255) NULL, -- OAuth provider ID
@@ -182,6 +183,14 @@ CREATE TABLE [dbo].[Insurance] (
     [Cost] DECIMAL(10,2) NULL,
     [DocumentBase64] NVARCHAR(MAX) NULL, -- Legacy
     [DocumentUrl] NVARCHAR(MAX) NULL,
+    [TowingService] NVARCHAR(255) NULL,
+    [ReplacementCar] NVARCHAR(255) NULL,
+    [GlassCoverage] NVARCHAR(255) NULL,
+    [AgentName] NVARCHAR(255) NULL,
+    [AgentPhone] NVARCHAR(50) NULL,
+    [DriverLimit] NVARCHAR(255) NULL,
+    [Deductible] NVARCHAR(255) NULL,
+    [ProtectionMeasures] NVARCHAR(255) NULL,
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_Insurance PRIMARY KEY CLUSTERED ([Id]),

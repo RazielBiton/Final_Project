@@ -15,10 +15,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = this.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('profileAvatar').src = e.target.result;
-            const sb = document.getElementById('sidebarUserImg');
-            if (sb) sb.src = e.target.result;
+        reader.onload = async e => {
+            const rawBase64 = e.target.result;
+            
+            // Compress avatar before saving
+            window.compressImage(rawBase64, 400, 0.6, async (base64) => {
+                document.getElementById('profileAvatar').src = base64;
+                const sb = document.getElementById('sidebarUserImg');
+                if (sb) sb.src = base64;
+
+                // Auto-save to DB immediately
+                try {
+                    const fullName = val('fullName');
+                    const email = val('email');
+                    const phone = val('phone');
+                    
+                    const res = await fetch('/api/user/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', userid: getUserId() },
+                        body: JSON.stringify({ fullName, email, phone, avatar: base64 })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        toast('תמונת הפרופיל עודכנה ונשמרה!');
+                        // Update local cache
+                        let u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
+                        u.avatar = base64;
+                        sessionStorage.setItem('loggedInUser', JSON.stringify(u));
+                    }
+                } catch (err) {
+                    console.error('Auto-save avatar failed:', err);
+                }
+            });
         };
         reader.readAsDataURL(file);
     });
@@ -37,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initHeroGreeting() {
     const el = document.getElementById('heroGreeting');
     if (!el) return;
-    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const name = (user.fullName || 'משתמש').split(' ')[0];
 
     const h = new Date().getHours();
@@ -52,7 +80,7 @@ function initHeroGreeting() {
 
 /* ── SIDEBAR SYNC ─────────────────────────────────────────────────── */
 function loadUserProfile() {
-    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const nameEl = document.getElementById('sidebarUserName');
     const imgEl = document.getElementById('sidebarUserImg');
     if (nameEl) nameEl.textContent = user.fullName || 'משתמש';
@@ -63,7 +91,7 @@ function loadUserProfile() {
 
 /* ── LOAD DATA ────────────────────────────────────────────────────── */
 async function loadProfileData() {
-    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     setField('fullName', user.fullName);
     setField('email', user.email);
     setField('phone', user.phone);
@@ -116,13 +144,18 @@ async function saveDetails(e) {
         const data = await res.json();
         if (data.success) {
             toast('הפרטים נשמרו בהצלחה!');
-            let u = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-            u.fullName = fullName; u.email = email; u.phone = phone;
-            if (avatarToSave) u.avatar = avatarToSave;
-            localStorage.setItem('loggedInUser', JSON.stringify(u));
+            // Update local cache
+            let u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
+            u.fullName = fullName;
+            u.email = email;
+            u.phone = phone;
+            u.avatar = avatarToSave; // Keep it lowercase 'avatar' for legacy frontend compatibility
+            sessionStorage.setItem('loggedInUser', JSON.stringify(u));
+            
             setDisplay('profileDisplayName', fullName);
             setField('pwEmail', email);
-            loadUserProfile();
+            loadUserProfile(); // Refresh sidebar
+            loadProfileData(); // Refresh form and avatar
         } else {
             toast('שגיאה: ' + (data.error || ''), true);
         }
@@ -324,7 +357,7 @@ function toast(msg, isErr = false) {
 
 /* ── HELPERS ───────────────────────────────────────────────────────── */
 function getUserId() {
-    const u = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     return u.id || null;
 }
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }

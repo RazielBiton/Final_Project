@@ -15,13 +15,18 @@ signInButton.addEventListener('click', () => {
     "use strict";
 
     // 1. ברגע שהדף נטען - Fade In
-    window.addEventListener('load', () => {
+    function removeLoading() {
         document.body.classList.remove('is-loading');
-    });
+    }
+    if (document.readyState === 'complete') {
+        removeLoading();
+    } else {
+        window.addEventListener('load', removeLoading);
+    }
 
     // Redirect if already logged in (and not in the middle of an OAuth callback)
     const hasAuthHash = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'));
-    if (localStorage.getItem('loggedInUser') && !hasAuthHash) {
+    if (sessionStorage.getItem('loggedInUser') && !hasAuthHash) {
         window.location.href = 'after_login.html';
         return;
     }
@@ -32,13 +37,18 @@ signInButton.addEventListener('click', () => {
         const configRes = await fetch('/api/config/supabase');
         if (configRes.ok) {
             const config = await configRes.json();
-            if (window.supabase) {
-                supabase = window.supabase.createClient(config.url, config.key);
-                
-                // ONLY check for social login callback if we have the hash from Supabase
-                if (hasAuthHash) {
-                    checkSocialLoginCallback(supabase);
+            supabase = window.supabase.createClient(config.url, config.key, {
+                auth: {
+                    storage: window.sessionStorage,
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
                 }
+            });
+            
+            // ONLY check for social login callback if we have the hash from Supabase
+            if (hasAuthHash) {
+                checkSocialLoginCallback(supabase);
             }
         }
     } catch (err) {
@@ -69,11 +79,11 @@ signInButton.addEventListener('click', () => {
                 
                 const data = await res.json();
                 if (data.success) {
-                    localStorage.setItem('userId', data.userId);
-                    localStorage.setItem('userName', data.fullName);
-                    localStorage.setItem('userEmail', user.email);
+                    sessionStorage.setItem('userId', data.userId);
+                    sessionStorage.setItem('userName', data.fullName);
+                    sessionStorage.setItem('userEmail', user.email);
 
-                    localStorage.setItem('loggedInUser', JSON.stringify({
+                    sessionStorage.setItem('loggedInUser', JSON.stringify({
                         id: data.userId,
                         fullName: data.fullName,
                         email: user.email
@@ -101,7 +111,10 @@ signInButton.addEventListener('click', () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
-                    redirectTo: window.location.origin + '/login.html'
+                    redirectTo: window.location.origin + '/login.html',
+                    queryParams: {
+                        prompt: 'select_account'
+                    }
                 }
             });
             if (error) throw error;
@@ -183,12 +196,12 @@ signInButton.addEventListener('click', () => {
 
             if (data.success) {
                 // שמירת המזהה של המשתמש לסשן
-                localStorage.setItem('userId', data.userId);
-                localStorage.setItem('userName', data.fullName);
-                localStorage.setItem('userEmail', email);
+                sessionStorage.setItem('userId', data.userId);
+                sessionStorage.setItem('userName', data.fullName);
+                sessionStorage.setItem('userEmail', email);
 
                 // Initialize Profile Object for Sidebar and Settings
-                localStorage.setItem('loggedInUser', JSON.stringify({
+                sessionStorage.setItem('loggedInUser', JSON.stringify({
                     id: data.userId,
                     fullName: data.fullName,
                     email: email

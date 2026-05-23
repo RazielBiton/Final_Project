@@ -314,15 +314,15 @@
         // ============================================================
         (function loadUserProfile() {
             try {
-                let userStr = localStorage.getItem('loggedInUser');
-                if (!userStr && localStorage.getItem('userId')) {
+                let userStr = sessionStorage.getItem('loggedInUser');
+                if (!userStr && sessionStorage.getItem('userId')) {
                     const fallbackUser = {
-                        id: localStorage.getItem('userId'),
-                        fullName: localStorage.getItem('userName') || 'משתמש',
-                        email: localStorage.getItem('userEmail') || ''
+                        id: sessionStorage.getItem('userId'),
+                        fullName: sessionStorage.getItem('userName') || 'משתמש',
+                        email: sessionStorage.getItem('userEmail') || ''
                     };
                     userStr = JSON.stringify(fallbackUser);
-                    localStorage.setItem('loggedInUser', userStr);
+                    sessionStorage.setItem('loggedInUser', userStr);
                 }
                 if (userStr) {
                     const user = JSON.parse(userStr);

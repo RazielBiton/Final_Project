@@ -312,7 +312,7 @@ app.get('/api/user/me', async (req, res) => {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('Id', sql.Int, req.userId)
-            .query('SELECT Email, FullName FROM Users WHERE Id = @Id');
+            .query('SELECT Email, FullName, Phone, Avatar FROM Users WHERE Id = @Id');
 
         if (result.recordset.length === 0) {
             return res.status(404).json({ error: 'User not found' });
@@ -321,6 +321,31 @@ app.get('/api/user/me', async (req, res) => {
     } catch (err) {
         console.error('Fetch user error:', err);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/user/update', async (req, res) => {
+    try {
+        const { fullName, email, phone, avatar } = req.body;
+        const userId = req.userId;
+
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const pool = await poolPromise;
+        await pool.request()
+            .input('Id', sql.Int, userId)
+            .input('FullName', sql.NVarChar, fullName || null)
+            .input('Email', sql.NVarChar, email || null)
+            .input('Phone', sql.NVarChar, phone || null)
+            .input('Avatar', sql.NVarChar(sql.MAX), avatar || null)
+            .query(`UPDATE Users 
+                   SET FullName = @FullName, Email = @Email, Phone = @Phone, Avatar = @Avatar, UpdatedAt = GETDATE() 
+                   WHERE Id = @Id`);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Profile update failed:', err);
+        res.status(500).json({ error: 'Update failed' });
     }
 });
 
@@ -355,7 +380,21 @@ app.get('/api/vehicles', async (req, res) => {
                 insurance: insurance.recordset.reduce((acc, ins) => {
                     const typeMap = { 'חובה': 'mandatory', 'מקיף': 'comprehensive', 'צד ג': 'thirdparty' };
                     const key = typeMap[ins.Type] || ins.Type.toLowerCase();
-                    acc[key] = { date: ins.ExpiryDate, file: ins.DocumentBase64 };
+                    acc[key] = {
+                        company: ins.CompanyName || '',
+                        policyNum: ins.PolicyNumber || '',
+                        cost: parseFloat(ins.Cost) || 0,
+                        date: ins.ExpiryDate,
+                        file: ins.DocumentBase64,
+                        towing: ins.TowingService || '',
+                        replacement: ins.ReplacementCar || '',
+                        glass: ins.GlassCoverage || '',
+                        agentName: ins.AgentName || '',
+                        agentPhone: ins.AgentPhone || '',
+                        driverLimit: ins.DriverLimit || '',
+                        deductible: ins.Deductible || '',
+                        protection: ins.ProtectionMeasures || ''
+                    };
                     return acc;
                 }, {}),
                 accidents: accidents.recordset.map(a => ({ id: a.Id, date: a.Date, cost: a.Cost })),
@@ -789,7 +828,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
         car.reports = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Fines WHERE VehicleId=@Vid')).recordset;
         car.gallery = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM VehicleGallery WHERE VehicleId=@Vid')).recordset;
 
-        // Transform DB schema back to Frontend schema for seamless integration
+        // Transform DB schema back to Frontend schema
         const frontendCar = {
             id: car.Id,
             brandHeb: car.BrandHeb,
@@ -805,67 +844,136 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             tireRear: car.TireRear,
             engineVolume: car.EngineVolume,
             horsePower: car.HorsePower,
-            km: car.Km,
+            km: car.Km || 0,
             status: car.Status,
             reliabilityScore: car.ReliabilityScore,
             hasDisabledTag: car.HasDisabledTag,
             logo: car.Logo,
-            sellSettings: car.SellSettings ? JSON.parse(car.SellSettings) : null,
+            sellSettings: (() => { try { return car.SellSettings ? JSON.parse(car.SellSettings) : null; } catch(e) { return null; } })(),
 
-            treatments: car.treatments.map(t => ({ id: t.Id, date: t.Date, type: t.Type || t.Description, garage: t.GarageName, km: t.Odometer, cost: t.Cost, invoice: t.DocumentBase64 })),
-            fuelLog: car.fuelLog.map(f => ({ id: f.Id, date: f.Date, amount: f.Liters, cost: f.TotalCost, energyType: f.Liters ? 'fuel' : 'electricity' })),
-            expenses: car.expenses.map(e => ({ id: e.Id, type: e.Category, date: e.Date, amount: e.Amount, notes: e.Description })),
-            accidents: car.accidents.map(a => ({ id: a.Id, date: a.Date, description: a.Description, repairCost: a.EstimatedCost || a.Cost })),
-            alerts: car.alerts.map(a => ({ id: a.Id, title: a.Title, date: a.Date, isActive: a.IsActive, urgency: a.Urgency, frequency: a.Frequency })),
-            insurance: car.insurance.length > 0 ? {
+            treatments: (car.treatments || []).map(t => ({
+                id: t.Id,
+                date: t.Date,
+                type: t.Type || t.Description || '',
+                garage: t.GarageName || '',
+                km: t.Odometer || 0,
+                cost: parseFloat(t.Cost) || 0,
+                invoice: t.DocumentBase64 || null
+            })),
+
+            fuelLog: (car.fuelLog || []).map(f => ({
+                id: f.Id,
+                date: f.Date,
+                amount: parseFloat(f.Liters) || null,
+                cost: parseFloat(f.TotalCost) || 0,
+                pricePerLiter: parseFloat(f.PricePerLiter) || null,
+                odometer: f.Odometer || null,
+                energyType: (f.Liters && parseFloat(f.Liters) > 0) ? 'fuel' : 'electricity'
+            })),
+
+            expenses: (car.expenses || []).map(e => ({
+                id: e.Id,
+                type: e.Category || '',
+                date: e.Date,
+                amount: parseFloat(e.Amount) || 0,
+                notes: e.Description || ''
+            })),
+
+            accidents: (car.accidents || []).map(a => ({
+                id: a.Id,
+                title: a.Title || '',
+                date: a.Date,
+                description: a.Description || '',
+                damageDetails: a.DamageDetails || '',
+                repairCost: parseFloat(a.EstimatedCost || a.RepairCost || a.Cost) || 0,
+                cost: parseFloat(a.EstimatedCost || a.RepairCost || a.Cost) || 0,
+                thirdPartyInvolved: !!a.ThirdPartyInvolved,
+                isHandled: !!a.IsHandled,
+                status: a.IsHandled ? 'resolved' : 'unresolved',
+                involvedVehicles: (() => { try { const p = JSON.parse(a.DamageDetails); return Array.isArray(p) ? p : []; } catch(e) { return []; } })(),
+                images: (() => { try { const p = JSON.parse(a.DocumentBase64); return Array.isArray(p) ? p : (a.DocumentBase64 ? [a.DocumentBase64] : []); } catch(e) { return a.DocumentBase64 ? [a.DocumentBase64] : []; } })()
+            })),
+
+            // Alerts: stored in DB but used as 'customAlerts' in frontend
+            customAlerts: (car.alerts || []).map(a => ({
+                id: String(a.Id),
+                title: a.Title || '',
+                description: a.Description || '',
+                date: a.Date ? (typeof a.Date === 'string' ? a.Date.split('T')[0] : new Date(a.Date).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+                priority: a.Urgency || 'gray',
+                urgency: a.Urgency || 'gray',
+                frequency: a.Frequency || 'once',
+                done: a.IsActive === false || a.IsActive === 0
+            })),
+            alerts: (car.alerts || []).map(a => ({
+                id: a.Id,
+                title: a.Title || '',
+                date: a.Date,
+                isActive: a.IsActive,
+                urgency: a.Urgency,
+                frequency: a.Frequency
+            })),
+
+            insurance: (car.insurance || []).length > 0 ? {
                 mandatory: (() => {
                     const i = car.insurance.find(x => x.Type === 'חובה');
                     return i ? {
-                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
-                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                        company: i.CompanyName || '', policyNum: i.PolicyNumber || '',
+                        cost: parseFloat(i.Cost) || 0, date: i.ExpiryDate, file: i.DocumentBase64 || null,
+                        towing: i.TowingService || '', replacement: i.ReplacementCar || '',
+                        glass: i.GlassCoverage || '', agentName: i.AgentName || '',
+                        agentPhone: i.AgentPhone || '', driverLimit: i.DriverLimit || '',
+                        deductible: i.Deductible || '', protection: i.ProtectionMeasures || ''
                     } : null;
                 })(),
                 comprehensive: (() => {
                     const i = car.insurance.find(x => x.Type === 'מקיף');
                     return i ? {
-                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
-                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                        company: i.CompanyName || '', policyNum: i.PolicyNumber || '',
+                        cost: parseFloat(i.Cost) || 0, date: i.ExpiryDate, file: i.DocumentBase64 || null,
+                        towing: i.TowingService || '', replacement: i.ReplacementCar || '',
+                        glass: i.GlassCoverage || '', agentName: i.AgentName || '',
+                        agentPhone: i.AgentPhone || '', driverLimit: i.DriverLimit || '',
+                        deductible: i.Deductible || '', protection: i.ProtectionMeasures || ''
                     } : null;
                 })(),
                 thirdparty: (() => {
                     const i = car.insurance.find(x => x.Type === 'צד ג');
                     return i ? {
-                        company: i.CompanyName || i.Company, policyNum: i.PolicyNumber, cost: i.Cost, date: i.ExpiryDate, file: i.DocumentBase64,
-                        towing: i.TowingService, replacement: i.ReplacementCar, glass: i.GlassCoverage, agentName: i.AgentName,
-                        agentPhone: i.AgentPhone, driverLimit: i.DriverLimit, deductible: i.Deductible, protection: i.ProtectionMeasures
+                        company: i.CompanyName || '', policyNum: i.PolicyNumber || '',
+                        cost: parseFloat(i.Cost) || 0, date: i.ExpiryDate, file: i.DocumentBase64 || null,
+                        towing: i.TowingService || '', replacement: i.ReplacementCar || '',
+                        glass: i.GlassCoverage || '', agentName: i.AgentName || '',
+                        agentPhone: i.AgentPhone || '', driverLimit: i.DriverLimit || '',
+                        deductible: i.Deductible || '', protection: i.ProtectionMeasures || ''
                     } : null;
                 })()
             } : {},
-            gallery: car.gallery.map(g => g.ImageBase64),
-            reports: car.reports.map(r => {
+
+            gallery: (car.gallery || []).map(g => g.ImageBase64).filter(Boolean),
+
+            reports: (car.reports || []).map(r => {
                 let typeVal = r.OffenseType || 'other';
                 let title = '';
                 if (typeVal === 'parking') title = 'חניה במקום אסור';
                 else if (typeVal === 'speeding') title = 'מהירות מופרזת';
                 else if (typeVal === 'phone') title = 'שימוש בטלפון נייד';
                 else title = typeVal.startsWith('other:') ? typeVal.substring(6) : typeVal;
-
                 return {
                     id: r.Id,
                     typeVal: typeVal,
                     title: title,
                     date: r.Date,
                     dueDate: r.LastPaymentDate,
-                    amount: r.Amount,
-                    points: r.Points,
-                    location: r.Location,
+                    amount: parseFloat(r.Amount) || 0,
+                    points: parseInt(r.Points) || 0,
+                    location: r.Location || '',
                     status: r.IsHandled ? 'paid' : 'unpaid',
                     images: r.DocumentBase64 ? [r.DocumentBase64] : []
                 };
             })
         };
+
 
         res.json(frontendCar);
     } catch (err) { console.error(err); res.status(500).json({ error: 'Database error' }); }
@@ -960,16 +1068,21 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         if (Array.isArray(car.accidents)) {
             await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Accidents WHERE VehicleId = @Vid');
             for (const a of car.accidents) {
+                const repairCostVal = parseFloat(a.repairCost || a.cost || a.estimatedCost) || 0;
+                // Store involvedVehicles as JSON in DamageDetails if present
+                const dmgDetails = a.damageDetails || 
+                    (a.involvedVehicles && a.involvedVehicles.length > 0 ? JSON.stringify(a.involvedVehicles) : '') || '';
                 await req2()
                     .input('Vid', sql.Int, vehicleId)
+                    .input('Title', sql.NVarChar, a.title || '')
                     .input('Date', sql.Date, parseDateForSql(a.date) || new Date())
                     .input('Desc', sql.NVarChar, a.description || '')
-                    .input('DmgDetails', sql.NVarChar, a.damageDetails || '')
-                    .input('Cost', sql.Decimal(10, 2), parseFloat(a.repairCost || a.estimatedCost || a.cost) || 0)
-                    .input('ThirdParty', sql.Bit, a.thirdPartyInvolved ? 1 : 0)
-                    .input('Handled', sql.Bit, a.isHandled ? 1 : 0)
-                    .input('Doc', sql.NVarChar, (a.images && a.images.length ? a.images[0] : null))
-                    .query('INSERT INTO Accidents (VehicleId, Date, Description, DamageDetails, EstimatedCost, ThirdPartyInvolved, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Desc, @DmgDetails, @Cost, @ThirdParty, @Handled, @Doc)');
+                    .input('DmgDetails', sql.NVarChar(sql.MAX), dmgDetails)
+                    .input('Cost', sql.Decimal(10, 2), repairCostVal)
+                    .input('ThirdParty', sql.Bit, (a.thirdPartyInvolved || (a.involvedVehicles && a.involvedVehicles.length > 0)) ? 1 : 0)
+                    .input('Handled', sql.Bit, (a.isHandled || a.status === 'resolved' || a.done === true) ? 1 : 0)
+                    .input('Doc', sql.NVarChar(sql.MAX), (a.images && a.images.length ? JSON.stringify(a.images) : null))
+                    .query('INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, ThirdPartyInvolved, IsHandled, DocumentBase64) VALUES (@Vid, @Title, @Date, @Desc, @DmgDetails, @Cost, @ThirdParty, @Handled, @Doc)');
             }
         }
 
@@ -987,7 +1100,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                     .input('Loc', sql.NVarChar, r.location || '')
                     .input('Pts', sql.Int, parseInt(r.points) || 0)
                     .input('Han', sql.Bit, isPaid ? 1 : 0)
-                    .input('Doc', sql.NVarChar, (r.images && r.images.length ? r.images[0] : null))
+                    .input('Doc', sql.NVarChar(sql.MAX), (r.images && r.images.length ? JSON.stringify(r.images) : (r.file || null)))
                     .query('INSERT INTO Fines (VehicleId, Date, LastPaymentDate, OffenseType, Amount, Location, Points, IsHandled, DocumentBase64) VALUES (@Vid, @Date, @Due, @Type, @Amt, @Loc, @Pts, @Han, @Doc)');
             }
         }
@@ -1015,7 +1128,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             const insMap = { 'mandatory': 'חובה', 'comprehensive': 'מקיף', 'thirdparty': 'צד ג' };
             for (const [key, typeHebrew] of Object.entries(insMap)) {
                 const ins = car.insurance[key];
-                if (ins && (ins.date || ins.expiryDate)) {
+                if (ins && (ins.date || ins.expiryDate || ins.cost || ins.company)) {
                     const expiry = ins.date || ins.expiryDate;
                     await req2()
                         .input('Vid', sql.Int, vehicleId)
@@ -1024,7 +1137,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                         .input('Pol', sql.NVarChar, ins.policyNum || ins.policyNumber || '')
                         .input('Exp', sql.Date, expiry ? (String(expiry).includes('/') ? String(expiry).split('/').reverse().join('-') : expiry) : null)
                         .input('Cost', sql.Decimal(10, 2), parseFloat(ins.cost) || 0)
-                        .input('Doc', sql.NVarChar, ins.file || ins.documentBase64 || null)
+                        .input('Doc', sql.NVarChar(sql.MAX), ins.file || ins.documentBase64 || null)
                         .input('Towing', sql.NVarChar, ins.towing || ins.towingService || '')
                         .input('Replacement', sql.NVarChar, ins.replacement || ins.replacementCar || '')
                         .input('Glass', sql.NVarChar, ins.glass || ins.glassCoverage || '')
@@ -1046,7 +1159,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                 if (g) {
                     await req2()
                         .input('Vid', sql.Int, vehicleId)
-                        .input('Img', sql.NVarChar, g)
+                        .input('Img', sql.NVarChar(sql.MAX), g)
                         .query('INSERT INTO VehicleGallery (VehicleId, ImageBase64) VALUES (@Vid, @Img)');
                 }
             }
@@ -1061,8 +1174,13 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         if (transaction) {
             try { await transaction.rollback(); } catch(rbErr) { console.error('Rollback failed:', rbErr); }
         }
-        console.error('Sync failed, rolled back:', err);
-        res.status(500).json({ error: 'Sync failed: ' + err.message });
+        console.error(`❌ Sync Error for Vehicle ${req.params.id}:`, err);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Database synchronization failed', 
+            details: err.message,
+            stack: err.stack
+        });
     }
 });
 
@@ -1328,14 +1446,26 @@ app.get('/api/current-fuel-ai', async (req, res) => {
     }
 });
 
-const PORT = 3000;
-app.listen(PORT, async () => {
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, async () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`📂 Working Directory: ${process.cwd()}`);
+    console.log(`📦 Node Version: ${process.version}`);
     
     // Eagerly connect to the database on startup so the connection log appears
     try {
         await poolPromise;
     } catch (err) {
-        console.error("Failed to connect to database on startup:", err);
+        console.error("Failed to connect to database on startup (server still running):", err.message);
+    }
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use. Please close the other process or use a different port.`);
+        process.exit(1);
+    } else {
+        console.error(`❌ Server startup error:`, err.message);
+        process.exit(1);
     }
 });

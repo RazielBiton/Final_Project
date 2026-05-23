@@ -28,11 +28,15 @@ const parseAzureConnectionString = (str) => {
 
 if (!connectionString) {
     console.error("❌ AZURE_SQL_CONNECTION_STRING is missing in .env");
+    // Prevent immediate crash by providing a dummy string that will fail safely later
 }
 
 let pool = null;
 
 const getPool = async () => {
+    if (!connectionString) {
+        throw new Error("Missing AZURE_SQL_CONNECTION_STRING. Check your .env file.");
+    }
     if (pool) {
         return pool;
     }

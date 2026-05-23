@@ -54,11 +54,11 @@
                     <h5 class="m-0 fw-bold primary-text"><i class="fas fa-chart-donut me-2"></i> התפלגות כספית</h5>
                 </div>
                 <div class="db-card-body px-4 pb-4">
-                    <div style="position: relative; width: 100%; height: 260px; display: flex; justify-content: center; align-items: center;">
-                        <canvas id="expensesDistributionChart" style="position: relative; z-index: 1;"></canvas>
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 0; width: 60%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                            <div style="font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 800; color: #1d1d1f; line-height: 1.2;" id="chartCenterTotal">0 ₪</div>
-                            <div style="font-size: 0.8rem; font-weight: 600; color: #86868b; margin-top: 2px;">סך הכל</div>
+                    <div class="chart-container-premium">
+                        <canvas id="expensesDistributionChart"></canvas>
+                        <div class="chart-center-wrapper">
+                            <span id="chartCenterTotal">0 ₪</span>
+                            <span class="chart-center-label">סך הכל</span>
                         </div>
                     </div>
                     <!-- Custom HTML Legend -->

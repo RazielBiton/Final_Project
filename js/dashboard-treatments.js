@@ -28,13 +28,16 @@ window.loadTreatments = function () {
             invoiceHtml = `<button class="btn btn-sm btn-link" onclick="window.viewInvoice('${t.id}')"><i class="fas fa-file-image"></i> צפה</button>`;
         }
 
+        const kmVal = parseInt(t.km) || 0;
+        const costVal = parseInt(t.cost) || 0;
+
         tr.innerHTML = `
             <td>${window.formatDate(t.date)}</td>
-            <td>${t.type}</td>
-            <td>${t.garage}</td>
-            <td>${t.km.toLocaleString()}</td>
+            <td>${t.type || '-'}</td>
+            <td>${t.garage || '-'}</td>
+            <td>${kmVal.toLocaleString()}</td>
             <td>${invoiceHtml}</td>
-            <td>${parseInt(t.cost).toLocaleString()} ₪</td>
+            <td>${costVal.toLocaleString()} ₪</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary" style="margin-left: 5px;" onclick="window.openEditTreatmentModal(${t.id})">
                     <i class="fas fa-edit"></i>
@@ -46,6 +49,7 @@ window.loadTreatments = function () {
         `;
         tbody.appendChild(tr);
     });
+
 }
 
 window.saveTreatment = function () {

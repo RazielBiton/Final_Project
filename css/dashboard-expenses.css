@@ -136,6 +136,13 @@
     font-weight: 700;
     font-size: 1.1rem;
     color: #1d1d1f;
+    margin-inline-end: 15px !important;
+}
+
+.transaction-item button.btn-link {
+    margin-inline-start: 8px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .hover-lift {
@@ -154,4 +161,39 @@
     -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255,255,255,0.7);
     box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+}
+/* Responsive Chart Center Text */
+.chart-container-premium {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    height: 250px;
+    margin: 0 auto;
+}
+
+.chart-center-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 65%;
+    pointer-events: none;
+}
+
+#chartCenterTotal {
+    font-size: clamp(1.1rem, 4vw, 1.6rem);
+    font-weight: 800;
+    color: #1d1d1f;
+    line-height: 1;
+    display: block;
+}
+
+.chart-center-label {
+    font-size: 0.7rem;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 2px;
 }

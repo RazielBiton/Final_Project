@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function fetchAndRenderFleet() {
     const row = document.getElementById('vehicleRow');
     const addWrapper = document.getElementById('addCardWrapper');
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
     
     if (!userId) {
         window.location.href = 'login.html';
@@ -110,7 +110,7 @@ async function fetchAndRenderFleet() {
             insurance: car.insurance || {}
         }));
         
-        localStorage.setItem('userCars', JSON.stringify(memCars));
+        sessionStorage.setItem('userCars', JSON.stringify(memCars));
 
         // Clear existing injected cards
         document.querySelectorAll('.premium-card-wrapper:not(#addCardWrapper)').forEach(c => c.remove());
@@ -174,7 +174,7 @@ function initHeroGreeting() {
     else if (hour >= 17 && hour < 21) text = "ערב טוב";
     else text = "לילה טוב";
 
-    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const firstName = (user.fullName || "משתמש").split(' ')[0];
 
     greetingEl.textContent = `${text}, ${firstName}!`;
@@ -230,7 +230,7 @@ function addTiltEffect(el) {
 
 async function deleteCar(id) {
     if (!confirm('האם אתה בטוח שברצונך למחוק את הרכב מהצי?')) return;
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
     try {
         const res = await fetch(`/api/vehicles/${id}`, {
             method: 'DELETE',
@@ -244,7 +244,7 @@ async function deleteCar(id) {
 
 let currentEditingCarId = null;
 function editCar(id) {
-    const cars = JSON.parse(localStorage.getItem('userCars')) || [];
+    const cars = JSON.parse(sessionStorage.getItem('userCars')) || [];
     const car = cars.find(c => c.id === id);
     if (!car) return;
 
@@ -265,7 +265,7 @@ async function saveVehicleDetails() {
     
     const brand = document.getElementById('editBrand').value.trim();
     const model = document.getElementById('editModel').value.trim();
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
 
     if (!brand || !model) {
         errorMsg.textContent = 'אנא מלא את כל שדות החובה.';
@@ -279,7 +279,7 @@ async function saveVehicleDetails() {
     loadingText.classList.remove('d-none');
 
     // Get the existing car to preserve other fields
-    const cars = JSON.parse(localStorage.getItem('userCars')) || [];
+    const cars = JSON.parse(sessionStorage.getItem('userCars')) || [];
     const car = cars.find(c => c.id === currentEditingCarId);
     
     let autoScore = 100;
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ── PROFILE SYNC ───────────────────────────────────────────────────────────── */
 function loadUserProfile() {
-    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const nameEl = document.getElementById('sidebarUserName');
     const imgEl = document.getElementById('sidebarUserImg');
 
