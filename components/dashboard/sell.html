@@ -94,7 +94,23 @@
                 <p class="text-muted small mb-3">
                     ספר לקונים קצת מעבר לנתונים היבשים. הוסף מידע על השימוש ברכב, המצב המכני, או מדוע כדאי לקנות אותו ממך. הפסקה תשולב בפתיח הדוח!
                 </p>
-                <textarea id="sellerCommentBox" class="form-control seller-comment-textarea" placeholder="למשל: 'רכב במצב תצוגה, ננהג על ידי נהג יחיד זהיר, חונה בחניה מקורה קבועה, ללא עישון מיום היוולדו...'..." onblur="window.saveSellSettings()"></textarea>
+                <textarea id="sellerCommentBox" class="form-control seller-comment-textarea mb-4" placeholder="למשל: 'רכב במצב תצוגה, ננהג על ידי נהג יחיד זהיר, חונה בחניה מקורה קבועה, ללא עישון מיום היוולדו...'..." onblur="window.saveSellSettings()"></textarea>
+
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-hand-paper text-muted fs-5 me-2"></i>
+                    <h6 class="fw-bold mb-0">יד הרכב במכירה</h6>
+                </div>
+                <p class="text-muted small mb-2">
+                    בחר איזו יד תוגדר בדוח הרשמי (למשל "1" אם הרכב יד ראשונה).
+                </p>
+                <select id="sellerHandSelector" class="form-select" onchange="window.saveSellSettings()" style="max-width: 150px; font-weight: bold;">
+                    <option value="1">1 (יד ראשונה)</option>
+                    <option value="2">2 (יד שנייה)</option>
+                    <option value="3">3 (יד שלישית)</option>
+                    <option value="4">4 (יד רביעית)</option>
+                    <option value="5">5 (יד חמישית)</option>
+                    <option value="6+">6 ומעלה</option>
+                </select>
             </div>
         </div>
 
@@ -161,88 +177,82 @@
 
 </div>
 
-<!-- THE PDF CONTAINER - SIMPLE, CENTERED, ROBUST -->
-<div id="pdf-export-container" style="position: absolute; right: 0; top: -10000px; width: 800px; background: white; padding: 0; margin: 0; direction: rtl; text-align: right;">
-    <div id="pdf-content" style="width: 800px; padding: 40px; box-sizing: border-box; background: white; font-family: 'Arial', 'Helvetica Neue', sans-serif; direction: rtl; text-align: right;">
+<!-- THE PDF CONTAINER - ENTERPRISE GRADE -->
+<div id="pdf-export-container">
+    <div id="pdf-content" class="pdf-document">
         
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; direction: rtl;">
-            <div style="text-align: right; flex: 1;">
-                <div style="background: #0f172a; color: white; display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; margin-bottom: 10px; font-family: 'Arial', sans-serif;">OFFICIAL CERTIFICATE</div>
-                <h1 style="font-size: 32px; font-weight: 900; color: #0f172a; margin: 0; font-family: 'Arial', sans-serif;">תעודת שקיפות רשמית</h1>
-                <p id="pdf-subtitle" style="font-size: 16px; color: #64748b; font-weight: 600; margin: 8px 0 0 0; font-family: 'Arial', sans-serif;">--</p>
+        <div class="pdf-header">
+            <div class="pdf-header-text">
+                <div style="background: #0f172a; color: white; display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; margin-bottom: 10px;">OFFICIAL CERTIFICATE</div>
+                <h1 class="pdf-title">דוח&nbsp;רכב&nbsp;למכירה&nbsp;-&nbsp;שקיפות&nbsp;מלאה</h1>
+                <p id="pdf-subtitle" class="pdf-subtitle">--</p>
             </div>
-            <div style="margin-right: 20px;">
-                <img id="pdf-logo" src="" alt="Brand" style="max-height: 60px; max-width: 120px; object-fit: contain; display: block;">
+            <div style="flex: 0 0 160px; display: flex; justify-content: flex-end; padding-left: 10px;">
+                <img id="pdf-logo" src="" alt="Brand" class="pdf-logo" style="display: none; max-width: 150px; max-height: 50px; object-fit: contain;">
             </div>
         </div>
 
         <!-- Seller's Pitch -->
-        <div id="pdf-seller-pitch-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: right; direction: rtl;">
-            <div style="font-weight: 800; color: #0f172a; font-size: 14px; margin-bottom: 8px; font-family: 'Arial', sans-serif;">דבר המוכר:</div>
-            <p id="pdf-seller-pitch-text" style="font-style: italic; font-size: 14px; color: #334155; line-height: 1.6; margin: 0; font-family: 'Arial', sans-serif;"></p>
+        <div id="pdf-seller-pitch-container" class="pdf-seller-pitch" style="display: none;">
+            <div class="pdf-pitch-icon">"</div>
+            <p id="pdf-seller-pitch-text" class="pdf-pitch-text"></p>
         </div>
 
-        <!-- Metrics -->
-        <div style="display: flex; gap: 15px; margin-bottom: 30px; direction: rtl;">
-            <div style="flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 5px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; font-family: 'Arial', sans-serif;">שנה</div>
-                <div id="pdf-metric-year" style="font-size: 20px; font-weight: 900; color: #0f172a; font-family: 'Arial', sans-serif;">--</div>
-            </div>
-            <div style="flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 5px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; font-family: 'Arial', sans-serif;">קילומטראז'</div>
-                <div id="pdf-metric-km" style="font-size: 20px; font-weight: 900; color: #0f172a; font-family: 'Arial', sans-serif;">--</div>
-            </div>
-            <div style="flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 5px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; font-family: 'Arial', sans-serif;">טסט בתוקף</div>
-                <div id="pdf-metric-test" style="font-size: 20px; font-weight: 900; color: #0f172a; font-family: 'Arial', sans-serif;">--</div>
-            </div>
-            <div style="flex: 1; background: #0f172a; border-radius: 12px; padding: 15px 5px; text-align: center; color: white;">
-                <div style="font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 5px; font-family: 'Arial', sans-serif;">ציון אמינות</div>
-                <div id="pdf-metric-score" style="font-size: 20px; font-weight: 950; color: #3b82f6; font-family: 'Arial', sans-serif;">--</div>
+        <!-- Specs Grid -->
+        <div class="pdf-section">
+            <h3 class="pdf-section-title">מפרט&nbsp;טכני&nbsp;ונתונים&nbsp;בסיסיים</h3>
+            <div class="pdf-specs-grid">
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">דגם</span>
+                    <span id="pdf-spec-model" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">שנה</span>
+                    <span id="pdf-metric-year" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">קילומטראז'</span>
+                    <span id="pdf-metric-km" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">מנוע</span>
+                    <span id="pdf-spec-engine" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">כ"ס</span>
+                    <span id="pdf-spec-hp" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">סוג&nbsp;דלק</span>
+                    <span id="pdf-spec-fuel" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">יד</span>
+                    <span id="pdf-spec-hand" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">צבע</span>
+                    <span id="pdf-spec-color" class="pdf-spec-value">--</span>
+                </div>
+                <div class="pdf-spec-item">
+                    <span class="pdf-spec-label">טסט&nbsp;בתוקף</span>
+                    <span id="pdf-metric-test" class="pdf-spec-value">--</span>
+                </div>
             </div>
         </div>
 
-        <!-- Specs -->
-        <div style="margin-bottom: 30px; text-align: right; direction: rtl;">
-            <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 15px; border-right: 4px solid #3b82f6; padding-right: 12px; font-family: 'Arial', sans-serif;">מפרט טכני</h3>
-            <table style="width: 100%; border-collapse: collapse; background: #f8fafc; border-radius: 12px; overflow: hidden; font-family: 'Arial', sans-serif; font-size: 13px; border: 1px solid #e2e8f0; text-align: right; direction: rtl;">
-                <tr>
-                    <td style="width: 15%; padding: 12px 15px; color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: bold;">דגם:</td>
-                    <td id="pdf-spec-model" style="width: 35%; padding: 12px 15px; font-weight: 700; border-bottom: 1px solid #e2e8f0; color: #1e293b;">--</td>
-                    <td style="width: 15%; padding: 12px 15px; color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: bold;">צבע:</td>
-                    <td id="pdf-spec-color" style="width: 35%; padding: 12px 15px; font-weight: 700; border-bottom: 1px solid #e2e8f0; color: #1e293b;">--</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 15px; color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: bold;">מנוע:</td>
-                    <td id="pdf-spec-engine" style="padding: 12px 15px; font-weight: 700; border-bottom: 1px solid #e2e8f0; color: #1e293b;">--</td>
-                    <td style="padding: 12px 15px; color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: bold;">כ"ס:</td>
-                    <td id="pdf-spec-hp" style="padding: 12px 15px; font-weight: 700; border-bottom: 1px solid #e2e8f0; color: #1e293b;">--</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 15px; color: #64748b; font-weight: bold;">סוג דלק:</td>
-                    <td id="pdf-spec-fuel" style="padding: 12px 15px; font-weight: 700; color: #1e293b;">--</td>
-                    <td style="padding: 12px 15px; color: #64748b; font-weight: bold;">יד:</td>
-                    <td id="pdf-spec-hand" style="padding: 12px 15px; font-weight: 700; color: #1e293b;">--</td>
-                </tr>
-            </table>
-        </div>
-
-        <div id="pdf-dynamic-content" style="text-align: right; direction: rtl;"></div>
+        <!-- Dynamic Content (Treatments, Accidents, Insurance, Gallery) -->
+        <div id="pdf-dynamic-content"></div>
 
         <!-- Footer -->
-        <div style="margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8; direction: rtl;">
-            <div id="pdf-footer-time" style="text-align: right; font-family: 'Arial', sans-serif;">--</div>
-            <div style="text-align: left; font-family: 'Arial', sans-serif;">© EasyCare 2026. All rights reserved.</div>
+        <div class="pdf-footer" style="text-align: center; direction: rtl;">
+            <div id="pdf-footer-time" style="margin-bottom: 5px; font-weight: 600;">--</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <span>הופק באמצעות מערכת ניהול הרכב של</span>
+                <span style="font-family: Arial, sans-serif;" dir="ltr">EasyCare.</span>
+                <span dir="ltr">&copy; 2026</span>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-    /* Styling for dynamically injected content */
-    .pdf-section-title { font-size: 18px; font-weight: 800; color: #0f172a; margin: 30px 0 15px 0; border-right: 4px solid #3b82f6; padding-right: 12px; text-align: right; font-family: 'Arial', sans-serif; direction: rtl; }
-    .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border: 1px solid #e2e8f0; font-size: 12px; text-align: right; font-family: 'Arial', sans-serif; direction: rtl; }
-    .pdf-table th { background: #f8fafc; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: bold; text-align: right; }
-    .pdf-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b; text-align: right; }
-    .pdf-page-break { page-break-before: always; padding-top: 40px; }
-</style>

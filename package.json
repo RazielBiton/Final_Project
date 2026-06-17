@@ -23,9 +23,11 @@
     "@supabase/supabase-js": "^2.99.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "ejs": "^5.0.2",
     "express": "^5.2.1",
     "mssql": "^12.2.1",
-    "nodemailer": "^8.0.3"
+    "nodemailer": "^8.0.3",
+    "puppeteer": "^25.0.4"
   },
   "devDependencies": {
     "supabase": "^2.83.0"

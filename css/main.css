@@ -1,200 +1,250 @@
+/* =========================================
+   EasyCare - Modern Light Theme with Grid & Orbs
+   ========================================= */
+
+:root {
+    --primary-blue: #2d74d7;
+    --primary-blue-hover: #1b5bb5;
+    --primary-light: #e6f0ff;
+    --bg-color: #ffffff;
+    --text-main: #111827;
+    --text-muted: #4b5563;
+}
+
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
-body,
-html {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f0f4f4;
-    overflow-x: hidden;
-}
-
-/* --- 2. Header & Background --- */
-#header {
-    position: relative;
-    background-image: url("../../images/header.jpg");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    text-align: center;
+body, html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    /* Modern subtle grid pattern for texture */
+    background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+    color: var(--text-main);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
 }
 
-#header:after {
-    content: '';
-    position: absolute;
-    left: 0;
+body.is-preload * {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* --- Background Ambient Glow --- */
+.ambient-bg {
+    position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.5;
-    z-index: 1;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none; /* So the background doesn't block clicks */
 }
 
-#header .inner {
-    position: relative;
-    z-index: 2;
+.blob {
+    position: absolute;
+    filter: blur(80px);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatBlob 12s ease-in-out infinite alternate;
+}
+
+.blob-top-right {
+    top: -15%;
+    right: -10%;
+    width: 50vw;
+    height: 50vw;
+    max-width: 600px;
+    max-height: 600px;
+    background: radial-gradient(circle, rgba(45, 116, 215, 0.3) 0%, rgba(45, 116, 215, 0) 70%);
+}
+
+.blob-bottom-left {
+    bottom: -15%;
+    left: -15%;
+    width: 60vw;
+    height: 60vw;
+    max-width: 700px;
+    max-height: 700px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0) 70%);
+    animation-delay: -4s;
+    animation-duration: 15s;
+}
+
+.blob-center {
+    top: 30%;
+    left: 40%;
+    width: 40vw;
+    height: 40vw;
+    max-width: 500px;
+    max-height: 500px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%); /* Subtle purple mix */
+    animation-delay: -8s;
+    animation-duration: 10s;
+}
+
+@keyframes floatBlob {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-40px, 40px) scale(1.1); }
+}
+
+/* --- Top Navigation --- */
+.top-nav {
     width: 100%;
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
 }
 
-#header h1 {
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    margin: 0;
-}
-
-#header h1 a {
-    color: #fff;
+.nav-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-blue);
     text-decoration: none;
+    letter-spacing: -0.5px;
+    animation: fadeIn 1s ease 0.5s both;
 }
 
-#header hr {
-    border: 0;
-    border-top: solid 1px rgba(255, 255, 255, 0.5);
-    border-bottom: solid 1px rgba(255, 255, 255, 0.5);
-    height: 5px;
-    width: clamp(100px, 30%, 300px);
-    margin: 1.5rem auto;
+.top-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-#header .inner h1 {
-    color: #2d74d7;
-    font-weight: bold;
-    /* יצירת מסגרת לבנה עדינה מכל הכיוונים */
-    text-shadow:
-        -1px -1px 0 #fff,
-        1px -1px 0 #fff,
-        -1px 1px 0 #fff,
-        1px 1px 0 #fff;
+.top-nav ul li {
+    display: inline-block;
 }
 
-#header .inner p {
-    color: #ffffff;
+.nav-link {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.5); /* Glass pill effect */
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* --- 3. כפתור ה-Login (מותאם למובייל ודסקטופ) --- */
-.btn {
-    display: inline-flex;
+.nav-link:hover {
+    color: var(--primary-blue);
+    background-color: #ffffff;
+    border-color: rgba(45, 116, 215, 0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* --- Centered Main Content --- */
+.centered-content {
+    flex: 1;
+    display: flex;
     justify-content: center;
     align-items: center;
-    background: #2d74d7;
-    color: #ffffff;
+    padding: 2rem;
+    text-align: center;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    max-width: 650px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px); /* Glassmorphism card for the text */
+    -webkit-backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.brand-title {
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    font-weight: 800;
+    color: var(--primary-blue);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.8);
+}
+
+.brand-subtitle {
+    font-size: clamp(1.1rem, 3vw, 1.25rem);
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+/* --- Buttons --- */
+.btn {
+    display: inline-block;
     text-decoration: none;
     font-weight: 600;
     border-radius: 50px;
-    padding: 12px 35px;
-    min-width: 200px;
-    font-size: 1.1rem;
-    white-space: nowrap;
-    transition: all 0.3s ease;
-    z-index: 2;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 }
 
-.btn:hover {
-    background: #15468c;
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: #ffffff;
+    padding: 1.1rem 3.5rem;
+    font-size: 1.15rem;
+    box-shadow: 0 10px 25px -5px rgba(45, 116, 215, 0.35);
+    border: 2px solid transparent;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-blue-hover);
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 35px -5px rgba(45, 116, 215, 0.45);
 }
 
-/* --- 4. ה-Navigation המקורי (Desktop) --- */
-#nav {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 3em 0;
-    z-index: 10;
-    text-align: center;
-}
-
-#nav>ul {
-    display: inline-block;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    position: relative;
-    border-left: solid 1px rgba(255, 255, 255, 0.35);
-    border-right: solid 1px rgba(255, 255, 255, 0.35);
-}
-
-/* הקווים בצדדים - מופיעים רק מעל 736px */
-@media screen and (min-width: 737px) {
-
-    #nav>ul:before,
-    #nav>ul:after {
-        content: '';
-        display: block;
-        width: 300%;
-        position: absolute;
-        top: 50%;
-        margin-top: -2px;
-        height: 5px;
-        border-top: solid 1px rgba(255, 255, 255, 0.35);
-        border-bottom: solid 1px rgba(255, 255, 255, 0.35);
+/* --- Animations --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
     }
-
-    #nav>ul:before {
-        left: 100%;
-        margin-left: 1px;
-    }
-
-    #nav>ul:after {
-        right: 100%;
-        margin-right: 1px;
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
-#nav>ul>li {
-    display: inline-block;
-    margin: -9px 0.5em 0 0.5em;
-    padding: 0.85em;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-#nav>ul>li a {
-    color: #fff;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-#nav>ul>li a:hover {
-    color: #ef8376;
-}
-
-/* --- 5. Mobile Optimization --- */
-
-@media screen and (max-width: 736px) {
-    #nav {
-        position: relative;
-        /* מחזיר אותו לזרימה של הדף במובייל */
-        padding: 1em 0;
+/* --- Responsive --- */
+@media screen and (max-width: 768px) {
+    .top-nav {
+        padding: 1.5rem;
+        justify-content: center;
+    }
+    
+    .nav-brand {
+        display: none; /* Keep it simpler on mobile */
     }
 
-    #nav>ul {
-        border: none;
-        /* מבטל את הקווים הקצרים במובייל */
-        display: block;
-    }
-
-    #nav>ul>li {
-        display: block;
-        /* קישורים אחד מתחת לשני */
-        margin: 10px 0;
-        padding: 5px;
-    }
-
-    .btn {
-        width: 90%;
-        max-width: 280px;
-        padding: 15px;
-        font-size: 1rem;
+    .content-wrapper {
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.6);
     }
 }
