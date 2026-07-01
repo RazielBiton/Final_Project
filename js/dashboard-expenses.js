@@ -59,6 +59,12 @@ function loadExpenses() {
         plateEl.textContent = currentCar.licensePlate || currentCar.brand || 'No Plate';
     }
 
+    // Set max date for Add Expense modal to today
+    const expenseDateEl = document.getElementById('expenseDate');
+    if (expenseDateEl) {
+        expenseDateEl.max = new Date().toISOString().split('T')[0];
+    }
+
     // 1. Calculate sums
     let totalTreatments = currentCar.treatments ? currentCar.treatments.reduce((sum, t) => sum + (Number(t.cost) || 0), 0) : 0;
 

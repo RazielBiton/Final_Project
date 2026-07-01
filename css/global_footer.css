@@ -49,6 +49,15 @@
         padding: 40px 15px;
         margin-top: 40px;
         gap: 15px;
+        display: block !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        z-index: 9999 !important;
+    }
+
+    body {
+        padding-bottom: 150px !important;
     }
 
     .global-footer .footer-text {

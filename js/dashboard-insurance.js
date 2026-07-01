@@ -6,6 +6,12 @@ const insTypeNames = {
 };
 
 window.loadInsurance = function () {
+    if (!window.currentCar) {
+        const stored = localStorage.getItem('currentCar');
+        if (stored) window.currentCar = JSON.parse(stored);
+    }
+    if (!window.currentCar) return;
+
     const types = ['mandatory', 'comprehensive', 'thirdparty'];
     let totalCost = 0;
 
@@ -63,9 +69,16 @@ window.loadInsurance = function () {
             let extraHtml = '';
             
             // 1. Roadside
-            if (insData.towing || insData.replacement || insData.glass) {
+            if (insData.towingCompany || insData.towingPhone || insData.towing || insData.replacement || insData.glass) {
                 extraHtml += `<div style="margin-bottom:10px;"><strong style="color:#1e293b; font-size:0.85rem;"><i class="fas fa-truck-pickup text-primary me-1"></i> שירותי דרך וסיוע:</strong></div>`;
-                if (insData.towing) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">גרירה:</strong> ${insData.towing}</div>`;
+                
+                let towText = insData.towing || '';
+                if (insData.towingCompany || insData.towingPhone) {
+                    towText = `${insData.towingCompany || ''} ${insData.towingPhone || ''}`.trim();
+                }
+                if (towText) {
+                    extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">גרירה:</strong> ${towText}</div>`;
+                }
                 if (insData.replacement) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">חלופי:</strong> ${insData.replacement}</div>`;
                 if (insData.glass) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:10px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">שמשות:</strong> ${insData.glass}</div>`;
             }
@@ -136,10 +149,11 @@ window.openEditInsurance = function (type) {
     }
 
     // Advanced fields Optional Block 1 (Roadside)
-    document.getElementById('insTowing').value = insData.towing || '';
+    document.getElementById('insTowingCompany').value = insData.towingCompany || insData.towing || '';
+    document.getElementById('insTowingPhone').value = insData.towingPhone || '';
     document.getElementById('insReplacement').value = insData.replacement || '';
     document.getElementById('insGlass').value = insData.glass || '';
-    const hasRoad = (insData.towing || insData.replacement || insData.glass);
+    const hasRoad = (insData.towingCompany || insData.towingPhone || insData.towing || insData.replacement || insData.glass);
     document.getElementById('toggleRoadside').checked = !!hasRoad;
     document.getElementById('roadside-fields').classList.toggle('d-none', !hasRoad);
 
@@ -218,13 +232,17 @@ window.saveInsurance = function () {
         
         // Save Optionals 1
         if (document.getElementById('toggleRoadside').checked) {
-            currentCar.insurance[type].towing = document.getElementById('insTowing').value;
+            currentCar.insurance[type].towingCompany = document.getElementById('insTowingCompany').value;
+            currentCar.insurance[type].towingPhone = document.getElementById('insTowingPhone').value;
             currentCar.insurance[type].replacement = document.getElementById('insReplacement').value;
             currentCar.insurance[type].glass = document.getElementById('insGlass').value;
+            currentCar.insurance[type].towing = ''; // clear legacy
         } else {
-            currentCar.insurance[type].towing = '';
+            currentCar.insurance[type].towingCompany = '';
+            currentCar.insurance[type].towingPhone = '';
             currentCar.insurance[type].replacement = '';
             currentCar.insurance[type].glass = '';
+            currentCar.insurance[type].towing = '';
         }
         
         // Save Optionals 2
@@ -339,7 +357,7 @@ window.processAiDoc = async function(input) {
                 if (d.towing || d.replacement || d.glass) {
                     document.getElementById('toggleRoadside').checked = true;
                     document.getElementById('roadside-fields').classList.remove('d-none');
-                    if (d.towing) document.getElementById('insTowing').value = d.towing;
+                    if (d.towing) document.getElementById('insTowingCompany').value = d.towing;
                     if (d.replacement) document.getElementById('insReplacement').value = d.replacement;
                     if (d.glass) document.getElementById('insGlass').value = d.glass;
                 }
@@ -386,7 +404,13 @@ window.processAiDoc = async function(input) {
 window.viewInsuranceDoc = function (type) {
     const insData = currentCar.insurance[type];
     if (insData && insData.file) {
-        document.getElementById('insuranceDocPreview').src = insData.file;
+        if (insData.file.startsWith('data:image/')) {
+            const previewContainer = document.getElementById('insuranceDocModalBody');
+            previewContainer.innerHTML = `<img src="${insData.file}" class="img-fluid rounded" style="max-height: 80vh; max-width: 100%;">`;
+        } else {
+            const previewContainer = document.getElementById('insuranceDocModalBody');
+            previewContainer.innerHTML = `<iframe id="insuranceDocPreview" src="${insData.file}" style="width:100%; height:80vh; border:none;"></iframe>`;
+        }
         new bootstrap.Modal(document.getElementById('insuranceDocModal')).show();
     }
 }

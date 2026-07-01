@@ -4,3 +4,54 @@
 .insurance-details {
     min-height: 80px;
 }
+
+/* --- Edit Insurance Modal: Scrollable Body & Sticky Footer --- */
+#editInsuranceModal .modal-content {
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#editInsuranceModal .modal-body {
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+#editInsuranceModal .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: #fff; /* Solid background to prevent overlap transparency */
+    z-index: 10;
+    padding: 15px;
+    border-top: 1px solid #eee;
+    margin-top: auto;
+}
+
+/* --- Mobile Fixes for Insurance Page --- */
+@media (max-width: 768px) {
+    /* Modal sticky footer & scrolling fix */
+    #editInsuranceModal .modal-content {
+        max-height: 90vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    #editInsuranceModal .modal-body {
+        overflow-y: auto !important;
+        flex: 1 1 auto !important;
+    }
+    #editInsuranceModal .modal-footer {
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        background: #fff !important;
+        z-index: 10 !important;
+        padding: 15px !important;
+        border-top: 1px solid #eee !important;
+        margin-top: auto !important;
+    }
+
+    /* Keep the bottom of the section clear of the sticky footer */
+    #insurance-section {
+        padding-bottom: 100px !important;
+    }
+}

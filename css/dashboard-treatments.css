@@ -1,5 +1,5 @@
-/* --- TREATMENTS COMPONENT STYLES --- */
-/* Add any custom CSS specific to the Treatments (טיפולים) page here. */
+﻿/* --- TREATMENTS COMPONENT STYLES --- */
+/* Add any custom CSS specific to the Treatments (׳˜׳™׳₪׳•׳׳™׳) page here. */
 
 /* Tables */
 .db-table {
@@ -31,4 +31,91 @@
 .table thead th {
     color: #555;
     font-weight: 600;
+}
+/* --- Mobile Fixes for Treatments Page --- */
+@media (max-width: 768px) {
+    /* Main wrapper padding to avoid sticky footer */
+    #treatments-section {
+        padding-bottom: 100px !important;
+    }
+
+    /* Mobile Table Layout to Cards */
+    #treatments-section .db-table, 
+    #treatments-section .db-table thead, 
+    #treatments-section .db-table tbody, 
+    #treatments-section .db-table th, 
+    #treatments-section .db-table td, 
+    #treatments-section .db-table tr { 
+        display: block; 
+    }
+    
+    #treatments-section .db-table thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    #treatments-section .db-table tr { 
+        border: 1px solid #e2e8f0; 
+        margin-bottom: 15px; 
+        border-radius: 12px; 
+        background: #fff;
+        padding: 5px;
+    }
+    
+    #treatments-section .db-table td { 
+        border: none;
+        border-bottom: 1px solid #f1f5f9; 
+        position: relative;
+        padding-right: 40%; 
+        white-space: normal;
+        text-align: left;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    #treatments-section .db-table td:last-child {
+        border-bottom: none;
+    }
+#treatments-section .db-table td::before { 
+        content: attr(data-label); 
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        right: 15px;
+        width: 35%; 
+        padding-right: 0px; 
+        white-space: nowrap;
+        font-weight: bold;
+        text-align: right;
+        color: #475569;
+    }
+    
+    /* Labeling */
+    #treatments-section .db-table td:nth-of-type(7) { justify-content: flex-end; }
+
+    /* Fix spacing between stats blocks on mobile */
+    .db-col-md-6.mb-3 {
+        margin-bottom: 1.25rem !important;
+    }
+}
+
+
+/* --- Desktop Fixes for Invoice Lightbox --- */
+@media (min-width: 769px) {
+    /* Shrink-wrap the modal content to exactly fit the image */
+    #invoiceModal .modal-content {
+        width: auto !important;
+        display: inline-block !important;
+        margin: 0 auto;
+    }
+
+    /* Anchor the close button tightly to the top-left corner of the shrink-wrapped container */
+    #invoiceModal .btn-close {
+        top: -15px !important;
+        left: -15px !important;
+        /* Padding reduction if needed, but existing inline padding is fine */
+    }
 }

@@ -40,4 +40,45 @@
 
 .db-list-group-flush .db-list-item:last-child {
     border-bottom: none;
+}/* Custom Add Fuel Modal Header for RTL Close Button */
+#addFuelModal .modal-header {
+    position: relative;
+}
+#addFuelModal .btn-close {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+
+/* Mobile Actions Alignment */
+@media (max-width: 767px) {
+    .fuel-actions-wrapper {
+        margin-top: 1rem;
+        flex-direction: row-reverse;
+        justify-content: flex-end !important;
+    }
+}
+@media (min-width: 768px) {
+    .fuel-actions-wrapper {
+        width: auto !important;
+        gap: 1.5rem;
+    }
+}
+/* Ensure footer stays at the bottom when Fuel page is short */
+#fuel-section {
+    min-height: calc(100vh - 80px);
+}
+/* Sticky Footer Fix */
+body.dashboard-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+#wrapper {
+    flex: 1;
+}
+.global-footer, .dashboard-footer-mini {
+    margin-top: auto;
 }

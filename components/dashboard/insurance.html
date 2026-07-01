@@ -158,17 +158,17 @@
                     <div class="db-row">
                         <div class="db-col-sm-6 mb-3">
                             <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">חברת בטוח</label>
-                            <input type="text" class="db-form-control" id="insCompany" placeholder="לדוג': הראל, פניקס...">
+                            <input type="text" class="db-form-control" id="insCompany" placeholder="לדוג': הראל, פניקס..." required>
                         </div>
                         <div class="db-col-sm-6 mb-3">
                             <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">מספר פוליסה</label>
-                            <input type="text" class="db-form-control" id="insPolicyNum" placeholder="הזן מספר">
+                            <input type="text" class="db-form-control" id="insPolicyNum" placeholder="הזן מספר" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required>
                         </div>
                     </div>
                     <div class="db-row">
                         <div class="db-col-6 mb-3">
                             <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">עלות שנתית (₪)</label>
-                            <input type="number" class="db-form-control" id="insCost" placeholder="לדוג': 4500">
+                            <input type="number" class="db-form-control" id="insCost" placeholder="לדוג': 4500" required>
                         </div>
                         <div class="db-col-6 mb-3">
                             <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">תוקף הביטוח</label>
@@ -210,8 +210,16 @@
                           <label class="form-check-label fw-bold ms-2" style="color:#1e293b; padding-right:15px; cursor:pointer;" for="toggleRoadside">שירותי דרך, גרירה ושמשות</label>
                         </div>
                         <div id="roadside-fields" class="d-none mt-3 pt-3 border-top border-dashed">
-                            <label class="form-label small" style="font-weight:600;">חברת גרירה + מספר טלפון</label>
-                            <input type="text" class="db-form-control mb-3" id="insTowing" placeholder="לדוג': שגריר 03-1234567">
+                            <div class="db-row mb-3">
+                                <div class="db-col-sm-6">
+                                    <label class="form-label small" style="font-weight:600;">חברת גרירה ושמשות</label>
+                                    <input type="text" class="db-form-control" id="insTowingCompany" placeholder="לדוג': שגריר">
+                                </div>
+                                <div class="db-col-sm-6">
+                                    <label class="form-label small" style="font-weight:600;">מספר טלפון (שירותי דרך)</label>
+                                    <input type="text" class="db-form-control" id="insTowingPhone" placeholder="050-0000000" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                </div>
+                            </div>
                             
                             <div id="wrap-replacement">
                                 <label class="form-label small" style="font-weight:600;">זכאות לרכב חלופי</label>
@@ -237,7 +245,7 @@
                                 </div>
                                 <div class="db-col-sm-6 mb-3">
                                     <label class="form-label small" style="font-weight:600;">טלפון / WhatsApp</label>
-                                    <input type="text" class="db-form-control" id="insAgentPhone" placeholder="050-0000000">
+                                    <input type="text" class="db-form-control" id="insAgentPhone" placeholder="0500000000" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                                 </div>
                             </div>
                         </div>
@@ -251,10 +259,10 @@
                         </div>
                         <div id="limitation-fields" class="d-none mt-3 pt-3 border-top border-dashed">
                             <label class="form-label small" style="font-weight:600;">הגבלת גיל וותק נהגים</label>
-                            <input type="text" class="db-form-control mb-3" id="insDriverLimit" placeholder="לדוג': כל נהג מעל גיל 24">
+                            <input type="text" class="db-form-control mb-3" id="insDriverLimit" placeholder="לדוג': 24" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             
                             <label class="form-label small" style="font-weight:600;">דמי השתתפות עצמית (במוסך הסדר / רגיל)</label>
-                            <input type="text" class="db-form-control mb-3" id="insDeductible" placeholder="לדוג': 1000₪ בהסדר / 1500₪ במוסך אחר">
+                            <input type="text" class="db-form-control mb-3" id="insDeductible" placeholder="לדוג': 1000" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             
                             <div id="wrap-protection">
                                 <label class="form-label small" style="font-weight:600;">אמצעי מיגון נדרשים (תנאי לכיסוי גניבה)</label>
@@ -281,8 +289,8 @@
                 <h5 class="modal-title">מסמך ביטוח</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" style="height: 80vh; overflow: hidden;">
-                <iframe id="insuranceDocPreview" src="" style="width:100%; height:100%; border:none;"></iframe>
+            <div class="modal-body p-0 text-center" id="insuranceDocModalBody" style="min-height: 50vh; display: flex; justify-content: center; align-items: center; background: rgba(15, 23, 42, 0.95);">
+                <!-- Dynamic content (iframe or img) will be injected here -->
             </div>
         </div>
     </div>

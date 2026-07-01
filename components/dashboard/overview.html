@@ -39,7 +39,7 @@
         <div class="db-col-sm-6 db-col-lg-3 mb-3">
             <div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);border-radius:14px;padding:1.1rem 1.3rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(124,58,237,0.22);color:#fff;">
                 <div>
-                    <div id="kpi-status" style="font-size:1.3rem;font-weight:800;">תקין</div>
+                    <div id="kpi-status" class="fw-bold" style="font-size:1.3rem;">תקין</div>
                     <div style="font-size:0.78rem;opacity:0.8;margin-top:2px;">סטטוס רכב</div>
                 </div>
                 <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
@@ -67,7 +67,7 @@
                         </div>
                     </div>
                     <div>
-                        <span id="reliability-text" style="font-size:1.6rem;font-weight:800;color:#1e293b;">--</span>
+                        <span id="reliability-text" class="fw-bold" style="font-size:1.6rem;color:#1e293b;">--</span>
                         <span id="reliability-score" style="font-size:0.9rem;font-weight:600;color:#94a3b8;margin-right:3px;">0%</span>
                     </div>
                 </div>
@@ -98,8 +98,8 @@
                             <div style="font-size:0.73rem;color:#94a3b8;">לחץ על התראה לניהול</div>
                         </div>
                     </div>
-                    <button onclick="goToSection('alerts')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:8px;padding:4px 13px;font-size:0.78rem;font-weight:600;cursor:pointer;">
-                        <i class="fas fa-arrow-left me-1"></i>הכל
+                    <button onclick="goToSection('alerts')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:8px;padding:4px 13px;font-size:0.78rem;font-weight:600;cursor:pointer; display:flex; align-items:center; gap: 4px;">
+                        <span>הכל</span><i class="fas fa-arrow-left"></i>
                     </button>
                 </div>
                 <div id="alertsList" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;">
@@ -174,7 +174,7 @@
     </div>
 
     <!-- Row 3: Technical Specs -->
-    <div class="db-row mb-4 align-items-stretch">
+    <div class="db-row mb-0 align-items-stretch">
         <div class="db-col-12 d-flex mb-2">
             <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.08);padding:1.4rem;width:100%;border:1px solid #f1f5f9;">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.1rem;">
@@ -190,7 +190,7 @@
                                 <div class="car-spec-icon-round" id="car-color-preview" style="width:24px;height:24px;border-radius:50%;"></div>
                             </div>
                             <small style="color:#64748b; font-size:0.75rem; font-weight:600; display:block; margin-bottom:4px;">צבע רכב</small>
-                            <span id="info-color" style="font-weight:800; font-size:0.9rem; color:#1e293b;">--</span>
+                            <span id="info-color" class="fw-bold" style="font-size:0.9rem; color:#1e293b;">--</span>
                         </div>
                     </div>
                     <div class="db-col-4 db-col-md-2 mb-2 d-flex flex-column align-items-center">
@@ -199,7 +199,7 @@
                                 <img id="fuel-type-icon" src="" alt="דלק" class="car-spec-icon" style="display:none;width:24px;height:24px;filter:drop-shadow(0 2px 2px rgba(16,185,129,0.3));">
                             </div>
                             <small style="color:#64748b; font-size:0.75rem; font-weight:600; display:block; margin-bottom:4px;">סוג דלק</small>
-                            <span id="info-fuel" style="font-weight:800; font-size:0.9rem; color:#1e293b;">--</span>
+                            <span id="info-fuel" class="fw-bold" style="font-size:0.9rem; color:#1e293b;">--</span>
                         </div>
                     </div>
                     <div class="db-col-4 db-col-md-2 mb-2 d-flex flex-column align-items-center">

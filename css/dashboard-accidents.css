@@ -21,3 +21,78 @@
     color: var(--danger) !important;
     transform: scale(1.05);
 }
+
+/* --- Mobile Fixes for Accidents Page --- */
+@media (max-width: 768px) {
+    /* Modal sticky footer & scrolling fix */
+    #addAccidentModal .modal-dialog {
+        margin: 0;
+        height: 100vh;
+        max-width: 100vw;
+    }
+    #addAccidentModal .modal-content {
+        max-height: 100vh !important;
+        height: 100vh;
+        border-radius: 0 !important;
+        display: flex;
+        flex-direction: column;
+    }
+    #addAccidentModal .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+    #addAccidentModal .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        z-index: 10;
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* RTL Timeline Alignment Fixes */
+    #accidents-list-container {
+        padding: 1.5rem 1rem !important; /* Better mobile spacing */
+    }
+    #accidents-list-container > div:first-child {
+        right: 15px !important; /* Move vertical line to the right */
+    }
+    .accident-timeline-wrapper {
+        padding-right: 40px !important; /* Push event card to the left of the line */
+        margin-bottom: 1.5rem !important;
+    }
+    .accident-timeline-wrapper > div:first-child {
+        /* Dot width=24px. Center of line is 15px.
+           right: 2px means dot center is 14px (slightly RIGHT of the line in RTL) */
+        right: 2px !important;
+    }
+    .accident-timeline-card {
+        padding: 1.2rem !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Mobile Sticky Footer & Content Padding */
+    .global-footer, .dashboard-footer-mini, footer {
+        display: block !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        z-index: 9999 !important;
+        background-color: #2d74d7 !important;
+    }
+    
+    #accidents-section, body.dashboard-body {
+        padding-bottom: 80px !important;
+    }
+    
+    /* Involved Vehicle License Plate Alignment & Content Overflow */
+    .involved-vehicle-row {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    .involved-vehicle-plate {
+        align-self: flex-start;
+        max-width: 100%;
+        overflow-wrap: break-word;
+    }
+}

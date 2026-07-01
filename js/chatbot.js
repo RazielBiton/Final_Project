@@ -302,21 +302,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             typingIndicator.style.display = 'none';
-            // Return typing indicator to window level (remove from chatbox)
-            document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, document.getElementById('quickActions'));
+            const qaElement = document.getElementById('quickActions');
+            if (qaElement) {
+                document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, qaElement);
+            } else {
+                document.getElementById('chatWidgetWindow').appendChild(typingIndicator);
+            }
             
             addMessage(data.reply, 'ai', true);
 
         } catch (error) {
             console.error(error);
             typingIndicator.style.display = 'none';
-            document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, document.getElementById('quickActions'));
+            const qaElement = document.getElementById('quickActions');
+            if (qaElement) {
+                document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, qaElement);
+            } else {
+                document.getElementById('chatWidgetWindow').appendChild(typingIndicator);
+            }
             addMessage('מצטער, השרת לא מחובר באוויר כרגע. אנא ודא ש-Server.js רץ ברקע (ע"י הרצה של \`npm start\`).', 'ai');
         }
     }
 
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') sendMessage();
-    });
+    const chatForm = document.getElementById('chatForm');
+    if (chatForm) {
+        chatForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            sendMessage();
+        });
+    } else if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
 });

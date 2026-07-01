@@ -86,14 +86,17 @@
                     onclick="showSection('sell', this)">
                     <i class="fas fa-handshake me-2 text-primary"></i> דו״ח מכירה
                 </a>
+                <a href="after_login.html" class="list-group-item list-group-item-action bg-transparent text-secondary fw-bold mt-2">
+                    <i class="fas fa-arrow-right me-2"></i> חזרה לצי הרכבים
+                </a>
                 <a href="#" onclick="handleLogout(event)"
-                    class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-3">
+                    class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-2">
                     <i class="fas fa-sign-out-alt me-2"></i> התנתקות
                 </a>
             </div>
 
             <!-- User Profile Section at Bottom -->
-            <div class="sidebar-profile p-3"
+            <a href="profile.html" class="sidebar-profile p-3 text-decoration-none"
                 style="border-top: 1px solid #dee2e6; display: flex; align-items: center; background: #f8f9fa;">
                 <img id="sidebarUserImg"
                     src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true"
@@ -104,7 +107,7 @@
                     </h6>
                     <small class="text-muted" style="font-size: 0.8rem;">מחובר למערכת</small>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Page Content -->
@@ -124,11 +127,11 @@
                     <form class="d-flex position-relative w-100" style="max-width: 400px;"
                         onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
                         <input type="tel" pattern="[0-9]*" id="globalSearchInput" autocomplete="off"
-                            class="form-control rounded-pill pe-4" placeholder="חפש לפי מספר רישוי..."
+                            class="form-control rounded-pill ps-4" placeholder="חיפוש לפי מספר רכב..."
                             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                            style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: ltr; text-align: right;">
+                            style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: rtl; text-align: right;">
                         <i class="fas fa-search position-absolute top-50 translate-middle-y text-primary fs-5"
-                            style="left: 18px; cursor: pointer;"
+                            style="left: 18px; cursor: pointer; z-index: 10;"
                             onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);"></i>
                         <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none"
                             style="top: 110%; z-index: 2000; max-height: 250px; overflow-y: auto; text-align: right; border-radius: 12px; font-size: 0.9rem;">
@@ -183,38 +186,38 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">הוספת טיפול חדש</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold">הוספת טיפול חדש</h5>
+                    <button type="button" class="btn-close m-0" style="margin-left:0; margin-right:auto;" data-bs-dismiss="modal"></button>
                     <!-- כפתור סגירה מובנה של בוטסטראפ -->
                 </div>
                 <div class="modal-body">
                     <form id="addTreatmentForm">
                         <div class="mb-3">
-                            <label class="form-label">סוג הטיפול</label>
+                            <label class="form-label fw-bold">סוג הטיפול</label>
                             <!-- form-label נשמר לתאימות או ניתן להחליף אם יש CSS -->
                             <input type="text" class="db-form-control" id="tName" required
                                 placeholder="לדוג': טיפול 10,000">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">תאריך</label>
+                            <label class="form-label fw-bold">תאריך</label>
                             <input type="date" class="db-form-control" id="tDate" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">שם המוסך</label>
+                            <label class="form-label fw-bold">שם המוסך</label>
                             <input type="text" class="db-form-control" id="tGarage" required>
                         </div>
                         <div class="db-row">
                             <div class="db-col-6 mb-3">
-                                <label class="form-label">קילומטראז'</label>
+                                <label class="form-label fw-bold">קילומטראז'</label>
                                 <input type="number" class="db-form-control" id="tKm" required>
                             </div>
                             <div class="db-col-6 mb-3">
-                                <label class="form-label">עלות (₪)</label>
+                                <label class="form-label fw-bold">עלות (₪)</label>
                                 <input type="number" class="db-form-control" id="tCost" required>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">צרף חשבונית (תמונה)</label>
+                            <label class="form-label fw-bold">צרף חשבונית (תמונה)</label>
                             <input type="file" class="db-form-control" id="tInvoice" accept="image/*">
                         </div>
                     </form>
@@ -232,36 +235,36 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">עריכת טיפול קיים</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold">עריכת טיפול קיים</h5>
+                    <button type="button" class="btn-close m-0" style="margin-left:0; margin-right:auto;" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="editTreatmentForm">
                         <input type="hidden" id="editTId">
                         <div class="mb-3">
-                            <label class="form-label">סוג הטיפול</label>
+                            <label class="form-label fw-bold">סוג הטיפול</label>
                             <input type="text" class="db-form-control" id="editTName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">תאריך</label>
+                            <label class="form-label fw-bold">תאריך</label>
                             <input type="date" class="db-form-control" id="editTDate" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">שם המוסך</label>
+                            <label class="form-label fw-bold">שם המוסך</label>
                             <input type="text" class="db-form-control" id="editTGarage" required>
                         </div>
                         <div class="db-row">
                             <div class="db-col-6 mb-3">
-                                <label class="form-label">קילומטראז'</label>
+                                <label class="form-label fw-bold">קילומטראז'</label>
                                 <input type="number" class="db-form-control" id="editTKm" required>
                             </div>
                             <div class="db-col-6 mb-3">
-                                <label class="form-label">עלות (₪)</label>
+                                <label class="form-label fw-bold">עלות (₪)</label>
                                 <input type="number" class="db-form-control" id="editTCost" required>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">החלף חשבונית (השאר ריק אם אין שינוי)</label>
+                            <label class="form-label fw-bold">החלף חשבונית (השאר ריק אם אין שינוי)</label>
                             <input type="file" class="db-form-control" id="editTInvoice" accept="image/*">
                         </div>
                     </form>
@@ -296,11 +299,12 @@
     </div>
 
     <!-- Invoice Preview Modal -->
-    <div class="modal fade" id="invoiceModal" tabindex="-1">
-        <div class="modal-dialog text-center">
-            <div class="modal-content">
-                <div class="modal-body p-0">
-                    <img id="invoicePreviewImg" src="" style="width:100%; height:auto;">
+    <div class="modal fade" id="invoiceModal" tabindex="-1" onclick="if(event.target === this) bootstrap.Modal.getInstance(this).hide();">
+        <div class="modal-dialog modal-dialog-centered text-center" style="max-width: 90vw; margin: auto;">
+            <div class="modal-content bg-transparent border-0" style="position: relative;">
+                <button type="button" class="btn-close btn-close-white position-absolute" data-bs-dismiss="modal" style="top: -50px; left: 0; z-index: 9999; background-color: rgba(0,0,0,0.6); padding: 1rem; border-radius: 50%; opacity: 1;"></button>
+                <div class="modal-body p-0 d-flex justify-content-center align-items-center">
+                    <img id="invoicePreviewImg" src="" style="max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 </div>
             </div>
         </div>
@@ -735,10 +739,10 @@
                 קנסות</button>
         </div>
 
-        <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="איך אוכל לעזור?" autocomplete="off">
-            <button id="sendBtn"><i class="fas fa-arrow-up"></i></button>
-        </div>
+        <form id="chatForm" class="chat-input-area" onsubmit="event.preventDefault();">
+            <input type="text" id="userInput" placeholder="הקלד את השאלה שלך כאן" autocomplete="off">
+            <button type="submit" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
+        </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

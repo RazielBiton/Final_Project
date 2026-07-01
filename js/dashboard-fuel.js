@@ -25,6 +25,21 @@ window.loadFuel = function () {
         // Already fetched - update UI now that DOM is ready
         updateFuelPriceUI();
     }
+    
+    // Dynamic fuel tips
+    const fuelTips = [
+        "תחזוקה נכונה של לחץ אוויר בצמיגים (לפחות פעם בשבועיים) יכולה לחסוך עד 3% מצריכת הדלק השנתית שלך.",
+        "הימנעות מהאצות פתאומיות ובלימות חדות יכולה לשפר את צריכת הדלק בעד 20% בנסיעות עירוניות.",
+        "ריקון תא המטען ממשקל עודף מפחית את המאמץ של המנוע ויכול לשפר את צריכת הדלק.",
+        "שימוש בבקרת שיוט (Cruise Control) בנסיעות בינעירוניות עוזר לשמור על מהירות קבועה וצריכת אנרגיה אופטימלית.",
+        "חנייה בצל בקיץ מפחיתה את התאדות הדלק מהמיכל ואת הצורך בקירור עוצמתי של תא הנוסעים."
+    ];
+    const fuelTipEl = document.getElementById('fuel-dynamic-tip');
+    if (fuelTipEl && !window.fuelTipSet) {
+        fuelTipEl.innerHTML = fuelTips[Math.floor(Math.random() * fuelTips.length)];
+        window.fuelTipSet = true;
+    }
+
     // Always update price UI after a small tick (ensures DOM is ready)
     setTimeout(() => updateFuelPriceUI(), 50);
 
@@ -42,6 +57,11 @@ window.loadFuel = function () {
         } else {
             addBtn.innerHTML = `<i class="fas fa-plus me-2"></i> הוסף תדלוק`;
         }
+    }
+
+    const headingTextEl = document.getElementById('fuel-history-heading-text');
+    if (headingTextEl) {
+        headingTextEl.textContent = isEV ? 'היסטוריית הזנות אנרגיה' : 'היסטוריית תדלוקים';
     }
 
     if (evMessage) {
@@ -99,7 +119,7 @@ window.loadFuel = function () {
         html += `
             <div class="p-3 mb-3 d-flex justify-content-between align-items-center flex-wrap" style="background:#fff; border:1px solid #f1f5f9; border-radius:18px; transition:all 0.2s; border-right: 4px solid ${isElectricity ? '#10b981' : '#f59e0b'};">
                 <div class="d-flex align-items-center mb-3 mb-md-0">
-                    <div style="width:48px; height:48px; background:${iconBg}; border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-inline-start: 15px; flex-shrink: 0;">
+                    <div style="width:48px; height:48px; background:${iconBg}; border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-inline-end: 15px; flex-shrink: 0;">
                         <i class="fas ${iconClass}" style="color:white; font-size:1.1rem;"></i>
                     </div>
                     <div>
@@ -112,7 +132,7 @@ window.loadFuel = function () {
                         <div>${pricePerUnitBadge}</div>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-4">
+                <div class="d-flex align-items-center justify-content-between w-100 fuel-actions-wrapper">
                     <div style="text-align: left;">
                         <h5 class="m-0 fw-bold" style="color:#0f172a; font-size:1.2rem;">₪${new Intl.NumberFormat('he-IL').format(f.cost)}</h5>
                         <div style="font-size:0.75rem; color:#94a3b8; text-align: left; margin-top: 2px;">עלות כוללת</div>
@@ -163,12 +183,16 @@ window.calculateTotalFuelCost = function () {
 };
 
 window.calculatePricePerUnit = function () {
-    const amount = parseFloat(document.getElementById('fAmount').value);
+    const amountStr = document.getElementById('fAmount').value;
     const cost = parseFloat(document.getElementById('fCost').value);
+    const price = parseFloat(document.getElementById('fPricePerUnit').value);
     const priceInput = document.getElementById('fPricePerUnit');
+    const amountInput = document.getElementById('fAmount');
 
-    if (priceInput && !isNaN(amount) && !isNaN(cost) && amount > 0 && cost > 0) {
-        priceInput.value = (cost / amount).toFixed(4);
+    if (!amountStr && !isNaN(cost) && cost > 0 && !isNaN(price) && price > 0) {
+        amountInput.value = (cost / price).toFixed(2);
+    } else if (amountStr && !isNaN(parseFloat(amountStr)) && parseFloat(amountStr) > 0 && !isNaN(cost) && cost > 0) {
+        if (priceInput) priceInput.value = (cost / parseFloat(amountStr)).toFixed(4);
     }
 };
 
@@ -206,9 +230,14 @@ window.openAddFuelModal = function () {
 
     window.toggleEnergyFields();
 
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('fDate').value = now.toISOString().slice(0, 16);
+    const fDateInput = document.getElementById('fDate');
+    if (fDateInput) {
+        fDateInput.type = 'date';
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        fDateInput.max = dateStr;
+        fDateInput.value = dateStr;
+    }
 
     const modalEl = document.getElementById('addFuelModal');
     if (modalEl) {
@@ -246,7 +275,14 @@ window.editFuel = function (id) {
     window.toggleEnergyFields();
 
     document.getElementById('editFuelId').value = record.id;
-    document.getElementById('fDate').value = window.toInputDate(record.date);
+    const fDateInput = document.getElementById('fDate');
+    if (fDateInput) {
+        fDateInput.type = 'date';
+        const now = new Date();
+        fDateInput.max = now.toISOString().slice(0, 10);
+        let parsedDate = window.toInputDate(record.date);
+        fDateInput.value = parsedDate ? parsedDate.slice(0, 10) : "";
+    }
     document.getElementById('fAmount').value = record.amount || "";
     document.getElementById('fCost').value = record.cost;
 

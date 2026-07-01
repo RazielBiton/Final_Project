@@ -86,6 +86,18 @@ window.loadAccidents = function () {
         if (filterContainer) filterContainer.classList.remove('d-none');
     }
 
+    const tips = [
+        "ככלל אצבע: שקול להפעיל ביטוח רק אם הנזק המוערך גבוה ב-50% מההשתתפות העצמית שלך. כך תימנע מעליית פרמיה בשנה הבאה עבור תיקון מינורי.",
+        "תיעוד בזמן אמת: צלם את הנזק משלוש זוויות שונות לפחות, וודא שרואים את מספר הרכב הפוגע ברור.",
+        "החלפת פרטים: זכור לקחת שם מלא, טלפון, מספר תעודת זהות, מספר רכב ושם חברת ביטוח של צד ג'.",
+        "הקפד לדווח לחברת הביטוח סמוך ככל האפשר למועד האירוע, גם אם החלטת שלא לתבוע בסוף."
+    ];
+    const tipEl = document.getElementById('acc-dynamic-tip');
+    if (tipEl && !window.accTipSet) {
+        tipEl.textContent = tips[Math.floor(Math.random() * tips.length)];
+        window.accTipSet = true;
+    }
+
     // Sort by status first (resolved last), then date descending, then filter
     const sortedAccidents = [...currentCar.accidents].sort((a, b) => {
         if (a.status === 'resolved' && b.status !== 'resolved') return 1;
@@ -130,7 +142,7 @@ window.loadAccidents = function () {
             let vhtml = acc.involvedVehicles.map(v => {
                 let logoHtml = v.logo ? `<img src="${v.logo}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; border:1px solid #e2e8f0; padding:2px; margin-left:12px;">` : `<div style="width:36px; height:36px; border-radius:50%; background:#f8fafc; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin-left:12px;"><i class="fas fa-car text-slate-400"></i></div>`;
                 return `
-                <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center involved-vehicle-row mb-2 flex-wrap gap-3">
                     <div class="d-flex align-items-center">
                         ${logoHtml}
                         <div>
@@ -138,7 +150,7 @@ window.loadAccidents = function () {
                             <span style="color: #64748b; font-size: 0.8rem;">${v.color || '-'} | שנת ${v.year || '-'}</span>
                         </div>
                     </div>
-                    <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
+                    <div class="involved-vehicle-plate" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
                         ${v.plate} <span class="ms-1 fs-6">🇮🇱</span>
                     </div>
                 </div>
@@ -160,7 +172,7 @@ window.loadAccidents = function () {
                 <div style="font-size: 0.85rem; font-weight: 800; color: #e11d48; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-file-contract"></i> רכבים מעורבים (צד ג')
                 </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center involved-vehicle-row mb-2 flex-wrap gap-3">
                     <div class="d-flex align-items-center">
                         ${logoHtml}
                         <div>
@@ -168,7 +180,7 @@ window.loadAccidents = function () {
                             <span style="color: #64748b; font-size: 0.8rem;">${acc.involvedVehicle.color || '-'} | שנת ${acc.involvedVehicle.year || '-'}</span>
                         </div>
                     </div>
-                    <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
+                    <div class="involved-vehicle-plate" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-family: monospace; color: #334155; font-size: 0.85rem;" dir="ltr">
                         ${acc.involvedVehicle.plate} <span class="ms-1 fs-6">🇮🇱</span>
                     </div>
                 </div>
@@ -193,11 +205,11 @@ window.loadAccidents = function () {
         }
 
         const cardHtml = `
-        <div style="position: relative; margin-bottom: 2rem; padding-right: 60px; z-index: 2;">
+        <div class="accident-timeline-wrapper" style="position: relative; margin-bottom: 2rem; padding-right: 60px; z-index: 2;">
             <!-- Timeline Dot -->
             <div style="position: absolute; right: 28px; top: 20px; width: 24px; height: 24px; border-radius: 50%; background: ${isResolved ? '#10b981' : '#e11d48'}; border: 4px solid #fff; box-shadow: 0 0 0 2px ${isResolved ? '#a7f3d0' : '#fecdd3'}; z-index: 2;"></div>
             
-            <div style="background: ${isResolved ? '#f8fafc' : '#ffffff'}; border-radius: 16px; border: 1px solid ${isResolved ? '#e2e8f0' : '#e2e8f0'}; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: all 0.2s; border-right: 4px solid ${isResolved ? '#94a3b8' : '#e11d48'}; opacity: ${isResolved ? '0.9' : '1'};">
+            <div class="accident-timeline-card" style="background: ${isResolved ? '#f8fafc' : '#ffffff'}; border-radius: 16px; border: 1px solid ${isResolved ? '#e2e8f0' : '#e2e8f0'}; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: all 0.2s; border-right: 4px solid ${isResolved ? '#94a3b8' : '#e11d48'}; opacity: ${isResolved ? '0.9' : '1'};">
                 <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
                     <div>
                         <h5 class="fw-bold m-0" style="color: #0f172a; font-size: 1.15rem;">${acc.title}</h5>
@@ -218,7 +230,7 @@ window.loadAccidents = function () {
                 ${involvedHtml}
                 ${imageHtml}
                 
-                <div class="mt-4 pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px dashed #cbd5e1;">
+                <div class="mt-4 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="border-top: 1px dashed #cbd5e1;">
                     <button class="btn btn-sm" onclick="toggleAccidentStatus(${acc.id})" style="background: ${isResolved ? '#ffffff' : '#f8fafc'}; color: ${isResolved ? '#64748b' : '#334155'}; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 600;">
                         ${isResolved ? '<i class="fas fa-undo me-1"></i> החזר לפתוח' : '<i class="fas fa-check text-success me-1"></i> סימון שטופל בהצלחה'}
                     </button>
@@ -244,6 +256,9 @@ window.openAddAccidentModal = function () {
     document.getElementById('addAccidentForm').reset();
     document.getElementById('accidentId').value = '';
     document.getElementById('accidentModalTitle').innerHTML = '<i class="fas fa-car-crash me-2"></i> דיווח נזק חדש';
+    
+    const accDateInput = document.getElementById('accDate');
+    if(accDateInput) accDateInput.max = new Date().toISOString().split('T')[0];
 
     // Bind image listener
     attachAccidentImageListener();
@@ -404,6 +419,11 @@ window.fetchInvolvedCarDetails = async function () {
         return;
     }
 
+    if (window.currentCar && (plate === window.currentCar.carNumber || plate === window.currentCar.plate)) {
+        alert("לא ניתן להוסיף את הרכב הנוכחי כצד ג'");
+        return;
+    }
+
     btnSearch.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btnSearch.disabled = true;
 
@@ -484,6 +504,11 @@ window.saveAccident = function () {
     if (isYes) {
         const plate = document.getElementById('accInvolvedPlate').value.trim();
         const detailsContainer = document.getElementById('involvedCarDetails');
+
+        if (plate && window.currentCar && (plate === window.currentCar.carNumber || plate === window.currentCar.plate)) {
+            alert("לא ניתן להוסיף את הרכב הנוכחי כצד ג'");
+            return;
+        }
 
         // Check if there was an active un-added search that the user meant to add
         if (plate && !detailsContainer.classList.contains('d-none') && currentFetchedInvolvedCar) {
@@ -567,6 +592,9 @@ window.editAccident = function (id) {
     document.getElementById('accTitle').value = acc.title;
     document.getElementById('accCost').value = acc.cost;
     document.getElementById('accDescription').value = acc.description;
+
+    const accDateInput = document.getElementById('accDate');
+    if(accDateInput) accDateInput.max = new Date().toISOString().split('T')[0];
 
     // date from DD/MM/YYYY to YYYY-MM-DD
     if (acc.date) {

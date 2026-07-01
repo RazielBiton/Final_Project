@@ -13,11 +13,17 @@ const offenseTitles = {
 };
 
 window.loadReports = function () {
+    if (!window.currentCar) {
+        const stored = localStorage.getItem('currentCar');
+        if (stored) window.currentCar = JSON.parse(stored);
+    }
+    if (!window.currentCar) return;
+
     const container = document.getElementById('reports-list-container');
     if (!container) return;
 
     container.innerHTML = '';
-    const reports = currentCar.reports || [];
+    const reports = window.currentCar.reports || [];
 
     const sortedReports = [...reports].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -63,7 +69,7 @@ window.loadReports = function () {
                 <div class="d-flex gap-2 mt-3 overflow-auto pb-2">
                     ${report.images.map(img => `
                         <img src="${img}" style="height: 60px; border-radius: 8px; cursor: pointer; border: 1px solid #e2e8f0;" 
-                             onclick="window.open('${img}')">
+                             onclick="window.openReportImage('${img}')">
                     `).join('')}
                 </div>`;
         }
@@ -176,7 +182,7 @@ window.updateVisibilityAndTotals = function () {
     const pointsProg = document.getElementById('points-progress-bar');
 
     if (pointsEl) {
-        pointsEl.textContent = totalPoints;
+        pointsEl.textContent = Math.min(totalPoints, 36);
         let progWidth = Math.min((totalPoints / 36) * 100, 100);
         if (pointsProg) {
             pointsProg.style.width = progWidth + '%';
@@ -223,28 +229,27 @@ window.generateSafetyInsights = function () {
     const textEl = document.getElementById('safety-insight-text');
     if (!textEl) return;
 
-    const reports = currentCar.reports || [];
+    const reports = window.currentCar?.reports || [];
     if (reports.length === 0) {
         textEl.textContent = 'נהג למופת! המשך לשמור על חוקי התנועה.';
         return;
     }
 
+    const tips = [];
     const types = reports.reduce((acc, r) => {
         acc[r.typeVal] = (acc[r.typeVal] || 0) + 1;
         return acc;
     }, {});
 
-    if (types['speeding']) {
-        const plural = types['speeding'] > 1 ? 'נרשמו מספר עבירות מהירות' : 'נרשמה עבירת מהירות';
-        textEl.textContent = `${plural}. מומלץ להשתמש בבקרת שיוט בכבישים מהירים לגילוי מוקדם של מצלמות.`;
-    } else if (types['phone']) {
-        const plural = types['phone'] > 1 ? 'נרשמו עבירות שימוש בנייד' : 'נרשמה עבירת שימוש בנייד';
-        textEl.textContent = `${plural}. התקן דיבורית איכותית ברכב כדי למנוע היסח דעת וקנסות כבדים.`;
-    } else if (types['parking']) {
-        textEl.textContent = 'נרשמו עבירות חניה. שים לב לשילוט עירוני והשתמש באפליקציות חניה חכמות.';
-    } else {
-        textEl.textContent = 'המערכת מנתחת את היסטוריית הנהיגה שלך... סע בזהירות!';
-    }
+    if (types['speeding']) tips.push('מומלץ להשתמש בבקרת שיוט בכבישים מהירים לגילוי מוקדם של מצלמות והימנעות מקנסות.');
+    if (types['phone']) tips.push('התקן דיבורית איכותית ברכב כדי למנוע היסח דעת וקנסות כבדים בגין שימוש בנייד.');
+    if (types['parking']) tips.push('שים לב לשילוט עירוני והשתמש באפליקציות חניה חכמות (כגון פנגו/סלופארק) כדי להימנע מדוחות.');
+    
+    tips.push('זכור: צבירת 36 נקודות תגרור שלילת רישיון נהיגה ל-3 חודשים לפחות.');
+    tips.push('נהיגה מונעת מצילה חיים - הקפד על שמירת מרחק ראוי מהרכב שלפניך.');
+
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    textEl.textContent = randomTip;
 }
 
 window.toggleCustomType = function(val) {
@@ -259,6 +264,13 @@ window.openAddReportModal = function() {
     document.getElementById('custom-type-container').style.display = 'none';
     document.getElementById('reportImagesPreviewContainer').classList.add('d-none');
     document.getElementById('reportImagesList').innerHTML = '';
+    
+    const dateInput = document.getElementById('report-date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.max = today;
+    }
+    
     const modal = new bootstrap.Modal(document.getElementById('addReportModal'));
     modal.show();
 }
@@ -273,12 +285,18 @@ window.saveReport = function(e) {
     const imageElements = document.querySelectorAll('#reportImagesList img');
     const images = Array.from(imageElements).map(img => img.src);
 
+    const reportDateStr = document.getElementById('report-date').value;
+    const reportDate = new Date(reportDateStr);
+    const dueDateObj = new Date(reportDate);
+    dueDateObj.setDate(dueDateObj.getDate() + 90);
+    const dueDateStr = dueDateObj.toISOString().split('T')[0];
+
     const reportData = {
         id: id || Date.now().toString(),
         typeVal: typeVal,
         title: offenseTitles[typeSelect] || typeCustom || 'עבירת תנועה',
-        date: document.getElementById('report-date').value,
-        dueDate: document.getElementById('report-due-date').value,
+        date: reportDateStr,
+        dueDate: dueDateStr,
         location: document.getElementById('report-location').value,
         amount: document.getElementById('report-amount-input').value,
         points: document.getElementById('report-points-input').value,
@@ -324,7 +342,6 @@ window.editReport = function(id) {
     }
 
     document.getElementById('report-date').value = window.toInputDate(report.date);
-    document.getElementById('report-due-date').value = window.toInputDate(report.dueDate);
     document.getElementById('report-location').value = report.location || '';
     document.getElementById('report-amount-input').value = report.amount || 0;
     document.getElementById('report-points-input').value = report.points || 0;
@@ -408,3 +425,12 @@ document.addEventListener('submit', function(e) {
         window.saveReport(e);
     }
 });
+
+window.openReportImage = function(src) {
+    const preview = document.getElementById('reportImageModalPreview');
+    if (preview) {
+        preview.src = src;
+        const modal = new bootstrap.Modal(document.getElementById('reportImageModal'));
+        modal.show();
+    }
+};

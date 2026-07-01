@@ -1,8 +1,21 @@
 // --- MODULE: TREATMENTS & INVOICES ---
 window.loadTreatments = function () {
+    if (!window.currentCar) {
+        const stored = localStorage.getItem('currentCar');
+        if (stored) window.currentCar = JSON.parse(stored);
+    }
+    if (!window.currentCar) return;
+
     const tbody = document.getElementById('treatmentsTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
+
+    // Apply max date restrictions to the Date Pickers
+    const today = new Date().toISOString().split('T')[0];
+    const tDateElem = document.getElementById('tDate');
+    const editTDateElem = document.getElementById('editTDate');
+    if (tDateElem) tDateElem.setAttribute('max', today);
+    if (editTDateElem) editTDateElem.setAttribute('max', today);
 
     // Ensure array exists
     if (!currentCar.treatments) currentCar.treatments = [];
@@ -32,13 +45,13 @@ window.loadTreatments = function () {
         const costVal = parseInt(t.cost) || 0;
 
         tr.innerHTML = `
-            <td>${window.formatDate(t.date)}</td>
-            <td>${t.type || '-'}</td>
-            <td>${t.garage || '-'}</td>
-            <td>${kmVal.toLocaleString()}</td>
-            <td>${invoiceHtml}</td>
-            <td>${costVal.toLocaleString()} ₪</td>
-            <td>
+            <td data-label="תאריך">${window.formatDate(t.date)}</td>
+            <td data-label="סוג טיפול">${t.type || '-'}</td>
+            <td data-label="מוסך">${t.garage || '-'}</td>
+            <td data-label="ק&quot;מ">${kmVal.toLocaleString()}</td>
+            <td data-label="חשבונית">${invoiceHtml}</td>
+            <td data-label="מחיר">${costVal.toLocaleString()} ₪</td>
+            <td data-label="פעולות">
                 <button class="btn btn-sm btn-outline-primary" style="margin-left: 5px;" onclick="window.openEditTreatmentModal(${t.id})">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -97,7 +110,7 @@ window.saveTreatment = function () {
         if (typeof loadOverview === 'function') loadOverview(); // Update expenses
 
         // Modal & Reset
-        const addModal = bootstrap.Modal.getInstance(document.getElementById('addTreatmentModal'));
+        const addModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addTreatmentModal'));
         if (addModal) addModal.hide();
         document.getElementById('addTreatmentForm').reset();
     };
@@ -130,7 +143,17 @@ window.viewInvoice = function (tId) {
     const t = currentCar.treatments.find(x => x.id == tId);
     if (t && t.invoice) {
         document.getElementById('invoicePreviewImg').src = t.invoice;
-        new bootstrap.Modal(document.getElementById('invoiceModal')).show();
+        const modalElem = document.getElementById('invoiceModal');
+        const modalInstance = new bootstrap.Modal(modalElem);
+        
+        // Overlay Click: Close if clicking anywhere outside the image
+        modalElem.onclick = function(event) {
+            if (event.target.id !== 'invoicePreviewImg') {
+                modalInstance.hide();
+            }
+        };
+
+        modalInstance.show();
     }
 }
 
@@ -183,7 +206,7 @@ window.updateTreatment = function () {
         loadTreatments();
         if (typeof loadOverview === 'function') loadOverview();
 
-        const editModal = bootstrap.Modal.getInstance(document.getElementById('editTreatmentModal'));
+        const editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editTreatmentModal'));
         if (editModal) editModal.hide();
         document.getElementById('editTreatmentForm').reset();
     };

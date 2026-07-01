@@ -47,3 +47,23 @@
     border-color: #ffc720;
     color: #fff;
 }
+/* --- Mobile Fixes for Reports Page --- */
+@media (max-width: 768px) {
+    /* Modal sticky footer & scrolling fix */
+    #addReportModal .modal-dialog {
+        margin: 0;
+        height: 100vh;
+        max-width: 100vw;
+    }
+    #addReportModal .modal-content {
+        max-height: 100vh !important;
+        height: 100vh;
+        border-radius: 0 !important;
+        display: flex;
+        flex-direction: column;
+    }
+    #addReportModal .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+}
