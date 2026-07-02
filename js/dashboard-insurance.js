@@ -26,8 +26,12 @@ window.loadInsurance = function () {
         const headerCostEl = document.getElementById(`hdr-cost-${type}`);
         const dateEl = document.getElementById(`date-${type}`);
         const viewBtn = document.getElementById(`view-${type}`);
+        const editBtn = document.querySelector(`button[onclick="openEditInsurance('${type}')"]`);
+        
+        const hasData = insData && (insData.date || insData.company || insData.policyNum || insData.cost);
 
-        if (insData && insData.date) {
+        if (hasData) {
+            if (editBtn) editBtn.innerHTML = '<i class="fas fa-edit me-1"></i> ערוך';
             const currentCost = insData.cost ? parseInt(insData.cost) : 0;
             totalCost += currentCost;
             
@@ -35,9 +39,9 @@ window.loadInsurance = function () {
             policyEl.textContent = insData.policyNum || '--';
             costEl.textContent = currentCost.toLocaleString() + ' ₪';
             if (headerCostEl) headerCostEl.textContent = currentCost.toLocaleString() + ' ₪';
-            dateEl.textContent = window.formatDate(insData.date);
+            dateEl.textContent = insData.date ? window.formatDate(insData.date) : '--';
 
-            let isFuture = typeof isDateFuture === 'function' && isDateFuture(insData.date);
+            let isFuture = insData.date && typeof isDateFuture === 'function' && isDateFuture(insData.date);
             let hasFile = !!insData.file;
             
             if (isFuture) {
@@ -110,6 +114,8 @@ window.loadInsurance = function () {
             }
 
         } else {
+            if (editBtn) editBtn.innerHTML = '<i class="fas fa-plus me-1"></i> הוספת ביטוח';
+            
             companyEl.textContent = '--';
             policyEl.textContent = '--';
             costEl.textContent = '--';
@@ -122,6 +128,11 @@ window.loadInsurance = function () {
             cardEl.style.borderColor = '#e2e8f0';
             
             viewBtn.classList.add('d-none');
+            
+            const extraBtn = document.getElementById(`extra-btn-${type}`);
+            const extraInfo = document.getElementById(`extra-info-${type}`);
+            if (extraBtn) extraBtn.classList.add('d-none');
+            if (extraInfo) extraInfo.classList.add('d-none');
         }
     });
 

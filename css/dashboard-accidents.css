@@ -22,6 +22,23 @@
     transform: scale(1.05);
 }
 
+/* Force sticky footer avoidance for accidents modal */
+#addAccidentModal {
+    padding-bottom: 80px !important;
+}
+
+#addAccidentModal .modal-dialog {
+    margin-bottom: 80px !important;
+}
+
+#addAccidentModal .modal-content {
+    max-height: calc(100vh - 120px) !important;
+}
+
+#addAccidentModal .modal-body {
+    overflow-y: auto !important;
+}
+
 /* --- Mobile Fixes for Accidents Page --- */
 @media (max-width: 768px) {
     /* Modal sticky footer & scrolling fix */
