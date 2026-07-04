@@ -1,0 +1,33 @@
+# Dependencies — never commit
+node_modules/
+
+# Environment variables — NEVER commit secrets!
+.env
+.env.local
+.env.production
+
+# Runtime logs
+*.log
+server.log
+server_output.log
+
+# Cache files
+fuel_cache.json
+
+# OS files
+.DS_Store
+Thumbs.db
+*.DS_Store
+
+# Temp directories
+tmp/
+
+# IDE
+.vscode/settings.json
+*.code-workspace
+
+# Supabase
+supabase/.temp/
+
+# Skills lock
+skills-lock.json
