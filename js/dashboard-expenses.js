@@ -102,14 +102,14 @@ function loadExpenses() {
 
     // Update KPIs with counter animation effect
     const totalEl = document.getElementById('totalYearlyExpenses');
-    if(totalEl) totalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
+    if(totalEl) totalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal);
     
     // Update chart central text HTML (replaces the canvas plugin drawing)
     const centerChartTotalEl = document.getElementById('chartCenterTotal');
     if(centerChartTotalEl) centerChartTotalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
 
     const avgEl = document.getElementById('avgMonthlyExpense');
-    if(avgEl) avgEl.textContent = new Intl.NumberFormat('he-IL').format(avgMonthly) + ' ₪';
+    if(avgEl) avgEl.textContent = '₪ ' + new Intl.NumberFormat('he-IL').format(avgMonthly);
 
     // Calculate AI Insight
     calculateFinancialAIInsights({

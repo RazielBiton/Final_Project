@@ -607,7 +607,7 @@ app.post('/api/fines', async (req, res) => {
             .input('Location', sql.NVarChar, location)
             .input('Amount', sql.Decimal(10, 2), amount)
             .input('Points', sql.Int, points)
-            .input('DocumentBase64', sql.NVarChar, documentBase64)
+            .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64)
             .input('IsHandled', sql.Bit, isHandled ? 1 : 0)
             .query(`
                 INSERT INTO Fines (VehicleId, OffenseType, Date, LastPaymentDate, Location, Amount, Points, DocumentBase64, IsHandled)
@@ -672,7 +672,7 @@ app.post('/api/treatments', async (req, res) => {
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date)
             .input('Type', sql.NVarChar, type).input('Description', sql.NVarChar, description)
             .input('Cost', sql.Decimal(10, 2), cost).input('GarageName', sql.NVarChar, garageName)
-            .input('Odometer', sql.Int, odometer).input('DocumentBase64', sql.NVarChar, documentBase64)
+            .input('Odometer', sql.Int, odometer).input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64)
             .query(`INSERT INTO Treatments (VehicleId, Date, Type, Description, Cost, GarageName, Odometer, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Type, @Description, @Cost, @GarageName, @Odometer, @DocumentBase64)`);
         res.json({ success: true, id: result.recordset[0].Id });
@@ -692,14 +692,15 @@ app.get('/api/fuellogs/:vehicleId', async (req, res) => {
 });
 app.post('/api/fuellogs', async (req, res) => {
     try {
-        const { vehicleId, date, time, liters, pricePerLiter, totalCost, odometer, documentBase64 } = req.body;
+        const { vehicleId, date, time, liters, pricePerLiter, totalCost, odometer, documentBase64, fuelType } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date).input('Time', sql.Time, time)
             .input('Liters', sql.Decimal(8, 2), liters).input('PricePerLiter', sql.Decimal(8, 2), pricePerLiter)
             .input('TotalCost', sql.Decimal(10, 2), totalCost).input('Odometer', sql.Int, odometer)
-            .input('DocumentBase64', sql.NVarChar, documentBase64)
-            .query(`INSERT INTO FuelLogs (VehicleId, Date, Time, Liters, PricePerLiter, TotalCost, Odometer, DocumentBase64) 
-                    OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Time, @Liters, @PricePerLiter, @TotalCost, @Odometer, @DocumentBase64)`);
+            .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64)
+            .input('FuelType', sql.NVarChar, fuelType)
+            .query(`INSERT INTO FuelLogs (VehicleId, Date, Time, Liters, PricePerLiter, TotalCost, Odometer, DocumentBase64, FuelType) 
+                    OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Time, @Liters, @PricePerLiter, @TotalCost, @Odometer, @DocumentBase64, @FuelType)`);
         res.json({ success: true, id: result.recordset[0].Id });
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
@@ -721,7 +722,7 @@ app.post('/api/expenses', async (req, res) => {
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Date', sql.Date, date).input('Category', sql.NVarChar, category)
             .input('Amount', sql.Decimal(10, 2), amount).input('Description', sql.NVarChar, description)
-            .input('DocumentBase64', sql.NVarChar, documentBase64)
+            .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64)
             .query(`INSERT INTO Expenses (VehicleId, Date, Category, Amount, Description, DocumentBase64) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Date, @Category, @Amount, @Description, @DocumentBase64)`);
         res.json({ success: true, id: result.recordset[0].Id });
@@ -746,7 +747,7 @@ app.post('/api/accidents', async (req, res) => {
             .input('VehicleId', sql.Int, vehicleId).input('Title', sql.NVarChar, title).input('Date', sql.Date, date)
             .input('Description', sql.NVarChar, description).input('DamageDetails', sql.NVarChar, damageDetails)
             .input('EstimatedCost', sql.Decimal(10, 2), estimatedCost).input('Cost', sql.Decimal(10, 2), cost)
-            .input('DocumentBase64', sql.NVarChar, documentBase64).input('ThirdPartyInvolved', sql.Bit, thirdPartyInvolved ? 1 : 0)
+            .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64).input('ThirdPartyInvolved', sql.Bit, thirdPartyInvolved ? 1 : 0)
             .input('IsHandled', sql.Bit, isHandled ? 1 : 0)
             .query(`INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, Cost, DocumentBase64, ThirdPartyInvolved, IsHandled) 
                     OUTPUT INSERTED.Id VALUES (@VehicleId, @Title, @Date, @Description, @DamageDetails, @EstimatedCost, @Cost, @DocumentBase64, @ThirdPartyInvolved, @IsHandled)`);
@@ -797,7 +798,7 @@ app.post('/api/insurance', async (req, res) => {
             .input('VehicleId', sql.Int, vehicleId).input('CompanyName', sql.NVarChar, companyName)
             .input('PolicyNumber', sql.NVarChar, policyNumber).input('ExpiryDate', sql.Date, expiryDate)
             .input('Type', sql.NVarChar, type).input('Cost', sql.Decimal(10, 2), cost)
-            .input('DocumentBase64', sql.NVarChar, documentBase64)
+            .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64)
             .input('Towing', sql.NVarChar, towing).input('Replacement', sql.NVarChar, replacement)
             .input('Glass', sql.NVarChar, glass).input('AgentName', sql.NVarChar, agentName)
             .input('AgentPhone', sql.NVarChar, agentPhone).input('DriverLimit', sql.NVarChar, driverLimit)
@@ -874,7 +875,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
                 cost: parseFloat(f.TotalCost) || 0,
                 pricePerLiter: parseFloat(f.PricePerLiter) || null,
                 odometer: f.Odometer || null,
-                energyType: (f.Liters && parseFloat(f.Liters) > 0) ? 'fuel' : 'electricity'
+                energyType: f.FuelType || ((f.Liters && parseFloat(f.Liters) > 0) ? 'fuel' : 'electricity')
             })),
 
             expenses: (car.expenses || []).map(e => ({
@@ -1022,7 +1023,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             .input('Km', sql.Int, car.km || 0)
             .input('Status', sql.NVarChar, car.status || 'פעיל')
             .input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
-            .input('SellSettings', sql.NVarChar, car.sellSettings ? JSON.stringify(car.sellSettings) : null)
+            .input('SellSettings', sql.NVarChar(sql.MAX), car.sellSettings ? JSON.stringify(car.sellSettings) : null)
             .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore, SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id');
 
         // 2. SAFE SYNC: Only replace a collection if the frontend sent it (not undefined)
@@ -1039,7 +1040,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                     .input('Garage', sql.NVarChar, t.garage || '')
                     .input('Cost', sql.Decimal(10, 2), parseFloat(t.cost) || 0)
                     .input('Km', sql.Int, parseInt(t.km) || 0)
-                    .input('Doc', sql.NVarChar, t.invoice || null)
+                    .input('Doc', sql.NVarChar(sql.MAX), t.invoice || null)
                     .query('INSERT INTO Treatments (VehicleId, Date, Type, Description, GarageName, Cost, Odometer, DocumentBase64) VALUES (@Vid, @Date, @Type, @Description, @Garage, @Cost, @Km, @Doc)');
             }
         }
@@ -1054,7 +1055,8 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                     .input('Cost', sql.Decimal(10, 2), parseFloat(f.cost) || 0)
                     .input('Price', sql.Decimal(8, 2), parseFloat(f.pricePerLiter) || 0)
                     .input('Odometer', sql.Int, parseInt(f.odometer) || null)
-                    .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost, Odometer) VALUES (@Vid, @Date, @Liters, @Price, @Cost, @Odometer)');
+                    .input('FuelType', sql.NVarChar, f.energyType || null)
+                    .query('INSERT INTO FuelLogs (VehicleId, Date, Liters, PricePerLiter, TotalCost, Odometer, FuelType) VALUES (@Vid, @Date, @Liters, @Price, @Cost, @Odometer, @FuelType)');
             }
         }
 
@@ -1411,7 +1413,7 @@ const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 let isFetchingAI = false;
 
 app.get('/api/current-fuel-ai', async (req, res) => {
-    let cache = { fuel95: "8.05", fuel98: "9.80", elecKwh: "0.6186", lastFetch: 0 };
+    let cache = { fuel95: "8.05", fuel98: "9.80", diesel: "7.70", elecKwh: "0.6186", lastFetch: 0 };
 
     // 1. Try to load from file
     if (fs.existsSync(CACHE_FILE)) {
@@ -1424,21 +1426,21 @@ app.get('/api/current-fuel-ai', async (req, res) => {
     const now = Date.now();
     // 2. If valid cache exists, return it
     if (now - cache.lastFetch < CACHE_DURATION && cache.lastFetch !== 0) {
-        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, diesel: cache.diesel, elecKwh: cache.elecKwh });
     }
 
     // 3. If already fetching, return current cache to avoid concurrency issues
     if (isFetchingAI) {
-        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, elecKwh: cache.elecKwh });
+        return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, diesel: cache.diesel, elecKwh: cache.elecKwh });
     }
 
     // 4. Fetch fresh data from Gemini
     isFetchingAI = true;
-    const FALLBACK_PRICES = { fuel95: "8.05", fuel98: "9.80", elecKwh: "0.6186" };
+    const FALLBACK_PRICES = { fuel95: "8.05", fuel98: "9.80", diesel: "7.70", elecKwh: "0.6186" };
     try {
         console.log("Fetching fresh Energy Prices from Gemini...");
         const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-        const prompt = `You are an Israeli fuel price assistant. Reply ONLY with a valid JSON object containing the latest known official fuel prices in Israel. Use only numeric string values (no N/A, no text). Example format: {"fuel95": "8.05", "fuel98": "9.80", "elecKwh": "0.6186"}`;
+        const prompt = `You are an Israeli fuel price assistant. Reply ONLY with a valid JSON object containing the latest known official fuel prices in Israel (in ILS). Include diesel. Use only numeric string values (no N/A, no text). Example format: {"fuel95": "8.05", "fuel98": "9.80", "diesel": "7.70", "elecKwh": "0.6186"}`;
         const result = await model.generateContent(prompt);
         const rawText = (await result.response).text().trim().replace(/\`\`\`json|\`\`\`/g, '').trim();
 
@@ -1452,6 +1454,7 @@ app.get('/api/current-fuel-ai', async (req, res) => {
         const validated = {
             fuel95: (newPrices.fuel95 && String(newPrices.fuel95) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel95))) ? String(newPrices.fuel95) : FALLBACK_PRICES.fuel95,
             fuel98: (newPrices.fuel98 && String(newPrices.fuel98) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel98))) ? String(newPrices.fuel98) : FALLBACK_PRICES.fuel98,
+            diesel: (newPrices.diesel && String(newPrices.diesel) !== 'N/A' && !isNaN(parseFloat(newPrices.diesel))) ? String(newPrices.diesel) : FALLBACK_PRICES.diesel,
             elecKwh: (newPrices.elecKwh && String(newPrices.elecKwh) !== 'N/A' && !isNaN(parseFloat(newPrices.elecKwh))) ? String(newPrices.elecKwh) : FALLBACK_PRICES.elecKwh
         };
 

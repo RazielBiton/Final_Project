@@ -373,7 +373,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">דגם רכב <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control db-form-control" id="editModel" maxlength="15" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold;">
+                                <input type="text" class="form-control db-form-control" id="editModel" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold;">
                             </div>
                         </div>
                         <div class="row g-3 mb-4">
@@ -641,15 +641,22 @@
                 <div class="modal-body">
                     <form id="add-fuel-form" onsubmit="event.preventDefault(); saveFuel();">
 
-                        <!-- Energy Type Selector (For Hybrids) -->
+                        <!-- Energy Type Selector -->
                         <div class="mb-4 text-center d-none" id="energyTypeSelector">
-                            <label class="form-label d-block text-muted small fw-bold">סוג אנרגיה</label>
+                            <label class="form-label d-block text-muted small fw-bold">סוג אנרגיה / דלק</label>
                             <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="energyType" id="energyPetrol" value="fuel"
                                     autocomplete="off" checked onchange="toggleEnergyFields()">
                                 <label class="btn btn-outline-warning fw-bold d-flex flex-column align-items-center"
                                     for="energyPetrol">
                                     <i class="fas fa-gas-pump mb-1"></i> בנזין
+                                </label>
+
+                                <input type="radio" class="btn-check" name="energyType" id="energyDiesel" value="diesel"
+                                    autocomplete="off" onchange="toggleEnergyFields()">
+                                <label class="btn btn-outline-dark fw-bold d-flex flex-column align-items-center"
+                                    for="energyDiesel">
+                                    <i class="fas fa-truck-monster mb-1"></i> סולר
                                 </label>
 
                                 <input type="radio" class="btn-check" name="energyType" id="energyElectric"

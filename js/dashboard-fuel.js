@@ -1,6 +1,6 @@
 // --- MODULE: FUEL TRACKING ---
 let fetchedEnergyPrices = false;
-window.livePrices = { fuel95: '7.95', elecKwh: '0.62', fuel98: '9.50' };
+window.livePrices = { fuel95: '7.95', fuel98: '9.50', diesel: '7.70', elecKwh: '0.62' };
 
 window.loadFuel = function () {
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
@@ -54,6 +54,8 @@ window.loadFuel = function () {
             addBtn.innerHTML = `<i class="fas fa-charging-station me-2"></i> הוסף טעינה`;
         } else if (isHybrid) {
             addBtn.innerHTML = `<i class="fas fa-bolt me-1"></i>/<i class="fas fa-gas-pump mx-1"></i> הוסף הזנה`;
+        } else if (ft.includes("דיזל")) {
+            addBtn.innerHTML = `<i class="fas fa-plus me-2"></i> הוסף תדלוק (סולר)`;
         } else {
             addBtn.innerHTML = `<i class="fas fa-plus me-2"></i> הוסף תדלוק`;
         }
@@ -87,12 +89,13 @@ window.loadFuel = function () {
     let html = '';
     sortedFuel.forEach(f => {
         const isElectricity = f.energyType === 'electricity';
+        const isDiesel = f.energyType === 'diesel';
 
         // Define display attributes based on energy type
         const amountText = f.amount ? (isElectricity ? `${f.amount} קוט״ש` : `${f.amount} ליטר`) : 'כמות לא צוינה';
-        const titleText = isElectricity ? 'טעינת חשמל' : 'תדלוק בנזין';
-        const iconClass = isElectricity ? 'fa-bolt' : 'fa-gas-pump';
-        const iconBg = isElectricity ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #f59e0b, #d97706)';
+        const titleText = isElectricity ? 'טעינת חשמל' : (isDiesel ? 'תדלוק סולר' : 'תדלוק בנזין');
+        const iconClass = isElectricity ? 'fa-bolt' : (isDiesel ? 'fa-truck-monster' : 'fa-gas-pump');
+        const iconBg = isElectricity ? 'linear-gradient(135deg, #10b981, #059669)' : (isDiesel ? 'linear-gradient(135deg, #475569, #1e293b)' : 'linear-gradient(135deg, #f59e0b, #d97706)');
 
         const dateFormatted = window.formatDate(f.date);
 
@@ -117,7 +120,7 @@ window.loadFuel = function () {
             : '';
 
         html += `
-            <div class="p-3 mb-3 d-flex justify-content-between align-items-center flex-wrap" style="background:#fff; border:1px solid #f1f5f9; border-radius:18px; transition:all 0.2s; border-right: 4px solid ${isElectricity ? '#10b981' : '#f59e0b'};">
+            <div class="p-3 mb-3 d-flex justify-content-between align-items-center flex-wrap" style="background:#fff; border:1px solid #f1f5f9; border-radius:18px; transition:all 0.2s; border-right: 4px solid ${isElectricity ? '#10b981' : (isDiesel ? '#475569' : '#f59e0b')};">
                 <div class="d-flex align-items-center mb-3 mb-md-0">
                     <div style="width:48px; height:48px; background:${iconBg}; border-radius:12px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-inline-end: 15px; flex-shrink: 0;">
                         <i class="fas ${iconClass}" style="color:white; font-size:1.1rem;"></i>
@@ -163,10 +166,11 @@ window.toggleEnergyFields = function () {
         priceLabel.textContent = 'מחיר לקוט״ש (₪)';
         priceInput.value = window.livePrices.elecKwh;
     } else {
+        const isDieselSelected = document.getElementById('energyDiesel') && document.getElementById('energyDiesel').checked;
         amountLabel.textContent = 'כמות ליטרים (אופציונלי)';
         amountInput.placeholder = "לדוג': 25";
         priceLabel.textContent = 'מחיר לליטר (₪)';
-        priceInput.value = window.livePrices.fuel95;
+        priceInput.value = isDieselSelected ? window.livePrices.diesel : window.livePrices.fuel95;
     }
 
     calculateTotalFuelCost();
@@ -205,6 +209,7 @@ window.openAddFuelModal = function () {
     const ft = currentCar.fuelType || "";
     const isEV = ft === "חשמל";
     const isHybrid = ft.includes("חשמל/בנזין") || ft.includes("בנזין/חשמל");
+    const isDiesel = ft.includes("דיזל");
 
     const selectorDiv = document.getElementById('energyTypeSelector');
     const modalTitle = document.getElementById('addFuelModalTitle');
@@ -221,6 +226,10 @@ window.openAddFuelModal = function () {
             document.getElementById('energyElectric').checked = true;
             if (modalTitle) modalTitle.textContent = 'הוספת רישום טעינה';
             if (submitBtn) submitBtn.textContent = 'שמור טעינה';
+        } else if (isDiesel) {
+            document.getElementById('energyDiesel').checked = true;
+            if (modalTitle) modalTitle.textContent = 'הוספת תדלוק סולר';
+            if (submitBtn) submitBtn.textContent = 'שמור תדלוק';
         } else {
             document.getElementById('energyPetrol').checked = true;
             if (modalTitle) modalTitle.textContent = 'הוספת תדלוק חדש';
@@ -268,6 +277,9 @@ window.editFuel = function (id) {
 
     if (record.energyType === 'electricity') {
         document.getElementById('energyElectric').checked = true;
+    } else if (record.energyType === 'diesel') {
+        const dieselOption = document.getElementById('energyDiesel');
+        if (dieselOption) dieselOption.checked = true;
     } else {
         document.getElementById('energyPetrol').checked = true;
     }
@@ -302,7 +314,9 @@ window.saveFuel = function () {
     const cost = document.getElementById('fCost').value;
     const date = document.getElementById('fDate').value;
     const amount = document.getElementById('fAmount').value;
-    const energyType = document.getElementById('energyElectric').checked ? 'electricity' : 'fuel';
+    const isElectric = document.getElementById('energyElectric').checked;
+    const isDiesel = document.getElementById('energyDiesel') && document.getElementById('energyDiesel').checked;
+    const energyType = isElectric ? 'electricity' : (isDiesel ? 'diesel' : 'fuel');
 
     if (!cost || !date) {
         alert('יש למלא עלות ותאריך.');
@@ -373,7 +387,7 @@ window.fetchIsraelEnergyPrices = async function () {
     if (cachedData) {
         try {
             const { prices, timestamp } = JSON.parse(cachedData);
-            const isValid = prices && prices.fuel95 && prices.fuel95 !== 'N/A' && !isNaN(parseFloat(prices.fuel95));
+            const isValid = prices && prices.fuel95 && prices.fuel95 !== 'N/A' && !isNaN(parseFloat(prices.fuel95)) && prices.diesel && !isNaN(parseFloat(prices.diesel));
             if (isValid && Date.now() - timestamp < CACHE_DURATION) {
                 console.log("Using cached fuel prices:", prices);
                 window.livePrices = prices;
@@ -398,6 +412,7 @@ window.fetchIsraelEnergyPrices = async function () {
         
         if (prices.fuel95) window.livePrices.fuel95 = prices.fuel95;
         if (prices.fuel98) window.livePrices.fuel98 = prices.fuel98;
+        if (prices.diesel) window.livePrices.diesel = prices.diesel;
         if (prices.elecKwh) window.livePrices.elecKwh = prices.elecKwh;
         
         localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -407,7 +422,7 @@ window.fetchIsraelEnergyPrices = async function () {
         
     } catch (e) { 
         console.error("AI Price fetch error, using safe fallbacks.", e);
-        window.livePrices = { fuel95: '7.95', elecKwh: '0.62', fuel98: '9.50' };
+        window.livePrices = { fuel95: '7.95', fuel98: '9.50', diesel: '7.70', elecKwh: '0.62' };
     } finally {
         updateFuelPriceUI();
     }
@@ -416,6 +431,7 @@ window.fetchIsraelEnergyPrices = async function () {
 function updateFuelPriceUI() {
     if (document.getElementById('price-fuel-95')) document.getElementById('price-fuel-95').textContent = window.livePrices.fuel95;
     if (document.getElementById('price-fuel-98')) document.getElementById('price-fuel-98').textContent = window.livePrices.fuel98;
+    if (document.getElementById('price-diesel')) document.getElementById('price-diesel').textContent = window.livePrices.diesel;
     if (document.getElementById('price-elec')) document.getElementById('price-elec').textContent = window.livePrices.elecKwh;
     
     const modeInput = document.getElementById('fPricePerUnit');

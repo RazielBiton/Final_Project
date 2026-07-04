@@ -1,28 +1,39 @@
 <div id="expenses-section" class="dashboard-section d-none">
     <!-- Top Row: Apple Wallet Premium Card & AI Insights -->
     <div class="db-row mb-4">
-        <!-- Digital Wallet / Apple Card Style -->
+        <!-- Sleek High-Performance Platinum Widget -->
         <div class="db-col-lg-5 mb-4 mb-lg-0">
-            <div class="db-wallet-card h-100 hover-lift">
+            <div class="platinum-expense-card h-100">
+                <!-- Glowing Top Accent Line -->
+                <div class="pec-accent-line"></div>
+                
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <i class="fas fa-wallet fa-2x" style="opacity: 0.8;"></i>
+                    <div class="pec-icon-wrap">
+                        <i class="fas fa-credit-card"></i>
                     </div>
-                    <div style="font-family: monospace; font-size: 1.2rem; opacity: 0.8;">
-                        <span id="walletVehiclePlate">000-00-000</span> <i class="fas fa-car ms-1"></i>
+                    <div class="pec-plate-badge">
+                        <i class="fas fa-car me-2" style="opacity: 0.6;"></i>
+                        <span id="walletVehiclePlate">000-00-000</span>
                     </div>
                 </div>
-                <div>
-                    <h6 style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem; margin-bottom: 2px;">סך ההוצאות המצטבר (כל הזמנים)</h6>
-                    <h2 class="m-0 fw-bold" style="font-size: 2.8rem; letter-spacing: -1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);" id="totalYearlyExpenses">0 ₪</h2>
-                </div>
-                <div class="d-flex justify-content-between align-items-end mt-4">
-                    <div>
-                        <small style="color: rgba(255,255,255,0.7); display: block;">חודש נוכחי מעורך</small>
-                        <span class="fw-bold fs-5" id="avgMonthlyExpense">0 ₪</span>
+
+                <div class="pec-balance-wrap">
+                    <h6 class="pec-label">סך הוצאות מצטבר</h6>
+                    <div class="pec-amount-group">
+                        <span class="pec-currency">₪</span>
+                        <!-- JS sets "XXXX ₪", so we remove the currency here to avoid double ₪ if the JS still appends it -->
+                        <h2 class="pec-value m-0" id="totalYearlyExpenses">0 ₪</h2>
                     </div>
-                    <button class="db-btn" onclick="openAddExpenseModal()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">
-                        <i class="fas fa-plus me-1"></i> הוסף רישום
+                </div>
+
+                <div class="pec-footer mt-4 pt-3">
+                    <div>
+                        <small class="pec-label d-block mb-1">חודש נוכחי (משוער)</small>
+                        <span class="pec-monthly-val" id="avgMonthlyExpense">0 ₪</span>
+                    </div>
+                    <button class="pec-add-btn" onclick="openAddExpenseModal()">
+                        <i class="fas fa-plus pe-1"></i>
+                        <span>רישום הוצאה</span>
                     </button>
                 </div>
             </div>

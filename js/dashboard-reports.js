@@ -266,9 +266,11 @@ window.openAddReportModal = function() {
     const form = document.getElementById('add-report-form');
     if (form) form.reset();
     document.getElementById('reportIdField').value = '';
-    document.getElementById('custom-type-container').style.display = 'none';
-    document.getElementById('reportImagesPreviewContainer').classList.add('d-none');
-    document.getElementById('reportImagesList').innerHTML = '';
+    const previewImg = document.getElementById('reportSingleImagePreview');
+    if (previewImg) {
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+    }
     
     const modalTitle = document.querySelector('#addReportModal .modal-title');
     if (modalTitle) {
@@ -292,8 +294,8 @@ window.saveReport = function(e) {
     const typeCustom = document.getElementById('report-type-custom').value;
     const typeVal = (typeSelect === 'other' ? ('other:' + typeCustom) : typeSelect);
     
-    const imageElements = document.querySelectorAll('#reportImagesList img');
-    const images = Array.from(imageElements).map(img => img.src);
+    const previewImg = document.getElementById('reportSingleImagePreview');
+    const images = (previewImg && previewImg.style.display !== 'none' && previewImg.src) ? [previewImg.src] : [];
 
     const reportDateStr = document.getElementById('report-date').value;
     const reportDate = new Date(reportDateStr);
@@ -356,18 +358,15 @@ window.editReport = function(id) {
     document.getElementById('report-amount-input').value = report.amount || 0;
     document.getElementById('report-points-input').value = report.points || 0;
 
-    const previewContainer = document.getElementById('reportImagesPreviewContainer');
-    const list = document.getElementById('reportImagesList');
-    list.innerHTML = '';
-    if (report.images && report.images.length > 0) {
-        previewContainer.classList.remove('d-none');
-        report.images.forEach(img => {
-            const div = document.createElement('div');
-            div.className = 'position-relative';
-            div.innerHTML = `<img src="${img}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;">
-                             <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 start-0" style="padding:0 5px;" onclick="this.parentElement.remove()">×</button>`;
-            list.appendChild(div);
-        });
+    const previewImg = document.getElementById('reportSingleImagePreview');
+    if (previewImg) {
+        if (report.images && report.images.length > 0) {
+            previewImg.src = report.images[0];
+            previewImg.style.display = 'block';
+        } else {
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+        }
     }
 
     const modalTitle = document.querySelector('#addReportModal .modal-title');
@@ -420,26 +419,53 @@ window.filterReports = function (status) {
     });
 }
 
-// Handle image uploads via button
+// Handle image uploads via button with Canvas Compression
 document.addEventListener('change', function(e) {
     if (e.target && e.target.id === 'reportImageInput') {
-        const files = e.target.files;
-        const list = document.getElementById('reportImagesList');
-        const previewContainer = document.getElementById('reportImagesPreviewContainer');
+        const file = e.target.files[0];
+        if (!file) return;
         
-        if (files.length > 0) previewContainer.classList.remove('d-none');
+        const previewImg = document.getElementById('reportSingleImagePreview');
+        const reader = new FileReader();
         
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const div = document.createElement('div');
-                div.className = 'position-relative';
-                div.innerHTML = `<img src="${event.target.result}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;">
-                                 <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 start-0" style="padding:0 5px;" onclick="this.parentElement.remove()">×</button>`;
-                list.appendChild(div);
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                const MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Export as compressed JPEG
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Show the beautiful preview
+                if (previewImg) {
+                    previewImg.src = compressedBase64;
+                    previewImg.style.display = 'block';
+                }
             };
-            reader.readAsDataURL(file);
-        });
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 });
 

@@ -86,6 +86,9 @@ window.loadOverview = function () {
         colorPreview.style.border = (mapped === 'white' || mapped === 'transparent') ? '1px solid #ccc' : '1px solid ' + mapped;
     }
 
+    const setTextEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val || '--'; };
+    setTextEl('info-model', currentCar.model);
+
     const fuelText = currentCar.fuelType || '--';
     const fuelEl = document.getElementById('info-fuel');
     if (fuelEl) fuelEl.textContent = fuelText;
@@ -99,16 +102,32 @@ window.loadOverview = function () {
         fuelIcon.style.display = 'block';
     }
 
-    const setTextEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val || '--'; };
+
     setTextEl('info-tire-f', currentCar.tireFront);
     setTextEl('info-tire-r', currentCar.tireRear);
     setTextEl('info-volume', currentCar.engineVolume);
     setTextEl('info-hp', currentCar.horsePower);
 
     const tagBadge = document.getElementById('info-tag');
-    if (tagBadge) {
-        tagBadge.textContent = currentCar.hasDisabledTag ? 'תו נכה פעיל ♿' : 'ללא תו נכה';
-        tagBadge.className = currentCar.hasDisabledTag ? 'badge bg-success' : 'badge bg-secondary';
+    const tagIconContainer = document.getElementById('tagIconContainer');
+    const tagCubeContainer = document.getElementById('tagCubeContainer');
+    
+    if (tagBadge && tagIconContainer && tagCubeContainer) {
+        if (currentCar.hasDisabledTag) {
+            tagBadge.textContent = 'פעיל ♿';
+            tagBadge.style.color = '#16a34a';
+            tagIconContainer.style.background = '#dcfce7';
+            tagIconContainer.style.boxShadow = 'inset 0 2px 4px rgba(22, 163, 74, 0.08)';
+            tagIconContainer.innerHTML = '<i class="fas fa-wheelchair" style="font-size:1.3rem;color:#16a34a;"></i>';
+            tagCubeContainer.style.border = '1px solid #dcfce7';
+        } else {
+            tagBadge.textContent = 'ללא תו';
+            tagBadge.style.color = '#64748b';
+            tagIconContainer.style.background = '#f1f5f9';
+            tagIconContainer.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.06)';
+            tagIconContainer.innerHTML = '<i class="fas fa-wheelchair" style="font-size:1.3rem;color:#94a3b8;"></i>';
+            tagCubeContainer.style.border = '1px solid #f1f5f9';
+        }
     }
 
     // ── Expense Chart ─────────────────────────────────────────────

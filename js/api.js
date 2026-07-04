@@ -23,10 +23,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             // מילוי השדות בדף
             document.getElementById('res_plate').value = car.mispar_rechev;
             document.getElementById('res_make').value = car.tozeret_nm;
-            document.getElementById('res_model').value = car.degem_nm;
+            document.getElementById('res_model').value = car.kinuy_mishari;
             document.getElementById('res_year').value = car.shnat_yitzur;
             document.getElementById('res_color').value = car.tzeva_rechev;
-            document.getElementById('res_fuel').value = car.sug_delek_nm;
+            let fuelType = car.sug_delek_nm;
+            if (car.kinuy_mishari && car.kinuy_mishari.toLowerCase().includes('hybrid')) {
+                fuelType = 'חשמל/בנזין (היברידי)';
+            }
+            document.getElementById('res_fuel').value = fuelType;
 
             // --- חישוב תאריך טסט (שנה קדימה מהמבחן האחרון) ---
             document.getElementById('res_test').value = formatNextTestDate(car.mivchan_acharon_dt);

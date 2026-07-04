@@ -5,22 +5,116 @@
     border-radius: 24px !important;
 }
 
-/* Apple Card Gradient Element */
-.db-wallet-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
-    color: white;
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); /* Simplified box shadow */
+/* --- PLATINUM EXPENSE CARD (High Performance, No Freezing) --- */
+.platinum-expense-card {
+    background: #0f172a; /* Solid dark base to prevent backdrop-filter lag */
+    background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 20px;
+    padding: 28px;
+    color: #ffffff;
     position: relative;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* Lightweight shadow */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     overflow: hidden;
-    /* Added a direct radial gradient instead of a huge pseudo-element */
-    background-image: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, transparent 40%), linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
-.db-wallet-card > div {
-    position: relative;
-    z-index: 1; /* Keep content above background elements */
+.pec-accent-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4, #8b5cf6);
+}
+
+.pec-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #60a5fa;
+    font-size: 1.3rem;
+}
+
+.pec-plate-badge {
+    background: rgba(255,255,255,0.05);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-family: monospace;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    color: #cbd5e1;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.pec-balance-wrap {
+    margin: 20px 0;
+}
+
+.pec-label {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.pec-amount-group {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.pec-currency {
+    color: #60a5fa;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.pec-value {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: #ffffff;
+}
+
+.pec-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.pec-monthly-val {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.pec-add-btn {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pec-add-btn:hover {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 /* AI Insights Box */
