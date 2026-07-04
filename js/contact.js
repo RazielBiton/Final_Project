@@ -2,6 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contactForm');
     const contactSubmitBtn = document.getElementById('contactSubmitBtn');
     const contactFeedback = document.getElementById('contactFeedback');
+    const contactMessage = document.getElementById('contactMessage');
+    const charCount = document.getElementById('mobileCharCount');
+
+    if (contactMessage && charCount) {
+        contactMessage.addEventListener('input', () => {
+            charCount.textContent = `${contactMessage.value.length}/300`;
+        });
+    }
 
     if (contactForm) {
         contactForm.addEventListener('submit', async (e) => {
@@ -18,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             contactSubmitBtn.disabled = true;
-            contactSubmitBtn.textContent = 'שולח...';
+            contactSubmitBtn.textContent = 'שולח...\u200F';
             showFeedback('', 'transparent');
 
             try {
@@ -31,8 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (data.success) {
-                    showFeedback('הפנייה נשלחה בהצלחה! תודה.', 'green');
+                    alert('הפנייה נשלחה בהצלחה! אנחנו נחזור אליך בהקדם.');
                     contactForm.reset();
+                    window.location.href = 'index.html';
                 } else {
                     showFeedback(data.error || 'אירעה שגיאה בשליחת הפנייה. נסה שוב מאוחר יותר.', 'red');
                 }

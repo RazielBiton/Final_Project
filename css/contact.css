@@ -61,7 +61,8 @@ h2 {
 }
 
 .right-inner-container {
-  width: 70%;
+  width: 85%;
+  max-width: 500px;
   height: 80%;
   text-align: center;
 }
@@ -77,17 +78,26 @@ input,
 textarea {
   direction: rtl;
   /* קובע את כיוון הכתיבה מימין לשמאל */
-  background-color: #eee;
-  border: none;
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
   padding: 12px 15px;
   margin: 8px 0;
   width: 100%;
   font-size: 0.8rem;
+  font-family: inherit;
+  border-radius: 4px;
 }
 
 input:focus,
 textarea:focus {
   outline: 1px solid #2d74d7;
+  border-color: #2d74d7;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-family: inherit;
+  color: #6c757d;
 }
 
 button {
@@ -129,18 +139,142 @@ form p {
 
 /* Media Queries */
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 768px) {
   .left-container {
-    display: none;
+    display: none !important;
   }
 
   .lg-view {
-    display: none;
+    display: none !important;
+  }
+
+  body {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    padding: 20px 0 !important;
+    background: #4778d2 !important;
+    flex-direction: column !important;
+  }
+
+  .container {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 90vh !important;
+    width: 90% !important;
+    max-width: 400px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    overflow-y: auto !important;
+    padding: 25px 20px !important;
+    border-radius: 24px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08) !important;
+    border: none !important;
+  }
+
+  .form-container {
+    height: auto !important;
+    flex-direction: column !important;
+  }
+
+  .right-container {
+    height: auto !important;
+  }
+
+  .right-inner-container {
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  h2.sm-view {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #2d3748 !important;
+    margin-bottom: 25px !important;
+    text-align: center !important;
+    display: block !important;
+  }
+
+  h2.sm-view::after {
+    display: none !important;
+  }
+
+  .mobile-buttons-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-top: 20px !important;
+  }
+
+  input, textarea {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    font-size: 1rem !important;
+    margin-bottom: 16px !important;
+    box-shadow: none !important;
+    transition: border-color 0.3s ease !important;
+    font-family: inherit;
+  }
+
+  textarea {
+    min-height: 120px !important;
+    resize: none !important;
+  }
+
+  .mobile-buttons-wrapper button#contactSubmitBtn {
+    width: 100% !important;
+    padding: 15px !important;
+    border-radius: 14px !important;
+    background-color: #4361ee !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3) !important;
+    margin-bottom: 15px !important;
+    display: block !important;
+  }
+
+  .mobile-buttons-wrapper a.btn_home {
+    width: 100% !important;
+    padding: 15px !important;
+    border-radius: 14px !important;
+    background-color: transparent !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+    border: 2px solid #e2e8f0 !important;
+    text-decoration: none !important;
+    display: block !important;
+    text-align: center !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #mobileCharCount {
+    text-align: left !important;
+    direction: ltr !important;
+    color: #94a3b8 !important;
+    font-size: 0.85rem !important;
+    margin-top: -10px !important;
+    margin-bottom: 20px !important;
+    padding-left: 5px !important;
+    display: block !important;
+  }
+
+  br.sm-view {
+    display: none !important;
   }
 }
 
-@media only screen and (min-width: 600px) {
+@media only screen and (min-width: 769px) {
   .sm-view {
-    display: none;
+    display: none !important;
   }
 }
