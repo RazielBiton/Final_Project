@@ -136,7 +136,7 @@
 
         <!-- QR Sticker Card -->
         <div class="col-md-6">
-            <div class="generator-card qr-action" data-bs-toggle="modal" data-bs-target="#qrModal" onclick="window.generateStickerQR()" style="cursor: pointer;">
+            <div class="generator-card qr-action" onclick="window.generateStickerQR()" style="cursor: pointer;">
                 <div class="icon-wrapper">
                     <i class="fas fa-qrcode"></i>
                 </div>
@@ -178,81 +178,79 @@
 </div>
 
 <!-- THE PDF CONTAINER - ENTERPRISE GRADE -->
+<!-- PDF EXPORT CONTAINER -->
 <div id="pdf-export-container">
-    <div id="pdf-content" class="pdf-document">
-        
-        <!-- Header -->
-        <div class="pdf-header">
-            <div class="pdf-header-text">
-                <div style="background: #0f172a; color: white; display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; margin-bottom: 10px;">OFFICIAL CERTIFICATE</div>
-                <h1 class="pdf-title">דוח&nbsp;רכב&nbsp;למכירה&nbsp;-&nbsp;שקיפות&nbsp;מלאה</h1>
-                <p id="pdf-subtitle" class="pdf-subtitle">--</p>
-            </div>
-            <div style="flex: 0 0 160px; display: flex; justify-content: flex-end; padding-left: 10px;">
-                <img id="pdf-logo" src="" alt="Brand" class="pdf-logo" style="display: none; max-width: 150px; max-height: 50px; object-fit: contain;">
-            </div>
-        </div>
+  <div id="pdf-content" class="pdf-document">
 
-        <!-- Seller's Pitch -->
-        <div id="pdf-seller-pitch-container" class="pdf-seller-pitch" style="display: none;">
-            <div class="pdf-pitch-icon">"</div>
-            <p id="pdf-seller-pitch-text" class="pdf-pitch-text"></p>
-        </div>
-
-        <!-- Specs Grid -->
-        <div class="pdf-section">
-            <h3 class="pdf-section-title">מפרט&nbsp;טכני&nbsp;ונתונים&nbsp;בסיסיים</h3>
-            <div class="pdf-specs-grid">
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">דגם</span>
-                    <span id="pdf-spec-model" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">שנה</span>
-                    <span id="pdf-metric-year" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">קילומטראז'</span>
-                    <span id="pdf-metric-km" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">מנוע</span>
-                    <span id="pdf-spec-engine" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">כ"ס</span>
-                    <span id="pdf-spec-hp" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">סוג&nbsp;דלק</span>
-                    <span id="pdf-spec-fuel" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">יד</span>
-                    <span id="pdf-spec-hand" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">צבע</span>
-                    <span id="pdf-spec-color" class="pdf-spec-value">--</span>
-                </div>
-                <div class="pdf-spec-item">
-                    <span class="pdf-spec-label">טסט&nbsp;בתוקף</span>
-                    <span id="pdf-metric-test" class="pdf-spec-value">--</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dynamic Content (Treatments, Accidents, Insurance, Gallery) -->
-        <div id="pdf-dynamic-content"></div>
-
-        <!-- Footer -->
-        <div class="pdf-footer" style="text-align: center; direction: rtl;">
-            <div id="pdf-footer-time" style="margin-bottom: 5px; font-weight: 600;">--</div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                <span>הופק באמצעות מערכת ניהול הרכב של</span>
-                <span style="font-family: Arial, sans-serif;" dir="ltr">EasyCare.</span>
-                <span dir="ltr">&copy; 2026</span>
-            </div>
-        </div>
+    <!-- Badge -->
+    <div class="pdf-badge-row">
+      <span class="pdf-official-badge">OFFICIAL CERTIFICATE</span>
     </div>
+
+    <!-- Header -->
+    <div class="pdf-header">
+      <img id="pdf-logo" class="pdf-logo" src="" alt="Logo" style="display:none;">
+      <div class="pdf-header-text">
+        <h1 class="pdf-title">דוח<span style="unicode-bidi:plaintext"> </span>רכב<span style="unicode-bidi:plaintext"> </span>למכירה<span style="unicode-bidi:plaintext"> </span>שקיפות<span style="unicode-bidi:plaintext"> </span>מלאה</h1>
+        <p id="pdf-subtitle" class="pdf-subtitle"></p>
+      </div>
+    </div>
+
+    <!-- Seller Pitch -->
+    <div id="pdf-seller-pitch-container" class="pdf-seller-pitch" style="display:none;">
+      <span class="pdf-pitch-icon">"</span>
+      <p id="pdf-seller-pitch-text" class="pdf-pitch-text"></p>
+    </div>
+
+    <!-- Specs Grid -->
+    <h3 class="pdf-section-title">מפרט<span style="unicode-bidi:plaintext"> </span>טכני<span style="unicode-bidi:plaintext"> </span>ונתונים<span style="unicode-bidi:plaintext"> </span>בסיסיים</h3>
+    <div class="pdf-specs-grid">
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">דגם</span>
+        <div class="pdf-spec-value" id="pdf-spec-model">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">שנה</span>
+        <div class="pdf-spec-value" id="pdf-metric-year">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">קילומטראז</span>
+        <div class="pdf-spec-value" id="pdf-metric-km">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">מנוע</span>
+        <div class="pdf-spec-value" id="pdf-spec-engine">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">כ"ס</span>
+        <div class="pdf-spec-value" id="pdf-spec-hp">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">סוג דלק</span>
+        <div class="pdf-spec-value" id="pdf-spec-fuel">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">יד</span>
+        <div class="pdf-spec-value" id="pdf-spec-hand">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">צבע</span>
+        <div class="pdf-spec-value" id="pdf-spec-color">-</div>
+      </div>
+      <div class="pdf-spec-item">
+        <span class="pdf-spec-label">טסט בתוקף</span>
+        <div class="pdf-spec-value" id="pdf-metric-test">-</div>
+      </div>
+    </div>
+
+    <!-- Dynamic: tables + gallery -->
+    <div id="pdf-dynamic-content"></div>
+
+    <!-- Footer -->
+    <div class="pdf-footer">
+      <div id="pdf-footer-time"></div>
+      <div>הופק באמצעות מערכת ניהול הרכב של <span class="ltr-text">EasyCare</span> &copy; 2026</div>
+    </div>
+
+  </div>
 </div>

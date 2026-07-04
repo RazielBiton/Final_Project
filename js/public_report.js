@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             showError('לא מצאנו רכב תואם במערכת שלנו.');
         }
-    } catch(err) {
+    } catch (err) {
         showError('שגיאת חיבור לשרת המרכזי.');
     }
 });
@@ -46,23 +46,42 @@ function renderPublicReport(car) {
     document.getElementById('pr-km').textContent = car.km ? car.km.toLocaleString() : '--';
 
     // Test/MOT formatting
-    let testStr = '--';
-    if (car.testDate && car.testDate !== 'אין נתונים') {
-        const parts = car.testDate.split('/');
-        testStr = parts.length === 3 ? `${parts[1]}/${parts[2] || parts[0]}` : car.testDate;
-    }
-    document.getElementById('pr-test').textContent = testStr;
+    document.getElementById('pr-test').textContent = formatCleanDate(car.testDate);
 
     // Reliability calculation logic matched from dashboard 
     // In a real app the server would send this integer. We mock it natively here.
     let relScore = calculateLocalReliability(car);
     document.getElementById('pr-reliability').textContent = relScore + '%';
-    if (relScore >= 80) document.getElementById('pr-reliability').classList.add('text-success');
+    const relCircle = document.getElementById('pr-rel-circle');
+    const relText = document.getElementById('pr-reliability-text');
+
+    let relColor = 'var(--pr-warning)';
+    let relLabel = 'ממוצע';
+
+    if (relScore >= 80) {
+        relColor = 'var(--pr-success)';
+        relLabel = 'מצוין';
+    } else if (relScore < 50) {
+        relColor = 'var(--pr-danger)';
+        relLabel = 'טעון שיפור';
+    }
+
+    if (relCircle) {
+        relCircle.style.background = `conic-gradient(${relColor} ${relScore}%, var(--pr-border) 0%)`;
+    }
+    if (relText) {
+        relText.textContent = relLabel;
+        relText.style.color = relColor;
+    }
 
     // Total documented Expenses
     let totalExpenses = 0;
     if (car.treatments) car.treatments.forEach(t => { if (t.cost) totalExpenses += parseFloat(t.cost); });
-    if (car.insurance && car.insurance.cost) totalExpenses += parseFloat(car.insurance.cost);
+    if (car.insurance) {
+        Object.values(car.insurance).forEach(ins => {
+            if (ins && ins.cost) totalExpenses += parseFloat(ins.cost);
+        });
+    }
     document.getElementById('pr-expenses').textContent = '₪' + totalExpenses.toLocaleString();
 
     // Technical Specs
@@ -81,9 +100,7 @@ function renderPublicReport(car) {
         galleryGrid.innerHTML = '';
         gallery.forEach(imgBase64 => {
             galleryGrid.innerHTML += `
-                <div class="col-6 col-md-4">
-                    <img src="${imgBase64}" class="img-fluid rounded border shadow-sm w-100" style="height: 180px; object-fit: cover; cursor: zoom-in;" onclick="window.open('${imgBase64}', '_blank')">
-                </div>
+                <img src="${imgBase64}" loading="lazy" class="pr-gallery-img" onclick="openPrModal('${imgBase64}')">
             `;
         });
     }
@@ -96,27 +113,26 @@ function renderPublicReport(car) {
         // Sort newest first
         treatments.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        let html = '<div style="position: relative; margin-top: 10px;">';
+        let html = '<div class="pr-timeline">';
         treatments.forEach(t => {
-            let dParts = t.date ? t.date.split('-') : [];
-            let displayDate = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : t.date;
+            let displayDate = formatCleanDate(t.date);
 
             let verifiedHtml = t.invoice ?
-                `<div class="verified-badge mt-2 shadow-sm"><i class="fas fa-check-circle me-1"></i> טיפול מאומת (הוזנה קבלה במקור)</div>` : '';
+                `<div class="verified-badge shadow-sm"><i class="fas fa-check-circle me-1"></i> טיפול מאומת</div>` : '';
 
-            let costHtml = t.cost ? `<div class="badge bg-light text-danger border mt-2 px-2 py-1"><i class="fas fa-shekel-sign me-1"></i> ${parseFloat(t.cost).toLocaleString()}</div>` : '';
+            let costHtml = t.cost ? `<div class="badge bg-light text-danger border px-2 py-1"><i class="fas fa-shekel-sign me-1"></i> ${parseFloat(t.cost).toLocaleString()}</div>` : '';
 
             html += `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="report-card p-3 mb-3 border-0 bg-white" style="box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="pr-timeline-item">
+                    <div class="pr-timeline-dot"></div>
+                    <div class="pr-timeline-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-secondary small fw-bold"><i class="far fa-calendar-alt me-1"></i> ${displayDate}</span>
                             <span class="badge bg-primary bg-opacity-10 text-primary border"><i class="fas fa-tachometer-alt me-1 text-primary"></i> ק"מ: ${t.km ? t.km.toLocaleString() : '-'}</span>
                         </div>
-                        <h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem;">${t.name || '-'}</h6>
-                        <div class="text-muted small mt-1"><i class="fas fa-wrench me-1"></i> מוסך מבצע: ${t.garage || 'לא צוין'}</div>
-                        <div class="d-flex gap-2 flex-wrap">
+                        <h6 class="fw-bold text-dark m-0 mb-1" style="font-size: 1.05rem;">${t.type || t.name || 'טיפול תחזוקה'}</h6>
+                        <div class="text-muted small"><i class="fas fa-wrench me-1"></i> מוסך מבצע: ${t.garage || 'לא צוין'}</div>
+                        <div class="d-flex gap-2 flex-wrap mt-3">
                             ${costHtml}
                             ${verifiedHtml}
                         </div>
@@ -126,111 +142,246 @@ function renderPublicReport(car) {
         });
         html += '</div>';
         tContainer.innerHTML = html;
+    } else {
+        tContainer.innerHTML = getEmptyStateHTML('fa-tools', 'אין טיפולים מתועדים', 'לא נמצאו רשומות על טיפולי מוסך במערכת.');
     }
 
     // --- Insurance Data ---
-    const ins = car.insurance || {};
     const iContainer = document.getElementById('pr-insurance-data');
-    if (ins.company || ins.type) {
-        let docsBtn = ins.invoice ? `<a href="${ins.invoice}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-3"><i class="fas fa-file-contract me-1"></i> צפה בפוליסה מצורפת</a>` : '';
-        iContainer.innerHTML = `
-            <table class="table table-bordered table-custom">
-                <tbody>
-                    <tr>
-                        <th style="width: 35%;">חברת ביטוח</th>
-                        <td>${ins.company || '-'}</td>
-                    </tr>
-                    <tr>
-                        <th>סוג פוליסה נוספת</th>
-                        <td>${ins.type || 'חובה בלבד'}</td>
-                    </tr>
-                    <tr>
-                        <th>תוקף חובה</th>
-                        <td>${ins.mandatoryExp || '-'}</td>
-                    </tr>
-                    <tr>
-                        <th>תוקף פוליסה נוספת</th>
-                        <td>${ins.comprehensiveExp || '-'}</td>
-                    </tr>
-                    <tr>
-                        <th class="text-danger">עלות ביטוחים כוללת</th>
-                        <td class="fw-bold">₪${ins.cost ? parseFloat(ins.cost).toLocaleString() : '-'}</td>
-                    </tr>
-                </tbody>
-            </table>
-            ${docsBtn}
-        `;
+    if (car.insurance && typeof car.insurance === 'object' && Object.keys(car.insurance).length > 0) {
+        let html = '<div class="d-flex flex-column gap-3">';
+        const insTypeNames = {
+            'mandatory': 'ביטוח חובה',
+            'comprehensive': 'ביטוח מקיף',
+            'thirdParty': "ביטוח צד ג'"
+        };
+        for (let type in car.insurance) {
+            const insData = car.insurance[type];
+            if (!insData || (!insData.company && !insData.date)) continue;
+
+            let docsBtn = insData.invoice ? `<a href="${insData.invoice}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2"><i class="fas fa-file-contract me-1"></i> צפה בפוליסה</a>` : '';
+            html += `
+                <div class="pr-event-card" style="border-left: 4px solid var(--pr-accent);">
+                    <div>
+                        <h6 class="fw-bold mb-1 fs-5"><i class="fas fa-shield-alt text-primary me-2"></i> ${insData.company || 'חברת ביטוח לא צוינה'}</h6>
+                        <div class="text-muted small mb-3">סוג פוליסה: <strong class="text-dark">${insTypeNames[type] || type}</strong></div>
+                        <div class="d-flex gap-3 small flex-wrap">
+                            <div class="badge bg-light text-dark border"><i class="far fa-calendar-check text-success me-1"></i> תוקף: ${formatCleanDate(insData.date)}</div>
+                            ${insData.policyNum ? `<div class="badge bg-light text-dark border"><i class="fas fa-hashtag text-primary me-1"></i> פוליסה: ${insData.policyNum}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-md-end">
+                        <div class="fs-4 fw-bold text-danger mb-1">₪${insData.cost ? parseFloat(insData.cost).toLocaleString() : '0'}</div>
+                        <span class="text-muted small mb-2">עלות שנתית</span>
+                        ${docsBtn}
+                    </div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        if (html === '<div class="d-flex flex-column gap-3"></div>') {
+            iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
+        } else {
+            iContainer.innerHTML = html;
+        }
+    } else {
+        iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
     }
 
     // --- Reports / Fines Data ---
     const reports = car.reports || [];
     const rContainer = document.getElementById('pr-reports-data');
     if (reports.length > 0) {
-        let html = `
-            <table class="table table-hover table-custom text-center">
-                <thead><tr><th>תאריך עבירה</th><th>סוג</th><th>סכום לתשלום (₪)</th></tr></thead>
-                <tbody>
-        `;
+        let html = ``;
         reports.forEach(r => {
-            html += `<tr>
-                <td>${r.date || '-'}</td>
-                <td>${r.type || '-'}</td>
-                <td class="text-danger fw-bold">${r.amount ? parseFloat(r.amount).toLocaleString() : '-'}</td>
-            </tr>`;
+            html += `
+            <div class="pr-event-card warning">
+                <div>
+                    <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle text-warning me-2"></i> ${r.title || r.type || 'דוח עבירת תנועה'}</h6>
+                    <div class="text-muted small"><i class="far fa-calendar-alt me-1"></i> תאריך: ${formatCleanDate(r.date)}</div>
+                </div>
+                <div class="text-md-end mt-3 mt-md-0">
+                    <div class="fs-5 fw-bold text-danger">₪${r.amount ? parseFloat(r.amount).toLocaleString() : '-'}</div>
+                    <div class="text-muted small">לתשלום</div>
+                </div>
+            </div>`;
         });
-        html += `</tbody></table>`;
         rContainer.innerHTML = html;
+    } else {
+        rContainer.innerHTML = getEmptyStateHTML('fa-check-circle text-success', 'רכב נקי מדוחות', 'לא נמצאו דוחות תנועה או חניה מתועדים.', true);
     }
 
     // --- Fuel Data ---
     const fuels = car.fuelLog || [];
     const fContainer = document.getElementById('pr-fuel-data');
+    
+    // Dynamic terminology based on car fuel type
+    let fuelTypeStr = car.fuelType || '';
+    let isElectric = fuelTypeStr.includes('חשמל') || fuelTypeStr.includes('Electric');
+    let isHybrid = fuelTypeStr.includes('היבריד') || fuelTypeStr.includes('פלאג') || fuelTypeStr.includes('Hybrid');
+
+    let unitName = isElectric ? 'קוט״ש' : 'ליטר';
+    let unitPerName = isElectric ? 'לקוט״ש' : 'לליטר';
+    let actionIcon = isElectric ? 'fa-plug' : 'fa-gas-pump';
+    let actionName = isElectric ? 'טעינת רכב' : (isHybrid ? 'תדלוק / טעינת רכב' : 'תדלוק רכב');
+    let emptyStateTitle = isElectric ? 'אין היסטוריית טעינות' : 'אין היסטוריית תדלוקים';
+    let emptyStateDesc = isElectric ? 'לא תועדו טעינות לאחרונה.' : 'לא תועדו תדלוקים לאחרונה.';
+
     if (fuels.length > 0) {
         // limit to last 5 for cleanliness
         fuels.sort((a, b) => new Date(b.date) - new Date(a.date));
         const recentFuels = fuels.slice(0, 5);
-        let html = `
-            <table class="table table-hover table-custom text-center">
-                <thead><tr><th>תאריך תדלוק</th><th>כמות ליטרים</th><th>סה"כ שולם (₪)</th></tr></thead>
-                <tbody>
-        `;
+        let html = `<div class="d-flex flex-column gap-2">`;
         recentFuels.forEach(f => {
-            html += `<tr>
-                <td>${f.date || '-'}</td>
-                <td><span class="badge bg-light text-dark">${f.liters || '-'} L</span></td>
-                <td class="fw-bold">${f.cost ? parseFloat(f.cost).toLocaleString() : '-'}</td>
-            </tr>`;
+            let pricePerLtr = f.pricePerUnit;
+            if (!pricePerLtr && f.cost && f.amount && parseFloat(f.amount) > 0) {
+                pricePerLtr = parseFloat(f.cost) / parseFloat(f.amount);
+            }
+
+            html += `
+            <div class="pr-event-card" style="border-left: 4px solid #cbd5e1;">
+                <div>
+                    <h6 class="fw-bold mb-1"><i class="fas ${actionIcon} text-secondary me-2"></i> ${actionName}</h6>
+                    <div class="text-muted small"><i class="far fa-calendar-alt me-1"></i> ${formatCleanDate(f.date)}</div>
+                </div>
+                <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-start align-items-md-end gap-2 gap-md-1">
+                    <div class="d-flex flex-wrap gap-2 mb-1">
+                        <div class="badge bg-light text-dark border"><span dir="ltr">${f.amount || '-'}</span> ${unitName}</div>
+                        <div class="badge bg-light text-primary border">₪<span dir="ltr">${pricePerLtr ? parseFloat(pricePerLtr).toFixed(2) : '-'}</span> ${unitPerName}</div>
+                    </div>
+                    <div class="fs-6 fw-bold"><span class="text-muted small fw-normal me-1">סה"כ: </span><span dir="ltr">₪${f.cost ? parseFloat(f.cost).toLocaleString() : '-'}</span></div>
+                </div>
+            </div>`;
         });
-        html += `</tbody></table>`;
+        html += `</div>`;
         fContainer.innerHTML = html;
+    } else {
+        fContainer.innerHTML = getEmptyStateHTML(actionIcon, emptyStateTitle, emptyStateDesc);
     }
 
     // --- Accidents Data ---
     const acc = car.accidents || [];
     const aContainer = document.getElementById('pr-accidents-data');
     if (acc.length > 0) {
-        let html = `
-            <table class="table table-hover table-custom text-center border-danger">
-                <thead class="table-danger"><tr><th>תאריך דיווח</th><th>תיאור נזק / אירוע</th><th>עלות משוערת לנזק (₪)</th></tr></thead>
-                <tbody>
-        `;
+        let html = ``;
         acc.forEach(a => {
-            html += `<tr>
-                <td>${a.date || '-'}</td>
-                <td class="text-end">${a.description || '-'}</td>
-                <td class="text-danger fw-bold">${a.damageCost ? parseFloat(a.damageCost).toLocaleString() : '-'}</td>
-            </tr>`;
+            let thirdPartyHtml = '';
+            if (a.involvedVehicles && a.involvedVehicles.length > 0) {
+                let vList = '';
+                a.involvedVehicles.forEach(v => {
+                    vList += `
+                        <div class="d-flex align-items-center gap-2 mt-2 bg-light p-2 rounded border">
+                            <div class="badge bg-white text-dark border p-1"><i class="fas fa-car text-secondary"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">${v.title || 'רכב מעורב'}</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">מ"ר: <span class="badge bg-warning text-dark border border-warning px-1 rounded-1">${v.plate || '-'}</span> | ${v.color || '-'} | ${v.year || '-'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                thirdPartyHtml = `
+                    <div class="mt-3 border-top pt-2">
+                        <div class="text-danger small fw-bold"><i class="fas fa-file-contract me-1"></i> צד ג' / מעורבים</div>
+                        ${vList}
+                    </div>
+                `;
+            }
+
+            let imagesHtml = '';
+            if (a.images && a.images.length > 0) {
+                let imgTags = '';
+                a.images.forEach(img => {
+                    imgTags += `<img src="${img}" class="rounded border shadow-sm" style="width: 70px; height: 70px; object-fit: cover; cursor: zoom-in;" onclick="openPrModal('${img}')">`;
+                });
+                imagesHtml = `
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        ${imgTags}
+                    </div>
+                `;
+            }
+
+            const isHandledHtml = (a.isHandled || a.status === 'handled')
+                ? `<div class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check-circle me-1"></i> טופל ותוקן</div>`
+                : `<div class="badge bg-warning bg-opacity-10 text-warning border border-warning"><i class="fas fa-clock me-1"></i> פתוח / בטיפול</div>`;
+
+            let costVal = a.cost || a.repairCost || a.damageCost || null;
+
+            html += `
+            <div class="pr-event-card danger">
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
+                        <h6 class="fw-bold mb-0 fs-5"><i class="fas fa-car-crash text-danger me-2"></i> ${a.title || 'תאונה / נזק מדווח'}</h6>
+                        ${isHandledHtml}
+                    </div>
+                    <div class="text-muted small mb-2"><i class="far fa-calendar-alt me-1"></i> תאריך: ${formatCleanDate(a.date)}</div>
+                    
+                    <p class="text-muted mb-0 mt-2 small" style="white-space: pre-wrap;">${a.description || 'לא הוזן פירוט נזק.'}</p>
+                    
+                    ${thirdPartyHtml}
+                    ${imagesHtml}
+                </div>
+                
+                <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-end align-items-start align-items-md-end ms-md-4" style="min-width: 120px;">
+                    <div class="fs-5 fw-bold text-danger">₪${costVal ? parseFloat(costVal).toLocaleString() : '-'}</div>
+                    <div class="text-muted small">עלות משוערת</div>
+                </div>
+            </div>`;
         });
-        html += `</tbody></table>`;
         aContainer.innerHTML = html;
+    } else {
+        aContainer.innerHTML = getEmptyStateHTML('fa-shield-check text-success', 'רכב נקי מתאונות', 'לא נמצאו דיווחים על תאונות או פגיעות פח במערכת.', true);
     }
 
     // Turn off loader
     setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-    }, 400); // slight delay for visual smoothness
+        document.getElementById('loading-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('app-content').style.animation = 'fadeIn 0.5s ease-out';
+        }, 300);
+    }, 600); // slight delay for visual smoothness
 }
+
+// Reusable Empty State Generator
+function getEmptyStateHTML(iconClass, title, desc, noBorder = false) {
+    return `
+        <div class="pr-empty-state" ${noBorder ? 'style="border: none; background: rgba(16, 185, 129, 0.05);"' : ''}>
+            <i class="fas ${iconClass} pr-empty-icon ${noBorder ? 'text-success' : ''}"></i>
+            <h5 class="pr-empty-title">${title}</h5>
+            <p class="pr-empty-desc m-0">${desc}</p>
+        </div>
+    `;
+}
+
+// Global Date Formatter
+function formatCleanDate(val) {
+    if (!val || val === 'אין נתונים') return '-';
+    if (typeof val === 'string' && val.includes('T')) {
+        const part = val.split('T')[0];
+        const [y, m, d] = part.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [y, m, d] = val.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    if (typeof val === 'string' && val.includes('-')) {
+        const parts = val.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return val;
+}
+
+// Gallery Modal Logic
+window.openPrModal = function (src) {
+    const modal = document.getElementById('prImageModal');
+    const img = document.getElementById('prModalImg');
+    if (modal && img) {
+        img.src = src;
+        modal.classList.add('show');
+    }
+};
 
 // Lightweight isolated scoring copy for landing page
 function calculateLocalReliability(car) {

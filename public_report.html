@@ -13,190 +13,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/global_footer.css">
 
-    <style>
-        body {
-            font-family: 'Rubik', sans-serif;
-            background-color: #f4f7f6;
-            color: #2b2b2b;
-        }
-
-        .report-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            color: white;
-            padding: 4rem 1rem 3rem 1rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
-        }
-
-        .report-header::after {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 250px;
-            height: 250px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-        }
-
-        .car-logo-wrapper {
-            width: 110px;
-            height: 110px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem auto;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 2;
-            padding: 10px;
-        }
-
-        .car-logo-wrapper img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .report-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            color: #0d6efd;
-            font-weight: 700;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title i {
-            margin-left: 0.75rem;
-            background: #e9ecef;
-            color: #495057;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-        }
-
-        .stat-badge {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1rem;
-            text-align: center;
-            height: 100%;
-        }
-
-        .stat-badge i {
-            font-size: 1.5rem;
-            color: #0d6efd;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #212529;
-            margin: 0;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin: 0;
-            white-space: nowrap;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-right: 30px;
-            margin-bottom: 1.5rem;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            right: 7px;
-            top: 5px;
-            bottom: -1.5rem;
-            width: 2px;
-            background-color: #dee2e6;
-        }
-
-        .timeline-item:last-child::before {
-            display: none;
-        }
-
-        .timeline-dot {
-            position: absolute;
-            right: 0;
-            top: 5px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: #0d6efd;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #dee2e6;
-            z-index: 1;
-        }
-
-        .verified-badge {
-            display: inline-flex;
-            align-items: center;
-            background: #d1e7dd;
-            color: #0f5132;
-            padding: 0.25rem 0.75rem;
-            border-radius: 50rem;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .table-custom th {
-            background-color: #f8f9fa;
-            color: #495057;
-            font-weight: 600;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .table-custom td {
-            vertical-align: middle;
-        }
-
-        .report-footer {
-            text-align: center;
-            padding: 2rem;
-            color: #adb5bd;
-            font-size: 0.9rem;
-            border-top: 1px solid #e9ecef;
-            margin-top: 3rem;
-            background: white;
-        }
-    </style>
+    <link rel="stylesheet" href="css/public_report.css">
 </head>
 
 <body>
 
-    <div id="loading-screen"
-        style="position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-        <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
-        <h4 class="text-muted fw-bold">טוען נתוני רכב שקופים...</h4>
+    <!-- Skeleton Loader -->
+    <div id="loading-screen" class="skeleton-screen">
+        <div class="pr-hero" style="height: 350px;">
+            <div class="pr-logo-wrapper pr-skeleton mx-auto mb-3" style="border-radius: 50%;"></div>
+            <div class="pr-skeleton mx-auto mb-2" style="width: 200px; height: 32px;"></div>
+            <div class="pr-skeleton mx-auto" style="width: 150px; height: 20px;"></div>
+        </div>
+        <div class="container pr-main-container">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3"><div class="pr-skeleton" style="height: 120px; border-radius: 16px;"></div></div>
+                <div class="col-6 col-md-3"><div class="pr-skeleton" style="height: 120px; border-radius: 16px;"></div></div>
+                <div class="col-6 col-md-3"><div class="pr-skeleton" style="height: 120px; border-radius: 16px;"></div></div>
+                <div class="col-6 col-md-3"><div class="pr-skeleton" style="height: 120px; border-radius: 16px;"></div></div>
+            </div>
+            <div class="pr-skeleton mb-4" style="height: 200px; border-radius: 16px;"></div>
+            <div class="pr-skeleton mb-4" style="height: 200px; border-radius: 16px;"></div>
+        </div>
     </div>
 
     <!-- MAIN WRAPPER -->
@@ -207,129 +45,163 @@
             <i class="fas fa-arrow-right text-primary fs-5"></i>
         </button>
 
-        <div class="report-header">
-            <div class="container position-relative z-2">
-                <div class="car-logo-wrapper" id="pr-logo">
+        <div class="pr-hero">
+            <div class="container">
+                <div class="pr-logo-wrapper" id="pr-logo">
                     <!-- Configured via JS -->
                 </div>
-                <h1 class="fw-bold mb-1" id="pr-title">טוען...</h1>
-                <p class="fs-5 opacity-75 mb-3" id="pr-subtitle">מספר רישוי: טוען...</p>
+                <h1 class="pr-hero-title" id="pr-title">טוען...</h1>
+                <div class="pr-hero-subtitle" id="pr-subtitle">
+                    <span>טוען...</span>
+                </div>
 
-                <div class="d-inline-block bg-white text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+                <div class="pr-hero-badge">
                     <i class="fas fa-shield-alt text-success me-2"></i> דוח אמינות רשמי - EasyCare
                 </div>
             </div>
         </div>
 
-        <div class="container mt-neg-5" style="margin-top: -30px; position:relative; z-index: 5;">
+        <div class="container pr-main-container">
 
             <!-- Key Stats Row -->
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
-                    <div class="stat-badge shadow-sm">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <p class="stat-value" id="pr-km">--</p>
-                        <p class="stat-label">קילומטראז'</p>
+                    <div class="pr-stat-box">
+                        <i class="fas fa-tachometer-alt pr-stat-icon"></i>
+                        <h3 class="pr-stat-val" id="pr-km">--</h3>
+                        <span class="pr-stat-label">קילומטראז'</span>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="stat-badge shadow-sm">
-                        <i class="fas fa-calendar-check text-success"></i>
-                        <p class="stat-value" id="pr-test">--</p>
-                        <p class="stat-label">טסט בתוקף</p>
+                    <div class="pr-stat-box">
+                        <i class="fas fa-calendar-check pr-stat-icon text-success"></i>
+                        <h3 class="pr-stat-val" id="pr-test">--</h3>
+                        <span class="pr-stat-label">טסט בתוקף</span>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-badge shadow-sm">
-                        <i class="fas fa-star text-warning"></i>
-                        <p class="stat-value" id="pr-reliability">--%</p>
-                        <p class="stat-label">ציון אמינות</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-badge shadow-sm">
-                        <i class="fas fa-wallet text-danger"></i>
-                        <p class="stat-value" id="pr-expenses">₪0</p>
-                        <p class="stat-label">השקעה ברכב (מתועד)</p>
+                <div class="col-12 col-md-6">
+                    <div class="pr-stat-box" style="flex-direction: row; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h3 class="pr-stat-val mb-1">ציון אמינות</h3>
+                            <span class="pr-stat-label" id="pr-reliability-text">מחשב נתונים...</span>
+                        </div>
+                        <div class="pr-rel-widget" id="pr-reliability-widget">
+                            <div class="pr-circle-progress" id="pr-rel-circle">
+                                <div class="pr-circle-inner" id="pr-reliability">--%</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- PUBLIC CAR PHOTO GALLERY -->
             <div id="publicGalleryContainer" class="d-none mb-4">
-                <div class="report-card p-3 p-md-4">
-                    <h5 class="section-title"><i class="fas fa-camera"></i> גלריית תמונות הרכב</h5>
-                    <div id="publicGalleryGrid" class="row g-2 g-md-3">
+                <div class="pr-card">
+                    <h5 class="pr-section-title"><i class="fas fa-camera"></i> גלריית תמונות הרכב</h5>
+                    <div id="publicGalleryGrid" class="pr-gallery-grid mt-3">
                         <!-- Populated by public_report.js -->
                     </div>
                 </div>
             </div>
 
             <!-- Technical Specs Section -->
-            <div class="report-card">
-                <h4 class="section-title"><i class="fas fa-cogs"></i> מפרט טכני</h4>
-                <div class="row text-center g-3" id="pr-tech-specs">
-                    <div class="col-6 col-md">
-                        <small class="text-muted d-block mb-1">כוח סוס (כ"ס)</small>
-                        <strong class="fs-6 d-block" id="pr-hp">--</strong>
+            <div class="pr-card">
+                <h4 class="pr-section-title"><i class="fas fa-cogs"></i> מפרט טכני</h4>
+                <div class="row g-3 mt-2" id="pr-tech-specs">
+                    <div class="col-6 col-md-3">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-bolt"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">כוח סוס (כ"ס)</span>
+                                <span class="pr-spec-val" id="pr-hp">--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md">
-                        <small class="text-muted d-block mb-1">נפח מנוע (סמ"ק)</small>
-                        <strong class="fs-6 d-block" id="pr-engine">--</strong>
+                    <div class="col-6 col-md-3">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">נפח מנוע</span>
+                                <span class="pr-spec-val" id="pr-engine">--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md">
-                        <small class="text-muted d-block mb-1">צמיגים קדמיים</small>
-                        <strong class="fs-6 d-block" id="pr-tires-f">--</strong>
+                    <div class="col-6 col-md-3">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-circle-notch"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">צמיגים קדמיים</span>
+                                <span class="pr-spec-val" id="pr-tires-f">--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md">
-                        <small class="text-muted d-block mb-1">צמיגים אחוריים</small>
-                        <strong class="fs-6 d-block" id="pr-tires-r">--</strong>
+                    <div class="col-6 col-md-3">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-circle-notch"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">צמיגים אחוריים</span>
+                                <span class="pr-spec-val" id="pr-tires-r">--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md">
-                        <small class="text-muted d-block mb-1">סוג מנוע / דלק</small>
-                        <strong class="fs-6 d-block" id="pr-fuel-type">--</strong>
+                    <div class="col-12 col-md-4">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-gas-pump"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">סוג מנוע / דלק</span>
+                                <span class="pr-spec-val" id="pr-fuel-type">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="pr-spec-item">
+                            <i class="fas fa-wallet text-danger"></i>
+                            <div class="pr-spec-content">
+                                <span class="pr-spec-label">השקעה ברכב (מתועד)</span>
+                                <span class="pr-spec-val" id="pr-expenses">₪0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Treatments Section -->
-            <div class="report-card">
-                <h4 class="section-title"><i class="fas fa-tools"></i> ציר זמן טיפולים ותחזוקה</h4>
+            <div class="pr-card">
+                <h4 class="pr-section-title"><i class="fas fa-tools"></i> ציר זמן טיפולים ותחזוקה</h4>
                 <div id="pr-treatments-timeline" class="mt-4">
-                    <div class="text-center text-muted py-3">אין נתונים מתועדים</div>
+                    <!-- JS Injected Timeline -->
                 </div>
             </div>
 
             <!-- Insurance Section -->
-            <div class="report-card">
-                <h4 class="section-title"><i class="fas fa-file-contract"></i> מידע ביטוחי</h4>
-                <div id="pr-insurance-data">
-                    <div class="text-center text-muted py-3">אין מידע ביטוחי</div>
+            <div class="pr-card">
+                <h4 class="pr-section-title"><i class="fas fa-file-contract"></i> מידע ביטוחי</h4>
+                <div id="pr-insurance-data" class="mt-3">
+                    <!-- JS Injected Cards -->
                 </div>
             </div>
 
             <!-- Reports/Fines Section -->
-            <div class="report-card">
-                <h4 class="section-title"><i class="fas fa-file-invoice-dollar"></i> קנסות ודוחות</h4>
-                <div id="pr-reports-data">
-                    <div class="text-center text-muted py-3">הרכב ללא דוחות מתועדים. (נקי)</div>
+            <div class="pr-card">
+                <h4 class="pr-section-title"><i class="fas fa-file-invoice-dollar"></i> קנסות ודוחות</h4>
+                <div id="pr-reports-data" class="mt-3">
+                    <!-- JS Injected Cards -->
                 </div>
             </div>
 
             <!-- Fuel Logs Section -->
-            <div class="report-card">
-                <h4 class="section-title"><i class="fas fa-gas-pump"></i> היסטוריית תדלוקים (5 אחרונים)</h4>
-                <div id="pr-fuel-data">
-                    <div class="text-center text-muted py-3">אין נתונים מתועדים</div>
+            <div class="pr-card">
+                <h4 class="pr-section-title"><i class="fas fa-gas-pump"></i> היסטוריית תדלוקים</h4>
+                <div id="pr-fuel-data" class="mt-3">
+                    <!-- JS Injected List -->
                 </div>
             </div>
 
             <!-- Accidents Section -->
-            <div class="report-card">
-                <h4 class="section-title text-danger"><i class="fas fa-car-crash bg-danger text-white"></i> היסטוריית
-                    תאונות מדווחות</h4>
-                <div id="pr-accidents-data">
-                    <div class="text-center text-muted py-3">הרכב ללא תאונות מדווחות. (נקי)</div>
+            <div class="pr-card" style="border-color: rgba(239, 68, 68, 0.2);">
+                <h4 class="pr-section-title text-danger"><i class="fas fa-car-crash text-danger"></i> היסטוריית תאונות מדווחות</h4>
+                <div id="pr-accidents-data" class="mt-3">
+                    <!-- JS Injected Danger/Success Cards -->
                 </div>
             </div>
 
@@ -340,6 +212,12 @@
 
     <!-- Global Footer injected by JS -->
     <footer class="global-footer"></footer>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="prImageModal" class="pr-img-modal" onclick="this.classList.remove('show')">
+        <button class="pr-modal-close">&times;</button>
+        <img id="prModalImg" src="" alt="Fullscreen">
+    </div>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
