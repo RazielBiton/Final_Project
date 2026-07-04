@@ -530,3 +530,10 @@ body {
         height: 30px;
     }
 }
+
+/* --- LOADING OVERLAY --- */
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
