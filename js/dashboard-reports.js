@@ -112,7 +112,12 @@ window.loadReports = function () {
                     <div class="col-md-4">
                         <div class="d-flex justify-content-end align-items-center gap-2">
                              ${isPaid ?
-                `<div class="text-success fw-bold small me-2"><i class="fas fa-check-circle me-1"></i>שולמה</div>`
+                `<div class="d-flex align-items-center gap-2">
+                    <div class="text-success fw-bold small"><i class="fas fa-check-circle me-1"></i>שולמה</div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0" onclick="markAsUnpaid('${report.id}')" title="בטל תשלום">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                 </div>`
                 :
                 `<button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="markAsPaid('${report.id}')">סימון כשולם</button>
                  <a href="https://www.gov.il/he/service/police_fine_payment" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">שלם</a>`
@@ -265,6 +270,11 @@ window.openAddReportModal = function() {
     document.getElementById('reportImagesPreviewContainer').classList.add('d-none');
     document.getElementById('reportImagesList').innerHTML = '';
     
+    const modalTitle = document.querySelector('#addReportModal .modal-title');
+    if (modalTitle) {
+        modalTitle.innerHTML = '<i class="fas fa-plus-circle me-2"></i>הוספת דוח תנועה חדש';
+    }
+    
     const dateInput = document.getElementById('report-date');
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
@@ -360,6 +370,11 @@ window.editReport = function(id) {
         });
     }
 
+    const modalTitle = document.querySelector('#addReportModal .modal-title');
+    if (modalTitle) {
+        modalTitle.innerHTML = '<i class="fas fa-edit me-2"></i>עריכת דוח קיים';
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('addReportModal'));
     modal.show();
 }
@@ -376,6 +391,15 @@ window.markAsPaid = function(id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
         report.status = 'paid';
+        saveToLocalStorage();
+        loadReports();
+    }
+}
+
+window.markAsUnpaid = function(id) {
+    const report = currentCar.reports.find(r => String(r.id) === String(id));
+    if (report) {
+        report.status = 'unpaid';
         saveToLocalStorage();
         loadReports();
     }

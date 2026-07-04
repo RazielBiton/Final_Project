@@ -1,4 +1,4 @@
-﻿/* --- TREATMENTS COMPONENT STYLES --- */
+/* --- TREATMENTS COMPONENT STYLES --- */
 /* Add any custom CSS specific to the Treatments (׳˜׳™׳₪׳•׳׳™׳) page here. */
 
 /* Tables */
@@ -102,6 +102,23 @@
     }
 }
 
+
+/* Styling for the invoice modal close button */
+#invoiceModal .btn-close {
+    opacity: 1 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease-in-out !important;
+    z-index: 1060 !important;
+}
+
+#invoiceModal .btn-close:hover {
+    cursor: pointer !important;
+    background-color: #f8fafc !important;
+    filter: brightness(0.9) !important;
+    transform: scale(1.05);
+}
 
 /* --- Desktop Fixes for Invoice Lightbox --- */
 @media (min-width: 769px) {
