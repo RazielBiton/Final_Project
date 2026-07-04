@@ -728,15 +728,17 @@
         </div>
 
         <!-- Smart Quick Actions -->
-        <div class="chat-quick-actions" id="quickActions">
-            <button class="chat-chip" onclick="window.sendQuickAction('מתי הטסט הבא שלי ומה צריך להכין?')">מתי הטסט
-                הבא?</button>
-            <button class="chat-chip" onclick="window.sendQuickAction('ציין לי את הטיפול האחרון שביצעתי ביפרוט')">טיפול
-                אחרון</button>
-            <button class="chat-chip" onclick="window.sendQuickAction('סכם לי בכמה משפטים מה מצב תקינות הרכב כרגע')">מצב
-                אמינות הרכב</button>
-            <button class="chat-chip" onclick="window.sendQuickAction('האם יש קנסות פתוחים שפספסתי?')">בדיקת
-                קנסות</button>
+        <div class="quick-actions-wrapper">
+            <button class="scroll-btn scroll-right" onclick="scrollQuickActions(1)"><i class="fas fa-chevron-right"></i></button>
+            <div class="chat-quick-actions" id="quickActions">
+                <button class="chat-chip" onclick="window.sendQuickAction('מתי הטסט הבא שלי ומה צריך להכין?')">מתי הטסט הבא?</button>
+                <button class="chat-chip" onclick="window.sendQuickAction('סכם לי מה מצב תקינות הרכב כרגע')">מצב תקינות הרכב</button>
+                <button class="chat-chip" onclick="window.sendQuickAction('מתי נגמר לי הביטוח?')">תוקף ביטוח</button>
+                <button class="chat-chip" onclick="window.sendQuickAction('האם יש קנסות פתוחים שפספסתי?')">קנסות פתוחים</button>
+                <button class="chat-chip" onclick="window.sendQuickAction('ציין לי את הטיפול האחרון שביצעתי בפירוט')">טיפול אחרון</button>
+                <button class="chat-chip" onclick="window.sendQuickAction('מה ההוצאה הכי גדולה שלי החודש על הרכב?')">הוצאות החודש</button>
+            </div>
+            <button class="scroll-btn scroll-left" onclick="scrollQuickActions(-1)"><i class="fas fa-chevron-left"></i></button>
         </div>
 
         <form id="chatForm" class="chat-input-area" onsubmit="event.preventDefault();">

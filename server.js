@@ -1191,7 +1191,8 @@ app.post('/api/chat', async (req, res) => {
         const carContext = req.body.carContext || 'אין נתונים זמינים לרכב זה כרגע.';
         const historyContext = req.body.history || [];
 
-        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+        const GEMINI_MODEL_CORRECT = "gemini-2.5-flash"; // Use the correct available model
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_CORRECT });
 
         let historyFormatted = [];
         historyFormatted.push({
@@ -1205,10 +1206,26 @@ app.post('/api/chat', async (req, res) => {
 
         if (historyContext.length > 0) {
             historyContext.forEach(msg => {
-                historyFormatted.push({
-                    role: msg.sender === 'user' ? 'user' : 'model',
-                    parts: [{ text: msg.text }]
-                });
+                let role = msg.sender === 'user' ? 'user' : 'model';
+                let lastMsg = historyFormatted[historyFormatted.length - 1];
+                if (lastMsg.role === role) {
+                    lastMsg.parts[0].text += "\n" + msg.text;
+                } else {
+                    historyFormatted.push({
+                        role: role,
+                        parts: [{ text: msg.text }]
+                    });
+                }
+            });
+        }
+        
+        // Fix for SDK hanging on chat.sendMessage:
+        // sendMessage ALWAYS appends a 'user' message. If the history ends with 'user',
+        // the API will receive two 'user' messages sequentially, which causes a silent timeout/hang.
+        if (historyFormatted[historyFormatted.length - 1].role === 'user') {
+            historyFormatted.push({
+                role: "model",
+                parts: [{ text: "ממתין להמשך..." }]
             });
         }
 
@@ -1216,14 +1233,22 @@ app.post('/api/chat', async (req, res) => {
             history: historyFormatted
         });
 
-        const result = await chat.sendMessage(userMessage);
+        console.log(`[Chat API] Sending message to Gemini: "${userMessage}"`);
+        
+        // Use Promise.race to guarantee we never hang indefinitely on the server
+        const result = await Promise.race([
+            chat.sendMessage(userMessage),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini API Timeout after 45 seconds")), 45000))
+        ]);
+        
         const responseText = result.response.text();
+        console.log(`[Chat API] Received response from Gemini! Length: ${responseText.length}`);
 
         res.json({ reply: responseText });
 
     } catch (error) {
         console.error("API Error:", error);
-        res.status(500).json({ reply: "אופס! נתקלתי בבעיה. נסה שוב בעוד רגע." });
+        res.status(500).json({ reply: "שגיאה מהשרת: " + error.message });
     }
 });
 

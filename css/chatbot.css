@@ -63,6 +63,9 @@
     bottom: 110px;
     left: 30px;
     width: 360px;
+    height: 600px;
+    max-height: 80vh; /* Don't exceed 80% of screen height */
+    max-width: calc(100vw - 40px); /* Don't exceed screen width */
     border-radius: 24px;
     display: none;
     flex-direction: column;
@@ -151,7 +154,8 @@
 
 /* מיכל ההתכתבות */
 .chat-box {
-    height: 380px;
+    flex-grow: 1;
+    min-height: 0;
     padding: 20px 15px 10px;
     overflow-y: auto;
     display: flex;
@@ -205,18 +209,69 @@
 }
 
 /* Quick Actions Chips Container */
+.quick-actions-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 5px 5px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.scroll-btn {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    z-index: 2;
+    transition: all 0.2s;
+}
+
+.scroll-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+@media (max-width: 768px) {
+    .scroll-btn {
+        display: none;
+    }
+    .quick-actions-wrapper {
+        padding: 5px 0 10px; /* Give more space for chips on mobile */
+    }
+    .chat-widget-window {
+        left: 20px;
+        bottom: 90px;
+        width: calc(100vw - 40px);
+    }
+}
+
 .chat-quick-actions {
     display: flex;
-    padding: 5px 15px 10px;
+    padding: 0 10px;
     gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    flex-grow: 1;
+    min-width: 0; /* Crucial for flex child to allow overflow instead of expanding parent */
 }
 .chat-quick-actions::-webkit-scrollbar { display: none; }
 
 .chat-chip {
+    flex-shrink: 0;
     white-space: nowrap;
     background: #e0f2fe; /* Light blue accent */
     border: 1px solid #bae6fd;

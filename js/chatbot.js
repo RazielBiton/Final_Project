@@ -142,102 +142,111 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearChatBtn = document.getElementById('clearChat');
     if (clearChatBtn) {
         clearChatBtn.addEventListener('click', () => {
-            if (confirm('האם אתה בטוח שברצונך לאפס את השיחה הזו?')) {
-                chatHistory = [];
-                sessionStorage.removeItem('chatHistory');
-                chatBox.innerHTML = `
-                    <div class="chat-message ai-msg">
-                        <strong>היי!</strong> אני סייע ה-AI של EasyCare. 🧠<br>
-                        יש לי גישה לאבחונים ולכלל ההיסטוריה של הרכב שלך. איך אפשר לעזור היום?
-                    </div>`;
+            if (confirm('האם אתה בטוח שברצונך לנקות את התצוגה? (הבינה המלאכותית תמשיך לזכור את ההקשר)')) {
+                // Mark all existing history as visually hidden
+                chatHistory.forEach(msg => msg.hiddenVisually = true);
+                
+                // Add a visual indicator that it was cleared
+                chatHistory.push({ 
+                    text: "היי! תצוגת השיחה נוקתה, אך אני עדיין זוכר את ההקשר הקודם שלנו. 🧠 איך אוכל להמשיך לעזור?", 
+                    sender: "ai" 
+                });
+                
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                renderHistory();
             }
         });
     }
 
     // Context Extractor for AI
     function getCarContextForAI() {
-        let ctx = '';
-        if (userData) {
-            ctx += `פרטי המשתמש השואל: השם המלא הוא ${userData.FullName}, והאימייל שלו הוא ${userData.Email}.\n\n`;
-        } else {
-            ctx += `פרטי המשתמש לא זמינים כרגע. עזור כרגיל.\n\n`;
-        }
+        try {
+            let ctx = '';
+            if (userData) {
+                ctx += `פרטי המשתמש השואל: השם המלא הוא ${userData.FullName}, והאימייל שלו הוא ${userData.Email}.\n\n`;
+            } else {
+                ctx += `פרטי המשתמש לא זמינים כרגע. עזור כרגיל.\n\n`;
+            }
 
-        if (!window.currentCar) {
-            ctx += "אין כרגע רכב שנבחר.";
+            if (!window.currentCar) {
+                ctx += "אין כרגע רכב שנבחר.";
+                return ctx;
+            }
+
+            const c = window.currentCar;
+
+            // Sanitize huge Base64 images from the payload so we don't crash the LLM token limits
+            const sanitizedCar = JSON.parse(JSON.stringify(c));
+            delete sanitizedCar.logo;
+            delete sanitizedCar.gallery;
+            if (Array.isArray(sanitizedCar.treatments)) sanitizedCar.treatments.forEach(t => delete t.invoice);
+            if (sanitizedCar.insurance && typeof sanitizedCar.insurance === 'object') {
+                Object.keys(sanitizedCar.insurance).forEach(key => { if (sanitizedCar.insurance[key]) delete sanitizedCar.insurance[key].file; });
+            }
+            if (Array.isArray(sanitizedCar.accidents)) sanitizedCar.accidents.forEach(a => delete a.image);
+
+            let carInfoCtx = `המשתמש שואל במיוחד אודות הרכב הרשום בפרופיל שלו. זה יצרן ודגם: ${c.brandHeb || c.brand} ${c.model || ''}. `;
+            if (c.year) carInfoCtx += `שנת ייצור: ${c.year}. `;
+            if (c.licensePlate) carInfoCtx += `מספר רישוי: ${c.licensePlate}. `;
+            if (c.km) carInfoCtx += `קילומטראז' נוכחי: ${c.km}. `;
+            if (c.testDate) carInfoCtx += `טסט בתוקף עד: ${c.testDate}. `;
+            ctx += carInfoCtx;
+            if (c.color) ctx += `צבע: ${c.color}. `;
+            if (c.fuelType) ctx += `סוג דלק: ${c.fuelType}. `;
+            if (c.engineVolume) ctx += `נפח מנוע: ${c.engineVolume} סמ"ק. `;
+            if (c.horsePower) ctx += `כ"ס: ${c.horsePower}. `;
+            if (c.tireFront) ctx += `צמיגים קדמיים: ${c.tireFront}. `;
+            if (c.tireRear) ctx += `צמיגים אחוריים: ${c.tireRear}. `;
+            if (c.disabledBadge) ctx += `משויך לקטגוריית: ${c.disabledBadge}. `;
+
+            if (typeof window.calculateReliability === 'function') {
+                const relScore = window.calculateReliability(c);
+                ctx += `\nציון אמינות מערכתי (EasyCare Score): ${relScore}%. `;
+            }
+
+            ctx += `\n\nטיפולים (היסטוריית מוסך): `;
+            if (Array.isArray(c.treatments) && c.treatments.length) {
+                c.treatments.forEach(t => ctx += `\n- תאריך ${t.date ? String(t.date).split('-').reverse().join('/') : ''} | סוג: ${t.type || t.name} ע"י מוסך ${t.garage}. ק"מ מתועד: ${t.km}, חויב: ₪${t.cost}. פירוט: ${t.description || ''}`);
+            } else { ctx += 'אפס טיפולים מוזנים.'; }
+
+            ctx += `\n\nביטוחים זמינים: `;
+            if (c.insurance && typeof c.insurance === 'object') {
+                if (c.insurance.comprehensive) ctx += `\n- פוליסת מקיף/צד ג': חברת ${c.insurance.comprehensive.company} מתוקף עד ${c.insurance.comprehensive.date}.`;
+                if (c.insurance.mandatory) ctx += `\n- פוליסת חובה: חברת ${c.insurance.mandatory.company} מתוקף עד ${c.insurance.mandatory.date}.`;
+            } else { ctx += 'אפס ביטוחים מוזנים.'; }
+
+            ctx += `\n\nתאונות ודוחות שמאי: `;
+            if (Array.isArray(c.accidents) && c.accidents.length) {
+                c.accidents.forEach(a => ctx += `\n- תאריך ${a.date ? String(a.date).split('-').reverse().join('/') : ''} | כותרת: ${a.title || ''}. תיאור: ${a.description || ''}. פרטי נזק: ${a.damageDetails || ''}. עלות: ₪${a.repairCost}. טופל? ${a.isHandled ? 'כן' : 'לא'}`);
+            } else { ctx += 'אפס תאונות מתועדות (זה דבר חיובי).'; }
+
+            ctx += `\n\nהיסטוריית תדלוק (דלק/חשמל): `;
+            if (Array.isArray(c.fuelLog) && c.fuelLog.length) {
+                c.fuelLog.slice(0, 5).forEach(f => ctx += `\n- ב-${f.date ? String(f.date).split('-').reverse().join('/') : ''} בשעה ${f.time || ''} תודלק ${f.amount || f.liters} ${f.energyType === 'electricity' ? 'קוט"ש (חשמל)' : 'ליטר (דלק)'}. מחיר לליטר/קוט"ש: ₪${f.pricePerLiter || 0}. מחיר כולל: ₪${f.cost}. מס' שעות מנוע (ק"מ מדד): ${f.currentKm || ''}`);
+            } else { ctx += 'לא תועדו תדלוקים.'; }
+
+            ctx += `\n\nהוצאות כלליות על הרכב: `;
+            if (Array.isArray(c.expenses) && c.expenses.length) {
+                c.expenses.forEach(e => ctx += `\n- תאריך ${e.date ? String(e.date).split('-').reverse().join('/') : ''} | קטגוריה: ${e.type}. סכום: ₪${e.amount}. פירוט: ${e.notes || ''}`);
+            } else { ctx += 'אין פעולות הוצאות מתועדות.'; }
+
+            ctx += `\n\nקנסות ודוחות: `;
+            if (Array.isArray(c.reports) && c.reports.length) {
+                c.reports.forEach(r => ctx += `\n- תאריך ${r.date ? String(r.date).split('-').reverse().join('/') : ''} | עבירה: ${r.offenseType}. מקום: ${r.location || ''}. קנס: ${r.amount} ש"ח, נקודות גיליון: ${r.points || 0}. ${r.isHandled ? 'טופל.' : 'ממתין לטיפול!'}`);
+            } else { ctx += 'ללא קנסות או דוחות.'; }
+
+            ctx += `\n\nהתראות מערכת: `;
+            if (Array.isArray(c.alerts) && c.alerts.length) {
+                c.alerts.forEach(a => ctx += `\n- נושא: ${a.title} | פירוט: ${a.description || ''} | תאריך/יעד: ${a.date ? String(a.date).split('-').reverse().join('/') : ''} | דחיפות: ${a.urgency} | פעיל? ${a.isActive ? 'כן' : 'לא'}`);
+            } else { ctx += 'אין התראות במערכת.'; }
+
+            // Removed the raw JSON dump to save massive amounts of tokens (preventing 429 Quota Exceeded)
+            
             return ctx;
+        } catch (err) {
+            console.error("Error generating car context:", err);
+            return "אירעה שגיאה בטעינת נתוני הרכב.";
         }
-
-        const c = window.currentCar;
-
-        // Sanitize huge Base64 images from the payload so we don't crash the LLM token limits
-        const sanitizedCar = JSON.parse(JSON.stringify(c));
-        delete sanitizedCar.logo;
-        delete sanitizedCar.gallery;
-        if (sanitizedCar.treatments) sanitizedCar.treatments.forEach(t => delete t.invoice);
-        if (sanitizedCar.insurance) {
-            Object.keys(sanitizedCar.insurance).forEach(key => { if (sanitizedCar.insurance[key]) delete sanitizedCar.insurance[key].file; });
-        }
-        if (sanitizedCar.accidents) sanitizedCar.accidents.forEach(a => delete a.image);
-
-        let carInfoCtx = `המשתמש שואל במיוחד אודות הרכב הרשום בפרופיל שלו. זה יצרן ודגם: ${c.brandHeb || c.brand} ${c.model || ''}. `;
-        if (c.year) carInfoCtx += `שנת ייצור: ${c.year}. `;
-        if (c.licensePlate) carInfoCtx += `מספר רישוי: ${c.licensePlate}. `;
-        if (c.km) carInfoCtx += `קילומטראז' נוכחי: ${c.km}. `;
-        if (c.testDate) carInfoCtx += `טסט בתוקף עד: ${c.testDate}. `;
-        ctx += carInfoCtx;
-        if (c.color) ctx += `צבע: ${c.color}. `;
-        if (c.fuelType) ctx += `סוג דלק: ${c.fuelType}. `;
-        if (c.engineVolume) ctx += `נפח מנוע: ${c.engineVolume} סמ"ק. `;
-        if (c.horsePower) ctx += `כ"ס: ${c.horsePower}. `;
-        if (c.tireFront) ctx += `צמיגים קדמיים: ${c.tireFront}. `;
-        if (c.tireRear) ctx += `צמיגים אחוריים: ${c.tireRear}. `;
-        if (c.disabledBadge) ctx += `משויך לקטגוריית: ${c.disabledBadge}. `;
-
-        if (typeof window.calculateReliability === 'function') {
-            const relData = window.calculateReliability(c);
-            ctx += `\nציון אמינות מערכתי (EasyCare Score): ${relData.score}%. החוסרים: ${relData.missing.length ? relData.missing.join(', ') : 'אין חוסרים'}. `;
-        }
-
-        ctx += `\n\nטיפולים (היסטוריית מוסך): `;
-        if (c.treatments && c.treatments.length) {
-            c.treatments.forEach(t => ctx += `\n- תאריך ${t.date ? t.date.split('-').reverse().join('/') : ''} | סוג: ${t.type || t.name} ע"י מוסך ${t.garage}. ק"מ מתועד: ${t.km}, חויב: ₪${t.cost}. פירוט: ${t.description || ''}`);
-        } else { ctx += 'אפס טיפולים מוזנים.'; }
-
-        ctx += `\n\nביטוחים זמינים: `;
-        if (c.insurance) {
-            if (c.insurance.comprehensive) ctx += `\n- פוליסת מקיף/צד ג': חברת ${c.insurance.comprehensive.company} מתוקף עד ${c.insurance.comprehensive.date}.`;
-            if (c.insurance.mandatory) ctx += `\n- פוליסת חובה: חברת ${c.insurance.mandatory.company} מתוקף עד ${c.insurance.mandatory.date}.`;
-        } else { ctx += 'אפס ביטוחים מוזנים.'; }
-
-        ctx += `\n\nתאונות ודוחות שמאי: `;
-        if (c.accidents && c.accidents.length) {
-            c.accidents.forEach(a => ctx += `\n- תאריך ${a.date ? a.date.split('-').reverse().join('/') : ''} | כותרת: ${a.title || ''}. תיאור: ${a.description || ''}. פרטי נזק: ${a.damageDetails || ''}. עלות: ₪${a.repairCost}. טופל? ${a.isHandled ? 'כן' : 'לא'}`);
-        } else { ctx += 'אפס תאונות מתועדות (זה דבר חיובי).'; }
-
-        ctx += `\n\nהיסטוריית תדלוק (דלק/חשמל): `;
-        if (c.fuelLog && c.fuelLog.length) {
-            c.fuelLog.slice(0, 5).forEach(f => ctx += `\n- ב-${f.date ? f.date.split('-').reverse().join('/') : ''} בשעה ${f.time || ''} תודלק ${f.amount || f.liters} ${f.energyType === 'electricity' ? 'קוט"ש (חשמל)' : 'ליטר (דלק)'}. מחיר לליטר/קוט"ש: ₪${f.pricePerLiter || 0}. מחיר כולל: ₪${f.cost}. מס' שעות מנוע (ק"מ מדד): ${f.currentKm || ''}`);
-        } else { ctx += 'לא תועדו תדלוקים.'; }
-
-        ctx += `\n\nהוצאות כלליות על הרכב: `;
-        if (c.expenses && c.expenses.length) {
-            c.expenses.forEach(e => ctx += `\n- תאריך ${e.date ? e.date.split('-').reverse().join('/') : ''} | קטגוריה: ${e.type}. סכום: ₪${e.amount}. פירוט: ${e.notes || ''}`);
-        } else { ctx += 'אין פעולות הוצאות מתועדות.'; }
-
-        ctx += `\n\nקנסות ודוחות: `;
-        if (c.reports && c.reports.length) {
-            c.reports.forEach(r => ctx += `\n- תאריך ${r.date ? r.date.split('-').reverse().join('/') : ''} | עבירה: ${r.offenseType}. מקום: ${r.location || ''}. קנס: ${r.amount} ש"ח, נקודות גיליון: ${r.points || 0}. ${r.isHandled ? 'טופל.' : 'ממתין לטיפול!'}`);
-        } else { ctx += 'ללא קנסות או דוחות.'; }
-
-        ctx += `\n\nהתראות מערכת: `;
-        if (c.alerts && c.alerts.length) {
-            c.alerts.forEach(a => ctx += `\n- נושא: ${a.title} | פירוט: ${a.description || ''} | תאריך/יעד: ${a.date ? a.date.split('-').reverse().join('/') : ''} | דחיפות: ${a.urgency} | פעיל? ${a.isActive ? 'כן' : 'לא'}`);
-        } else { ctx += 'אין התראות במערכת.'; }
-
-        ctx += `\n\nלהלן אובייקט הנתונים המלא והמוחלט של הרכב מתוך הדאטה-בייס (לשימושך החופשי במידה ומשהו חסר למעלה):\n${JSON.stringify(sanitizedCar)}`;
-
-        return ctx;
     }
 
     // Chat API Handling
@@ -262,20 +271,35 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (saveToHistory) {
             chatHistory.push({ text: text, sender: sender });
-            sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
         }
     }
 
     // Render existing history
-    if (chatHistory.length > 0) {
+    function renderHistory() {
         chatBox.innerHTML = '';
-        chatHistory.forEach(msg => addMessage(msg.text, msg.sender, false));
+        chatHistory.forEach(msg => {
+            if (!msg.hiddenVisually) {
+                addMessage(msg.text, msg.sender, false);
+            }
+        });
+    }
+
+    if (chatHistory.length > 0) {
+        renderHistory();
     }
 
     // Quick Actions
     window.sendQuickAction = function(text) {
         userInput.value = text;
         sendMessage();
+    };
+
+    window.scrollQuickActions = function(dir) {
+        const container = document.getElementById('quickActions');
+        if (container) {
+            container.scrollBy({ left: dir * 150, behavior: 'smooth' });
+        }
     };
 
     async function sendMessage() {
@@ -293,7 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const carContext = getCarContextForAI();
 
         try {
-            const sentHistory = chatHistory.slice(0, -1);
+            // Keep only the last 10 messages (including the one just added) to save tokens
+            // .slice(0, -1) removes the very last 'user' message because it's sent separately as 'message' in the body
+            const sentHistory = chatHistory.slice(-10).slice(0, -1);
+            
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -301,25 +328,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            typingIndicator.style.display = 'none';
-            const qaElement = document.getElementById('quickActions');
-            if (qaElement) {
-                document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, qaElement);
-            } else {
-                document.getElementById('chatWidgetWindow').appendChild(typingIndicator);
+            
+            // Safe removal of typing indicator
+            if (typingIndicator.parentNode) {
+                typingIndicator.parentNode.removeChild(typingIndicator);
             }
+            typingIndicator.style.display = 'none';
             
             addMessage(data.reply, 'ai', true);
 
         } catch (error) {
             console.error(error);
-            typingIndicator.style.display = 'none';
-            const qaElement = document.getElementById('quickActions');
-            if (qaElement) {
-                document.getElementById('chatWidgetWindow').insertBefore(typingIndicator, qaElement);
-            } else {
-                document.getElementById('chatWidgetWindow').appendChild(typingIndicator);
+            if (typingIndicator.parentNode) {
+                typingIndicator.parentNode.removeChild(typingIndicator);
             }
+            typingIndicator.style.display = 'none';
             addMessage('מצטער, השרת לא מחובר באוויר כרגע. אנא ודא ש-Server.js רץ ברקע (ע"י הרצה של \`npm start\`).', 'ai');
         }
     }
