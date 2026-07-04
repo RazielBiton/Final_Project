@@ -225,3 +225,190 @@ window.updateTreatment = function () {
         finishUpdate(null);
     }
 }
+
+window.fetchCurrentLocation = function(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    if (!navigator.geolocation) {
+        alert("הדפדפן שלך אינו תומך באיתור מיקום");
+        return;
+    }
+
+    input.placeholder = "מאתר מיקום נוכחי...";
+    
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        try {
+            // Using free Nominatim reverse geocoding
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=he`);
+            if (!res.ok) throw new Error("Failed to fetch location");
+            const data = await res.json();
+            
+            if (data && data.address) {
+                const street = data.address.road || data.address.pedestrian || "";
+                const city = data.address.city || data.address.town || data.address.village || "";
+                let fullAddress = street;
+                if (city) {
+                    fullAddress += fullAddress ? `, ${city}` : city;
+                }
+                
+                if (fullAddress) {
+                    input.value = `מיקום נוכחי: ${fullAddress}`;
+                } else {
+                    input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                }
+            } else {
+                input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            }
+        } catch(e) {
+            console.error(e);
+            input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        }
+    }, (error) => {
+        console.error(error);
+        alert("שגיאה בקבלת המיקום. אנא ודא ששירותי המיקום פועלים.");
+        input.placeholder = "לדוג': מוסך העמק";
+    });
+};
+
+// Initialize Google Maps Places Autocomplete for garage location
+(function initGarageAutocomplete() {
+    fetch('/api/config/maps')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.key) {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&language=he`;
+                script.async = true;
+                script.defer = true;
+                script.onload = () => {
+                    const tGarageInput = document.getElementById('tGarage');
+                    const editTGarageInput = document.getElementById('editTGarage');
+                    
+                    if (tGarageInput) {
+                        new google.maps.places.Autocomplete(tGarageInput, { types: ['establishment'] });
+                    }
+                    if (editTGarageInput) {
+                        new google.maps.places.Autocomplete(editTGarageInput, { types: ['establishment'] });
+                    }
+                };
+                document.head.appendChild(script);
+            }
+        })
+        .catch(err => console.error("Could not load Maps Config", err));
+})();
+
+// --- Map Picker Logic ---
+let mapPickerInstance = null;
+let mapPickerMarker = null;
+let mapGeocoder = null;
+let currentTargetInputId = '';
+let currentSelectedAddress = '';
+
+window.openMapPicker = function(inputId) {
+    currentTargetInputId = inputId;
+    
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        alert('שירות המפות עדיין בטעינה, אנא נסה שנית בעוד מספר שניות.');
+        return;
+    }
+
+    const modalEl = document.getElementById('mapPickerModal');
+    if (!modalEl) return;
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Default to Tel Aviv
+    let lat = 32.0853;
+    let lng = 34.7818;
+
+    // Use current location if possible, otherwise Tel Aviv
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            if (mapPickerInstance) {
+                const posObj = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                mapPickerInstance.setCenter(posObj);
+                mapPickerMarker.setPosition(posObj);
+                updateAddressFromLatLng(posObj);
+            }
+        });
+    }
+
+    // Initialize map on modal shown (so the canvas has correct dimensions)
+    modalEl.addEventListener('shown.bs.modal', function onModalShown() {
+        modalEl.removeEventListener('shown.bs.modal', onModalShown);
+        
+        if (!mapPickerInstance) {
+            mapPickerInstance = new google.maps.Map(document.getElementById('mapPickerCanvas'), {
+                center: { lat: lat, lng: lng },
+                zoom: 14,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+
+            mapPickerMarker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: mapPickerInstance,
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
+
+            mapGeocoder = new google.maps.Geocoder();
+
+            // Handle drag end
+            mapPickerMarker.addListener('dragend', () => {
+                updateAddressFromLatLng(mapPickerMarker.getPosition());
+            });
+
+            // Handle map click
+            mapPickerInstance.addListener('click', (e) => {
+                mapPickerMarker.setPosition(e.latLng);
+                updateAddressFromLatLng(e.latLng);
+            });
+            
+            // Initial address fetch
+            updateAddressFromLatLng(mapPickerMarker.getPosition());
+        } else {
+            // Resize map to fix rendering issues inside modals
+            google.maps.event.trigger(mapPickerInstance, 'resize');
+            mapPickerInstance.setCenter(mapPickerMarker.getPosition());
+        }
+    });
+};
+
+function updateAddressFromLatLng(latLng) {
+    const addressEl = document.getElementById('mapSelectedAddress');
+    if (!addressEl) return;
+    
+    addressEl.textContent = 'מחפש כתובת...';
+    
+    if (!mapGeocoder) mapGeocoder = new google.maps.Geocoder();
+    
+    mapGeocoder.geocode({ location: latLng }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            currentSelectedAddress = results[0].formatted_address;
+            addressEl.textContent = currentSelectedAddress;
+        } else {
+            currentSelectedAddress = latLng.lat().toFixed(5) + ', ' + latLng.lng().toFixed(5);
+            addressEl.textContent = currentSelectedAddress;
+        }
+    });
+}
+
+window.confirmMapSelection = function() {
+    if (currentTargetInputId && currentSelectedAddress) {
+        const input = document.getElementById(currentTargetInputId);
+        if (input) {
+            input.value = currentSelectedAddress;
+        }
+    }
+    const modalEl = document.getElementById('mapPickerModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+};

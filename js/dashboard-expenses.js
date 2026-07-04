@@ -234,8 +234,13 @@ function loadExpenses() {
 
     const sortedExpenses = [...currentCar.expenses].sort((a, b) => (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0));
 
+    // Limit to 15 items for performance unless 'showAll' is toggled
+    const showAll = window.expensesShowAll === true;
+    const itemsToRender = showAll ? sortedExpenses : sortedExpenses.slice(0, 15);
+    const hasMore = sortedExpenses.length > 15 && !showAll;
+
     let html = '<div class="px-2 pb-2">';
-    sortedExpenses.forEach(exp => {
+    itemsToRender.forEach(exp => {
         let typeLabel = exp.type;
         let icon = 'fa-receipt';
         let bgStr = 'background: #f1f5f9; color: #64748b;';
@@ -265,6 +270,25 @@ function loadExpenses() {
             </div>
         `;
     });
+    
+    if (hasMore) {
+        html += `
+            <div class="text-center mt-3 mb-2">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-bold" onclick="window.expensesShowAll = true; window.loadExpenses();">
+                    הצג הכל (${sortedExpenses.length - 15} נוספים) <i class="fas fa-chevron-down ms-1"></i>
+                </button>
+            </div>
+        `;
+    } else if (showAll && sortedExpenses.length > 15) {
+        html += `
+            <div class="text-center mt-3 mb-2">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-bold" onclick="window.expensesShowAll = false; window.loadExpenses();">
+                    הצג פחות <i class="fas fa-chevron-up ms-1"></i>
+                </button>
+            </div>
+        `;
+    }
+    
     html += '</div>';
     listContainer.innerHTML = html;
 }

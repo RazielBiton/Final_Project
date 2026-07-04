@@ -132,20 +132,20 @@
 
 <!-- Add/Edit Accident Modal (Redesigned) -->
 <div class="modal fade" id="addAccidentModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="modal-content border-0 shadow-lg my-4" style="border-radius: 24px; overflow: hidden; max-height: 90vh;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.5rem 2rem; border-bottom: none;">
-                <h5 class="modal-title fw-bold" id="accidentModalTitle" style="font-size: 1.3rem;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.2rem 1.5rem; border-bottom: none; flex-shrink: 0;">
+                <h5 class="modal-title fw-bold" id="accidentModalTitle" style="font-size: 1.2rem;">
                     <i class="fas fa-car-crash ms-2" style="color: #fb7185;"></i> מילוי דוח אירוע
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; left: 20px; top: 25px;"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity: 1;"></button>
             </div>
-            <div class="modal-body p-4 p-md-5 bg-light" style="background: #f8fafc !important;">
+            <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                 <form id="addAccidentForm">
                     <input type="hidden" id="accidentId">
-
+                    
                     <!-- Section 1: Event Details -->
-                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                         <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
                             <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי האירוע
                         </h6>
@@ -160,63 +160,63 @@
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-bold text-dark fs-7">תיאור ופרטים נוספים <span class="text-danger">*</span></label>
-                                <textarea class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 1rem; resize: none;" id="accDescription" rows="2" placeholder="פרט כיצד קרה הנזק ובאיזה נסיבות... (למשל: נהג רכב פגע מאחור)" required></textarea>
+                                <textarea class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 1rem; resize: none;" id="accDescription" rows="2" placeholder="פרט כיצד קרה הנזק ובאיזה נסיבות..." required></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold text-dark fs-7">נזק מוערך (₪) <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white" style="border-radius: 0 12px 12px 0; border: 1px solid #cbd5e1; border-left: 0;">₪</span>
-                                    <input type="number" class="form-control" style="border-radius: 12px 0 0 12px; border: 1px solid #cbd5e1; padding: 0.75rem;" id="accCost" required placeholder="למשל 1500 (הזן 0 אם לא ידוע)">
+                                    <input type="number" class="form-control" style="border-radius: 12px 0 0 12px; border: 1px solid #cbd5e1; padding: 0.75rem;" id="accCost" required placeholder="1500 (הזן 0 אם לא ידוע)">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Section 2: Visual Evidence -->
-                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                         <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> תיעוד מצולם מן השטח
+                            <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> תיעוד מצולם
                         </h6>
                         <div class="text-center p-4 relative" style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
                             <input type="file" id="accImageInput" class="d-none" accept="image/*" multiple>
                             <div id="accImagePlaceholder" onclick="document.getElementById('accImageInput').click()">
-                                <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                                    <i class="fas fa-camera text-primary fs-3"></i>
+                                <div style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <i class="fas fa-camera text-primary fs-4"></i>
                                 </div>
-                                <h6 class="fw-bold mb-1" style="color: #334155;">העלאת תמונות מזירת האירוע</h6>
-                                <p class="text-muted m-0" style="font-size: 0.8rem;">תמונות של הנזק, רכבים מעורבים, ת.ז ורישיונות (ניתן להוסיף מספר תמונות)</p>
+                                <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.95rem;">העלאת תמונות מזירת האירוע</h6>
+                                <p class="text-muted m-0" style="font-size: 0.75rem;">תמונות הנזק ורכבים מעורבים</p>
                             </div>
                             
                             <div id="accImagePreviewsContainer" class="d-none mt-2">
                                 <div class="d-flex flex-wrap gap-2 justify-content-center" id="accImagesList"></div>
                                 <button type="button" class="btn btn-outline-primary btn-sm mt-3 fw-bold rounded-pill shadow-sm" onclick="document.getElementById('accImageInput').click()">
-                                    <i class="fas fa-plus me-1"></i> הוסף מסמך/תמונה נוספים
+                                    <i class="fas fa-plus me-1"></i> הוסף מסמך נוסף
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Section 3: Third Party Involvement -->
-                    <div style="background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #e11d48;">
+                    <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #e11d48;">
                         <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
                             <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span> מעורבות צד ג' ע"פ משרד הרישוי
                         </h6>
                         
                         <div class="btn-group w-100 mb-3" role="group" style="border-radius: 12px; overflow: hidden;">
                             <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioNo" value="no" checked onchange="toggleInvolvedVehicle()">
-                            <label class="btn btn-outline-secondary fw-bold shadow-none" for="accRadioNo" style="border-color: #cbd5e1;">ללא רכב צד ג' (פגיעה עצמית)</label>
+                            <label class="btn btn-outline-secondary fw-bold shadow-none" for="accRadioNo" style="border-color: #cbd5e1; font-size: 0.85rem; padding: 0.5rem; white-space: normal; line-height: 1.2;">ללא צד ג'<br><small>(פגיעה עצמית)</small></label>
 
                             <input type="radio" class="btn-check" name="accInvolvedRadio" id="accRadioYes" value="yes" onchange="toggleInvolvedVehicle()">
-                            <label class="btn btn-outline-danger fw-bold shadow-none" for="accRadioYes">מעורב רכב צד ג' (תאונה 2 רכבים ויותר)</label>
+                            <label class="btn btn-outline-danger fw-bold shadow-none" for="accRadioYes" style="font-size: 0.85rem; padding: 0.5rem; white-space: normal; line-height: 1.2;">מעורב צד ג'<br><small>(2 רכבים ויותר)</small></label>
                         </div>
 
                         <div id="involvedVehicleContainer" class="d-none">
-                            <div style="background: #fff1f2; border-radius: 12px; padding: 1.2rem; border: 1px solid #ffe4e6;">
+                            <div style="background: #fff1f2; border-radius: 12px; padding: 1rem; border: 1px solid #ffe4e6;">
                                 <div id="selectedInvolvedVehiclesContainer" class="mb-3 d-flex flex-column gap-2"></div>
 
-                                <label class="form-label fw-bold" style="color: #be123c; font-size: 0.85rem;"><i class="fas fa-search me-1"></i> חפש רכב דרך משרד הרישוי להוספה לפרוטוקול:</label>
+                                <label class="form-label fw-bold" style="color: #be123c; font-size: 0.8rem;"><i class="fas fa-search me-1"></i> חפש רכב להוספה לפרוטוקול:</label>
                                 <div class="input-group" dir="ltr" style="box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                                    <button class="btn text-white fw-bold px-4" type="button" style="background:#e11d48; border:none; border-radius: 12px 0 0 12px;" onclick="fetchInvolvedCarDetails()" id="btnFetchInvolved">
+                                    <button class="btn text-white fw-bold px-3 px-md-4" type="button" style="background:#e11d48; border:none; border-radius: 12px 0 0 12px;" onclick="fetchInvolvedCarDetails()" id="btnFetchInvolved">
                                         חפש
                                     </button>
                                     <input type="text" class="form-control font-monospace text-end" id="accInvolvedPlate" placeholder="מס' רישוי" maxlength="8" style="border-color: #cbd5e1;">
@@ -224,21 +224,21 @@
                                 </div>
 
                                 <!-- API Result Display -->
-                                <div id="involvedCarDetails" class="d-none bg-white p-3 rounded mt-3 shadow-sm" style="cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;" onclick="addInvolvedCarToList()" onmouseover="this.style.borderColor='#e11d48'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <div id="involvedCarDetails" class="d-none bg-white p-2 rounded mt-3 shadow-sm" style="cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;" onclick="addInvolvedCarToList()">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="icon-lg-wrapper bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border: 1px solid #e2e8f0;">
-                                                <i class="fas fa-car fs-4"></i>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="icon-lg-wrapper bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+                                                <i class="fas fa-car fs-5"></i>
                                             </div>
                                             <div>
-                                                <h6 class="fw-bold mb-0" style="color:#0f172a;" id="involvedCarTitle">--</h6>
-                                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                                                <h6 class="fw-bold mb-0" style="color:#0f172a; font-size: 0.9rem;" id="involvedCarTitle">--</h6>
+                                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
                                                     <i class="fas fa-palette me-1"></i> <span id="involvedCarColor">--</span> &nbsp;|&nbsp; 
                                                     <i class="far fa-calendar-alt me-1"></i> <span id="involvedCarYear">--</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div style="width: 32px; height: 32px; background: #f0fdf4; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                        <div style="width: 28px; height: 28px; background: #f0fdf4; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-plus"></i>
                                         </div>
                                     </div>
@@ -248,10 +248,10 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer p-4" style="background: white; border-top: 1px solid #e2e8f0;">
-                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0;">ביטול</button>
-                <button type="button" class="btn fw-bold px-5 text-white" onclick="saveAccident()" style="background: linear-gradient(135deg, #e11d48, #be123c); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);">
-                    <i class="fas fa-save me-2"></i> הוסף את הדיווח לתיק
+            <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                <button type="button" class="btn fw-bold text-white" onclick="saveAccident()" style="background: linear-gradient(135deg, #e11d48, #be123c); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                    <i class="fas fa-save me-1"></i> הוסף דיווח
                 </button>
             </div>
         </div>

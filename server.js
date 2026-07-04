@@ -181,6 +181,12 @@ app.get('/api/config/supabase', (req, res) => {
     });
 });
 
+app.get('/api/config/maps', (req, res) => {
+    res.json({
+        key: process.env.GOOGLE_MAPS_API_KEY || ''
+    });
+});
+
 // Forgot Password - Send OTP
 app.post('/api/auth/send-otp', async (req, res) => {
     try {
@@ -969,7 +975,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
                     points: parseInt(r.Points) || 0,
                     location: r.Location || '',
                     status: r.IsHandled ? 'paid' : 'unpaid',
-                    images: r.DocumentBase64 ? [r.DocumentBase64] : []
+                    images: (() => { try { const p = JSON.parse(r.DocumentBase64); return Array.isArray(p) ? p : (r.DocumentBase64 ? [r.DocumentBase64] : []); } catch(e) { return r.DocumentBase64 ? [r.DocumentBase64] : []; } })()
                 };
             })
         };

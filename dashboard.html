@@ -203,8 +203,16 @@
                             <input type="date" class="db-form-control" id="tDate" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">שם המוסך</label>
-                            <input type="text" class="db-form-control" id="tGarage" required>
+                            <label class="form-label fw-bold">שם / מיקום המוסך</label>
+                            <div class="input-group">
+                                <input type="text" class="db-form-control form-control" id="tGarage" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('tGarage')" title="השתמש במיקום נוכחי">
+                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" onclick="window.openMapPicker('tGarage')" title="בחר מהמפה">
+                                    <i class="fas fa-map text-success"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="db-row">
                             <div class="db-col-6 mb-3">
@@ -250,8 +258,16 @@
                             <input type="date" class="db-form-control" id="editTDate" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">שם המוסך</label>
-                            <input type="text" class="db-form-control" id="editTGarage" required>
+                            <label class="form-label fw-bold">שם / מיקום המוסך</label>
+                            <div class="input-group">
+                                <input type="text" class="db-form-control form-control" id="editTGarage" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('editTGarage')" title="השתמש במיקום נוכחי">
+                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" onclick="window.openMapPicker('editTGarage')" title="בחר מהמפה">
+                                    <i class="fas fa-map text-success"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="db-row">
                             <div class="db-col-6 mb-3">
@@ -272,6 +288,36 @@
                 <div class="modal-footer">
                     <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
                     <button type="button" class="db-btn db-btn-primary" onclick="updateTreatment()">עדכן טיפול</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Picker Modal -->
+    <div class="modal fade" id="mapPickerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-map-marked-alt text-success me-2"></i> בחר מיקום מהמפה</h5>
+                    <button type="button" class="btn-close m-0" style="margin-left:0; margin-right:auto;" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="position: relative;">
+                    <!-- Map Canvas -->
+                    <div id="mapPickerCanvas" style="width: 100%; height: 400px; background: #e2e8f0;"></div>
+                    <!-- Selected Address Overlay -->
+                    <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(255,255,255,0.95); padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-map-pin text-danger fa-lg"></i>
+                        <div style="flex: 1;">
+                            <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">המיקום הנבחר:</small>
+                            <span id="mapSelectedAddress" class="fw-bold text-dark" style="font-size: 0.95rem;">מחפש מיקום...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="db-btn btn-success text-white px-4 fw-bold" onclick="window.confirmMapSelection()">
+                        <i class="fas fa-check me-1"></i> אישור מיקום
+                    </button>
                 </div>
             </div>
         </div>

@@ -68,6 +68,9 @@ window.loadInsurance = function () {
             } else {
                 viewBtn.classList.add('d-none');
             }
+            
+            const delBtn = document.querySelector(`button[onclick="window.deleteInsuranceType('${type}')"]`);
+            if (delBtn) delBtn.classList.remove('d-none');
 
             // Build Extra Information HTML dynamically
             let extraHtml = '';
@@ -128,6 +131,9 @@ window.loadInsurance = function () {
             cardEl.style.borderColor = '#e2e8f0';
             
             viewBtn.classList.add('d-none');
+            
+            const delBtn = document.querySelector(`button[onclick="window.deleteInsuranceType('${type}')"]`);
+            if (delBtn) delBtn.classList.add('d-none');
             
             const extraBtn = document.getElementById(`extra-btn-${type}`);
             const extraInfo = document.getElementById(`extra-info-${type}`);
