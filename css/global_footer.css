@@ -3,9 +3,11 @@
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-top: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 60px 20px;
+    padding: 15px 0 !important;
     width: 100%;
-    margin-top: 60px;
+    margin-top: 40px !important;
+    height: auto !important;
+    min-height: 0 !important;
     display: flex;
     flex-direction: column; /* Ensures button is under text */
     align-items: center;

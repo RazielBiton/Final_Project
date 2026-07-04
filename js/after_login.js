@@ -160,6 +160,14 @@ async function fetchAndRenderFleet() {
 
     } catch (err) {
         console.error('Error fetching cars:', err);
+    } finally {
+        const overlay = document.getElementById('fleetLoadingOverlay');
+        if (overlay) {
+            overlay.classList.add('fade-out');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
     }
 }
 

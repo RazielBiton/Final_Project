@@ -22,7 +22,7 @@
           <h1>Easy-Care</h1>
           <br>
           <br>
-          <a class="btn_home" href="index.html">יציאה</a>
+          <a class="btn_home" href="index.html">חזור לדף הבית</a>
         </div>
       </div>
       <div class="right-container">
@@ -34,14 +34,14 @@
             <input type="text" id="contactName" placeholder="שם מלא" required />
             <input type="email" id="contactEmail" placeholder="אימייל" required />
             <input type="tel" id="contactPhone" placeholder="מספר טלפון" required />
-            <textarea rows="4" id="contactMessage" placeholder="אנא הכנס הודעתך" required></textarea>
+            <textarea rows="4" id="contactMessage" placeholder="אנא הכנס הודעתך" required maxlength="300"></textarea>
+            <div id="mobileCharCount" style="text-align: left; font-size: 0.8rem; color: #6c757d; margin-top: -5px; margin-bottom: 10px;">0/300</div>
             
-            <button type="submit" id="contactSubmitBtn">שלח</button>
-            <p id="contactFeedback" style="display: none; margin-top: 10px; font-weight: bold;"></p>
-
-            <br class="sm-view">
-            <br class="sm-view">
-            <a class="sm-view btn_home" href="index.html">חזור לדף הבית</a>
+            <div class="mobile-buttons-wrapper">
+              <button type="submit" id="contactSubmitBtn">שלח</button>
+              <p id="contactFeedback" style="display: none; margin-top: 10px; font-weight: bold;"></p>
+              <a class="sm-view btn_home" href="index.html">חזור לדף הבית</a>
+            </div>
           </form>
         </div>
       </div>
