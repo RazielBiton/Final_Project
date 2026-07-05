@@ -52,6 +52,15 @@ app.use((req, res, next) => {
 });
 
 // ========================
+// PUBLIC CONFIG ROUTES
+// ========================
+
+// Google Maps API key (public, needed before auth)
+app.get('/api/config/maps', (req, res) => {
+    res.json({ key: process.env.GOOGLE_MAPS_API_KEY || '' });
+});
+
+// ========================
 // API ROUTES FOR AUTH
 // ========================
 
