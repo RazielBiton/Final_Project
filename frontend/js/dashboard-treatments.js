@@ -226,79 +226,314 @@ window.updateTreatment = function () {
     }
 }
 
+// --- Shared precise location helper using watchPosition ---
+let _cachedUserLocation = null; // Cache last known precise location
+
+function getPreciseLocation(onSuccess, onError) {
+    if (!navigator.geolocation) {
+        onError && onError(new Error('no geolocation'));
+        return;
+    }
+    let settled = false;
+    let watchId = null;
+    // Timeout fallback after 15s
+    const fallbackTimer = setTimeout(() => {
+        if (!settled) {
+            settled = true;
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            onError && onError(new Error('timeout'));
+        }
+    }, 15000);
+
+    watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+            const accuracy = pos.coords.accuracy; // meters
+            _cachedUserLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            // Accept if accuracy ≤ 50m, or after 5s accept whatever we have
+            if (!settled && accuracy <= 50) {
+                settled = true;
+                clearTimeout(fallbackTimer);
+                navigator.geolocation.clearWatch(watchId);
+                onSuccess(pos.coords);
+            }
+        },
+        (err) => {
+            if (!settled) {
+                settled = true;
+                clearTimeout(fallbackTimer);
+                onError && onError(err);
+            }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+
+    // Accept best reading after 5 seconds even if not ideal accuracy
+    setTimeout(() => {
+        if (!settled && _cachedUserLocation) {
+            settled = true;
+            clearTimeout(fallbackTimer);
+            navigator.geolocation.clearWatch(watchId);
+            onSuccess({ latitude: _cachedUserLocation.lat, longitude: _cachedUserLocation.lng, accuracy: 999 });
+        }
+    }, 5000);
+}
+
+// Extracts house number from address object, with fallback to display_name parsing
+// Nominatim sometimes puts the house number as the first segment of display_name (e.g. "2, השוהם, מגדל העמק...")
+function extractHouseNumber(addr, displayName) {
+    if (addr && addr.house_number) return addr.house_number;
+    if (displayName) {
+        const firstPart = displayName.split(',')[0].trim();
+        // Match pure numbers or number+Hebrew letter (e.g. "2", "14א")
+        if (/^\d+[א-ת]?$/.test(firstPart)) return firstPart;
+    }
+    return '';
+}
+
+async function reverseGeocode(lat, lon) {
+    const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=he`,
+        { headers: { 'Accept-Language': 'he' } }
+    );
+    if (!res.ok) throw new Error('Nominatim failed');
+    const data = await res.json();
+    if (data && data.address) {
+        const houseNumber = extractHouseNumber(data.address, data.display_name);
+        const street = data.address.road || data.address.pedestrian || data.address.footway || '';
+        const city = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
+        let parts = [];
+        if (street) parts.push(houseNumber ? `${street} ${houseNumber}` : street);
+        if (city) parts.push(city);
+        if (parts.length > 0) return parts.join(', ');
+        if (data.display_name) return data.display_name.split(',').slice(0, 2).join(', ');
+    }
+    return null;
+}
+
 window.fetchCurrentLocation = function(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
     if (!navigator.geolocation) {
-        alert("הדפדפן שלך אינו תומך באיתור מיקום");
+        alert('הדפדפן שלך אינו תומך באיתור מיקום');
         return;
     }
 
-    input.placeholder = "מאתר מיקום נוכחי...";
+    input.placeholder = 'מאתר מיקום מדויק...';
+    input.value = '';
     
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        
+    getPreciseLocation(async (coords) => {
+        const lat = coords.latitude;
+        const lon = coords.longitude;
         try {
-            // Using free Nominatim reverse geocoding
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=he`);
-            if (!res.ok) throw new Error("Failed to fetch location");
-            const data = await res.json();
-            
-            if (data && data.address) {
-                const street = data.address.road || data.address.pedestrian || "";
-                const city = data.address.city || data.address.town || data.address.village || "";
-                let fullAddress = street;
-                if (city) {
-                    fullAddress += fullAddress ? `, ${city}` : city;
-                }
-                
-                if (fullAddress) {
-                    input.value = `מיקום נוכחי: ${fullAddress}`;
-                } else {
-                    input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-                }
-            } else {
-                input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-            }
+            const address = await reverseGeocode(lat, lon);
+            input.value = address || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
         } catch(e) {
             console.error(e);
-            input.value = `מיקום נוכחי: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            input.value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
         }
-    }, (error) => {
-        console.error(error);
-        alert("שגיאה בקבלת המיקום. אנא ודא ששירותי המיקום פועלים.");
+        input.placeholder = "לדוג': מוסך העמק";
+    }, (err) => {
+        console.error(err);
+        alert('שגיאה בקבלת המיקום. אנא ודא ששירותי המיקום פועלים.');
         input.placeholder = "לדוג': מוסך העמק";
     });
 };
 
-// Initialize Google Maps Places Autocomplete for garage location
+// ---- Garage Address Autocomplete (Nominatim) ----
+let _autocompleteDebounce = null;
+
+function buildAutocompleteDropdown(inputEl) {
+    // Create dropdown container once
+    let dropdown = inputEl._acDropdown;
+    if (!dropdown) {
+        // Wrap just the input in a relative-positioned div so top:100% works correctly
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative; display:block;';
+        inputEl.parentElement.insertBefore(wrapper, inputEl);
+        wrapper.appendChild(inputEl);
+
+        dropdown = document.createElement('div');
+        dropdown.style.cssText = [
+            'position:absolute',
+            'top:100%',
+            'left:0',
+            'right:0',
+            'z-index:9999',
+            'background:#fff',
+            'border:1px solid #d1d5db',
+            'border-radius:10px',
+            'box-shadow:0 8px 24px rgba(0,0,0,0.15)',
+            'max-height:220px',
+            'overflow-y:auto',
+            'margin-top:3px',
+            'display:none'
+        ].join(';');
+        wrapper.appendChild(dropdown);
+        inputEl._acDropdown = dropdown;
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+    return dropdown;
+}
+
+// ---- Shared dropdown item renderer ----
+function showDropdownItems(labels, dropdown, inputEl) {
+    dropdown.innerHTML = '';
+    if (!labels || labels.length === 0) { dropdown.style.display = 'none'; return; }
+    labels.slice(0, 7).forEach(label => {
+        const item = document.createElement('div');
+        item.textContent = label;
+        item.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:0.92rem;border-bottom:1px solid #f1f5f9;direction:rtl;text-align:right;background:#fff;';
+        item.addEventListener('mouseenter', () => item.style.background = '#f0f9ff');
+        item.addEventListener('mouseleave', () => item.style.background = '#fff');
+        item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            inputEl.value = label;
+            dropdown.style.display = 'none';
+        });
+        dropdown.appendChild(item);
+    });
+    dropdown.style.display = 'block';
+}
+
+// ---- Nominatim suggestions with house-number support ----
+async function fetchNominatimSuggestions(query, dropdown, inputEl) {
+    // Detect Israeli "street number" format: "השוהם 2" → try Nominatim with "2 השוהם" (western format)
+    const numberMatch = query.match(/^(.+?)\s+(\d+[\u05d0-\u05ea]?)\s*$/);
+    const urls = [];
+    let userStreet = '';
+    let userNum = '';
+    if (numberMatch) {
+        userStreet = numberMatch[1].trim();
+        userNum = numberMatch[2].trim();
+        // Structured search: number before street (how Nominatim expects it)
+        urls.push(`https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(userNum + ' ' + userStreet)}&countrycodes=il&addressdetails=1&limit=5&accept-language=he`);
+    }
+    // Also do a regular free-text search
+    urls.push(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=il&addressdetails=1&limit=5&accept-language=he`);
+
+    const allLabels = [];
+    const seen = new Set();
+    for (const url of urls) {
+        try {
+            const res = await fetch(url);
+            const results = await res.json();
+            if (!results || !results.length) continue;
+            results.forEach(r => {
+                const addr = r.address || {};
+                let houseNumber = extractHouseNumber(addr, r.display_name);
+                const street = addr.road || addr.pedestrian || addr.footway || '';
+                const city = addr.city || addr.town || addr.village || addr.suburb || '';
+
+                // SMART FALLBACK: If user typed a house number, but Nominatim didn't return one,
+                // and the returned street matches the user's input -> Inject the number!
+                if (!houseNumber && userNum && street && street.includes(userStreet)) {
+                    houseNumber = userNum;
+                }
+
+                let label;
+                if (street) {
+                    label = houseNumber ? `${street} ${houseNumber}` : street;
+                } else {
+                    label = r.display_name.split(',')[0].trim();
+                }
+                if (city && city !== label) label += `, ${city}`;
+                if (!seen.has(label)) { seen.add(label); allLabels.push(label); }
+            });
+        } catch(e) { console.error('Nominatim error', e); }
+    }
+    showDropdownItems(allLabels, dropdown, inputEl);
+}
+
+function attachGarageAutocomplete(inputEl) {
+    if (!inputEl || inputEl._acAttached) return;
+    inputEl._acAttached = true;
+    const dropdown = buildAutocompleteDropdown(inputEl);
+
+    inputEl.addEventListener('input', () => {
+        const query = inputEl.value.trim();
+        if (query.length < 2) { dropdown.style.display = 'none'; return; }
+        clearTimeout(_autocompleteDebounce);
+        _autocompleteDebounce = setTimeout(async () => {
+            try {
+                // Prefer Google Places AutocompleteService — returns full addresses WITH house numbers
+                if (typeof google !== 'undefined' && google.maps && google.maps.places && google.maps.places.AutocompleteService) {
+                    const service = new google.maps.places.AutocompleteService();
+                    service.getPlacePredictions(
+                        {
+                            input: query,
+                            componentRestrictions: { country: 'il' },
+                            types: ['address'],  // address type → includes house numbers
+                            language: 'he'
+                        },
+                        (predictions, status) => {
+                            if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+                                const labels = predictions.map(p =>
+                                    p.description
+                                        .replace(/, ישראל$/i, '')
+                                        .replace(/, Israel$/i, '')
+                                        .trim()
+                                );
+                                showDropdownItems(labels, dropdown, inputEl);
+                            } else {
+                                // Google returned nothing → Nominatim fallback
+                                fetchNominatimSuggestions(query, dropdown, inputEl);
+                            }
+                        }
+                    );
+                } else {
+                    // Google not loaded yet → Nominatim
+                    await fetchNominatimSuggestions(query, dropdown, inputEl);
+                }
+            } catch(e) {
+                console.error('Autocomplete error', e);
+                await fetchNominatimSuggestions(query, dropdown, inputEl);
+            }
+        }, 300);
+    });
+
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') dropdown.style.display = 'none';
+    });
+    inputEl.addEventListener('blur', () => {
+        setTimeout(() => { dropdown.style.display = 'none'; }, 150);
+    });
+}
+
+// Attach autocomplete to both garage inputs
 (function initGarageAutocomplete() {
+    // Attach on DOM ready (inputs might be inside modals)
+    const tryAttach = () => {
+        attachGarageAutocomplete(document.getElementById('tGarage'));
+        attachGarageAutocomplete(document.getElementById('editTGarage'));
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryAttach);
+    } else {
+        tryAttach();
+    }
+    // Also try on modal open (inputs may be lazy)
+    document.addEventListener('show.bs.modal', () => setTimeout(tryAttach, 100));
+
+    // Load Google Maps for the map picker (geocoding only)
     fetch('/api/config/maps')
         .then(res => res.json())
         .then(data => {
             if (data && data.key) {
                 const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&language=he`;
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places,geocoder&language=he`;
                 script.async = true;
                 script.defer = true;
-                script.onload = () => {
-                    const tGarageInput = document.getElementById('tGarage');
-                    const editTGarageInput = document.getElementById('editTGarage');
-                    
-                    if (tGarageInput) {
-                        new google.maps.places.Autocomplete(tGarageInput, { types: ['establishment'] });
-                    }
-                    if (editTGarageInput) {
-                        new google.maps.places.Autocomplete(editTGarageInput, { types: ['establishment'] });
-                    }
-                };
                 document.head.appendChild(script);
             }
         })
-        .catch(err => console.error("Could not load Maps Config", err));
+        .catch(err => console.error('Could not load Maps Config', err));
 })();
 
 // --- Map Picker Logic ---
@@ -311,92 +546,166 @@ let currentSelectedAddress = '';
 window.openMapPicker = function(inputId) {
     currentTargetInputId = inputId;
     
-    // Check if Google Maps API is loaded
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-        alert('שירות המפות עדיין בטעינה, אנא נסה שנית בעוד מספר שניות.');
-        return;
-    }
-
     const modalEl = document.getElementById('mapPickerModal');
     if (!modalEl) return;
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
 
-    // Default to Tel Aviv
-    let lat = 32.0853;
-    let lng = 34.7818;
+    // Default to Tel Aviv until we get precise location
+    const defaultLat = 32.0853, defaultLng = 34.7818;
 
-    // Use current location if possible, otherwise Tel Aviv
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-            if (mapPickerInstance) {
-                const posObj = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                mapPickerInstance.setCenter(posObj);
-                mapPickerMarker.setPosition(posObj);
-                updateAddressFromLatLng(posObj);
+    function initMapAtPos(lat, lng) {
+        // Check Google Maps loaded
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            alert('שירות המפות עדיין בטעינה, אנא נסה שנית בעוד מספר שניות.');
+            return;
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        modalEl.addEventListener('shown.bs.modal', function onModalShown() {
+            modalEl.removeEventListener('shown.bs.modal', onModalShown);
+
+            if (!mapPickerInstance) {
+                mapPickerInstance = new google.maps.Map(document.getElementById('mapPickerCanvas'), {
+                    center: { lat, lng },
+                    zoom: 16,
+                    mapTypeControl: false,
+                    streetViewControl: false
+                });
+
+                mapPickerMarker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: mapPickerInstance,
+                    draggable: true,
+                    animation: google.maps.Animation.DROP
+                });
+
+                mapGeocoder = new google.maps.Geocoder();
+
+                mapPickerMarker.addListener('dragend', () => {
+                    updateAddressFromLatLng(mapPickerMarker.getPosition());
+                });
+
+                mapPickerInstance.addListener('click', (e) => {
+                    mapPickerMarker.setPosition(e.latLng);
+                    updateAddressFromLatLng(e.latLng);
+                });
+
+                updateAddressFromLatLng({ lat, lng });
+            } else {
+                // Move existing map to current location
+                const pos = { lat, lng };
+                mapPickerInstance.setCenter(pos);
+                mapPickerMarker.setPosition(pos);
+                google.maps.event.trigger(mapPickerInstance, 'resize');
+                updateAddressFromLatLng(pos);
             }
         });
     }
 
-    // Initialize map on modal shown (so the canvas has correct dimensions)
-    modalEl.addEventListener('shown.bs.modal', function onModalShown() {
-        modalEl.removeEventListener('shown.bs.modal', onModalShown);
-        
-        if (!mapPickerInstance) {
-            mapPickerInstance = new google.maps.Map(document.getElementById('mapPickerCanvas'), {
-                center: { lat: lat, lng: lng },
-                zoom: 14,
-                mapTypeControl: false,
-                streetViewControl: false
-            });
+    // Try to get precise user location before opening map
+    const addressEl = document.getElementById('mapSelectedAddress');
+    if (addressEl) addressEl.textContent = 'מאתר מיקום נוכחי...';
 
-            mapPickerMarker = new google.maps.Marker({
-                position: { lat: lat, lng: lng },
-                map: mapPickerInstance,
-                draggable: true,
-                animation: google.maps.Animation.DROP
-            });
+    // Use cached location if recent, otherwise fetch
+    if (_cachedUserLocation) {
+        initMapAtPos(_cachedUserLocation.lat, _cachedUserLocation.lng);
+    } else if (navigator.geolocation) {
+        // Try quick location (up to 4 seconds), fallback to Tel Aviv
+        let done = false;
+        const timer = setTimeout(() => {
+            if (!done) { done = true; initMapAtPos(defaultLat, defaultLng); }
+        }, 4000);
 
-            mapGeocoder = new google.maps.Geocoder();
-
-            // Handle drag end
-            mapPickerMarker.addListener('dragend', () => {
-                updateAddressFromLatLng(mapPickerMarker.getPosition());
-            });
-
-            // Handle map click
-            mapPickerInstance.addListener('click', (e) => {
-                mapPickerMarker.setPosition(e.latLng);
-                updateAddressFromLatLng(e.latLng);
-            });
-            
-            // Initial address fetch
-            updateAddressFromLatLng(mapPickerMarker.getPosition());
-        } else {
-            // Resize map to fix rendering issues inside modals
-            google.maps.event.trigger(mapPickerInstance, 'resize');
-            mapPickerInstance.setCenter(mapPickerMarker.getPosition());
-        }
-    });
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                if (!done) {
+                    done = true;
+                    clearTimeout(timer);
+                    _cachedUserLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    initMapAtPos(_cachedUserLocation.lat, _cachedUserLocation.lng);
+                }
+            },
+            () => { if (!done) { done = true; clearTimeout(timer); initMapAtPos(defaultLat, defaultLng); } },
+            { enableHighAccuracy: true, timeout: 4000, maximumAge: 30000 }
+        );
+    } else {
+        initMapAtPos(defaultLat, defaultLng);
+    }
 };
 
-function updateAddressFromLatLng(latLng) {
+function extractCleanAddress(results) {
+    if (!results || results.length === 0) return null;
+    // Google Geocoder always sorts results from most specific to least specific.
+    // results[0] is exactly what's on the map pin (including business name + house number if it exists).
+    // We just remove the country name.
+    return results[0].formatted_address.replace(/, ישראל$/i, '').replace(/, Israel$/i, '').trim();
+}
+
+async function updateAddressFromLatLng(latLng) {
     const addressEl = document.getElementById('mapSelectedAddress');
     if (!addressEl) return;
     
     addressEl.textContent = 'מחפש כתובת...';
     
-    if (!mapGeocoder) mapGeocoder = new google.maps.Geocoder();
-    
-    mapGeocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            currentSelectedAddress = results[0].formatted_address;
-            addressEl.textContent = currentSelectedAddress;
-        } else {
-            currentSelectedAddress = latLng.lat().toFixed(5) + ', ' + latLng.lng().toFixed(5);
-            addressEl.textContent = currentSelectedAddress;
+    const lat = typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat;
+    const lng = typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng;
+
+    // Try Google Geocoder first
+    if (mapGeocoder || (typeof google !== 'undefined' && google.maps)) {
+        if (!mapGeocoder) mapGeocoder = new google.maps.Geocoder();
+        
+        try {
+            await new Promise((resolve) => {
+                mapGeocoder.geocode({ location: { lat, lng } }, (results, status) => {
+                    if (status === 'OK' && results && results.length > 0) {
+                        currentSelectedAddress = extractCleanAddress(results);
+                        addressEl.textContent = currentSelectedAddress;
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                });
+            }).then(async (success) => {
+                if (!success) {
+                    // Fallback to Nominatim
+                    await fetchAddressFromNominatim(lat, lng, addressEl);
+                }
+            });
+            return;
+        } catch(e) {
+            console.error('Google Geocoder error:', e);
         }
-    });
+    }
+    
+    // Fallback: use Nominatim if Google not available
+    await fetchAddressFromNominatim(lat, lng, addressEl);
+}
+
+async function fetchAddressFromNominatim(lat, lng, addressEl) {
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=he`
+        );
+        if (!res.ok) throw new Error('Nominatim failed');
+        const data = await res.json();
+        
+        if (data && data.address) {
+            const houseNumber = extractHouseNumber(data.address, data.display_name);
+            const street = data.address.road || data.address.pedestrian || data.address.footway || '';
+            const city = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
+            let parts = [];
+            if (street) parts.push(houseNumber ? `${street} ${houseNumber}` : street);
+            if (city) parts.push(city);
+            currentSelectedAddress = parts.length > 0 ? parts.join(', ') :
+                (data.display_name ? data.display_name.split(',').slice(0, 2).join(', ') : `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        } else {
+            currentSelectedAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        }
+    } catch(e) {
+        console.error('Nominatim error:', e);
+        currentSelectedAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+    if (addressEl) addressEl.textContent = currentSelectedAddress;
 }
 
 window.confirmMapSelection = function() {
