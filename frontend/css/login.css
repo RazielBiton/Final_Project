@@ -358,8 +358,11 @@ body.is-loading {
     }
 
     .container {
-        min-height: 550px;
-        height: auto;
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: max-content !important;
+        overflow: visible !important;
         margin: 10px auto;
         width: 100%;
         border-radius: 15px;
@@ -367,11 +370,58 @@ body.is-loading {
 
     .form-container {
         width: 100% !important;
+        flex: none !important;
+        padding: 40px 20px !important;
         position: relative;
+        background-color: #FFFFFF;
     }
 
     .overlay-container {
-        display: none; /* Hide overlay on mobile for simplicity */
+        display: flex !important;
+        width: 100% !important;
+        flex: none !important;
+        padding: 30px 25px 45px 25px !important;
+        position: relative !important;
+        left: 0 !important;
+        transform: none !important;
+        height: auto !important;
+        justify-content: center !important;
+        align-items: center !important;
+        background: #2d74d7 !important;
+        z-index: 10;
+    }
+
+    .overlay-container button {
+        margin-bottom: 0 !important;
+    }
+
+    .overlay {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        left: 0 !important;
+        background: transparent !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .overlay-panel {
+        position: static !important;
+        width: 100% !important;
+        transform: none !important;
+        padding: 0 !important;
+        height: auto !important;
+        display: none !important;
+    }
+
+    .container:not(.right-panel-active) .overlay-right {
+        display: flex !important;
+    }
+
+    .container.right-panel-active .overlay-left {
+        display: flex !important;
     }
 
     .sign-in-container, .sign-up-container {
@@ -390,7 +440,8 @@ body.is-loading {
     }
 
     .container form {
-        padding: 30px 20px;
+        padding: 0;
+        height: auto;
     }
 
     .global-footer {
