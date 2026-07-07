@@ -282,3 +282,21 @@
     font-weight: 600;
     margin-bottom: 2px;
 }
+
+/* ===== MOBILE ONLY ===== */
+@media (max-width: 768px) {
+    /* Fix: dropdown arrow overlapping text in expense type select */
+    #expenseType {
+        padding-left: 3.5rem !important;
+    }
+
+    /* Fix: expense modal constrained above fixed footer */
+    #addExpenseModal .modal-dialog {
+        margin-bottom: 160px !important;
+        max-height: calc(100vh - 200px) !important;
+    }
+    #addExpenseModal .modal-content {
+        max-height: calc(100vh - 220px) !important;
+        overflow: hidden;
+    }
+}

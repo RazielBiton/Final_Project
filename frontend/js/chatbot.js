@@ -108,6 +108,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Touch drag for mobile ---
+    chatWidgetBtn.addEventListener('touchstart', (e) => {
+        isDraggingBtn = true;
+        clickTimeout = false;
+        setTimeout(() => { if (isDraggingBtn) clickTimeout = true; }, 150);
+        const touch = e.touches[0];
+        const rect = chatWidgetBtn.getBoundingClientRect();
+        btnOffsetX = touch.clientX - rect.left;
+        btnOffsetY = touch.clientY - rect.top;
+        chatWidgetBtn.style.transition = 'none';
+        e.preventDefault(); // prevent page scroll during drag
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isDraggingBtn) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        let newX = touch.clientX - btnOffsetX;
+        let newY = touch.clientY - btnOffsetY;
+        const maxX = window.innerWidth - chatWidgetBtn.offsetWidth;
+        const maxY = window.innerHeight - chatWidgetBtn.offsetHeight;
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+        chatWidgetBtn.style.left = `${newX}px`;
+        chatWidgetBtn.style.top = `${newY}px`;
+        chatWidgetBtn.style.bottom = 'auto';
+        chatWidgetBtn.style.right = 'auto';
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+        if (isDraggingBtn) {
+            isDraggingBtn = false;
+            chatWidgetBtn.style.transition = 'transform 0.3s ease, background-color 0.2s';
+        }
+    });
+
+
     // Toggle Chat Window
     chatWidgetBtn.addEventListener('click', (e) => {
         if (clickTimeout) return;

@@ -123,7 +123,7 @@
                 </div>
 
                 <!-- Global Search Bar -->
-                <div class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
+                <div id="navSearchWrapper" class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
                     <form class="d-flex position-relative w-100" style="max-width: 400px;"
                         onsubmit="event.preventDefault(); var search_q1 = document.getElementById('globalSearchInput').value; if(search_q1) window.location.href='search_results.html?q=' + encodeURIComponent(search_q1);">
                         <input type="tel" pattern="[0-9]*" id="globalSearchInput" autocomplete="off"
@@ -169,10 +169,16 @@
 
             <!-- Mobile Search Bar (appears below navbar on search icon click) -->
             <div id="mobileSearchBar">
-                <input type="tel" id="mobileSearchInput" pattern="[0-9]*" autocomplete="off"
-                    placeholder="הכנס מספר רכב לחיפוש..."
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                    onkeydown="if(event.key==='Enter'){ var v=this.value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v); }">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="tel" id="mobileSearchInput" pattern="[0-9]*" autocomplete="off"
+                        placeholder="הכנס מספר רכב לחיפוש..."
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        onkeydown="if(event.key==='Enter'){ var v=this.value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v); }">
+                    <button id="mobileSearchBtn"
+                        onclick="var v=document.getElementById('mobileSearchInput').value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v);">
+                        <i class="fas fa-search"></i> חפש
+                    </button>
+                </div>
             </div>
 
             <div class="db-container-fluid px-4 py-4" id="dashboardContent">
@@ -572,7 +578,7 @@
 
     <!-- Add Expense Modal (Premium iOS Style Redesign) -->
     <div class="modal fade" id="addExpenseModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0"
                 style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
                 <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">

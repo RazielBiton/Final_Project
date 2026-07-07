@@ -72,6 +72,7 @@
 
     .global-footer .footer-contact {
         padding: 10px 30px;
+        margin-top: 7px;
         width: auto;
         /* Don't stretch on mobile, keep it like the image */
         background-color: #1c1c1e;
