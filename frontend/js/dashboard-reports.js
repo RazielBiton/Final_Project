@@ -484,3 +484,19 @@ window.openReportImage = function(src) {
         modal.show();
     }
 };
+
+// Attach autocomplete to report location exactly like treatments
+(function initReportLocationAutocomplete() {
+    const tryAttach = () => {
+        if (typeof window.attachAddressAutocomplete === 'function') {
+            window.attachAddressAutocomplete(document.getElementById('report-location'));
+        }
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryAttach);
+    } else {
+        tryAttach();
+    }
+    // Also try on modal open (inputs may be lazy)
+    document.addEventListener('show.bs.modal', () => setTimeout(tryAttach, 100));
+})();

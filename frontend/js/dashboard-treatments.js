@@ -536,6 +536,9 @@ function attachGarageAutocomplete(inputEl) {
         .catch(err => console.error('Could not load Maps Config', err));
 })();
 
+// Expose autocomplete globally for other modules (like reports)
+window.attachAddressAutocomplete = attachGarageAutocomplete;
+
 // --- Map Picker Logic ---
 let mapPickerInstance = null;
 let mapPickerMarker = null;
