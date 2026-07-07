@@ -146,7 +146,15 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">מיקום העבירה</label>
-                                    <input type="text" id="report-location" class="form-control" placeholder='עיר, רחוב או צומת' required style="border-radius:10px;">
+                                    <div class="input-group">
+                                        <input type="text" id="report-location" class="form-control" placeholder='עיר, רחוב או צומת' required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('report-location')" title="השתמש במיקום נוכחי">
+                                            <i class="fas fa-map-marker-alt text-primary"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="window.openMapPicker('report-location')" title="בחר מהמפה">
+                                            <i class="fas fa-map text-success"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

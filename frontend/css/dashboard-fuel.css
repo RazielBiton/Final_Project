@@ -56,8 +56,19 @@
 @media (max-width: 767px) {
     .fuel-actions-wrapper {
         margin-top: 1rem;
-        flex-direction: row-reverse;
-        justify-content: flex-end !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 20px !important;
+        justify-content: space-between !important;
+        flex-direction: row !important;
+    }
+
+    .fuel-actions-wrapper > div:last-child {
+        margin-inline-start: auto !important;
+    }
+
+    .fuel-actions-wrapper > div:first-child {
+        word-break: break-word;
     }
 }
 @media (min-width: 768px) {

@@ -323,6 +323,21 @@ body.dashboard-body {
     padding: 1rem 1rem;
 }
 
+/* Modal Headers (Desktop & Mobile) */
+.modal-header {
+    position: relative !important;
+}
+
+.modal-header .btn-close, .modal-header .close, .modal-header [data-bs-dismiss="modal"] { 
+    position: absolute !important; 
+    left: 15px !important; 
+    right: auto !important; 
+    margin: 0 !important; 
+    top: 50% !important; 
+    transform: translateY(-50%) !important; 
+    z-index: 10 !important;
+}
+
 /* Navbar */
 .db-navbar {
     position: sticky;
