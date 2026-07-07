@@ -588,7 +588,7 @@ window.editAccident = function (id) {
     if (!acc) return;
 
     document.getElementById('accidentId').value = acc.id;
-    document.getElementById('accidentModalTitle').innerHTML = '<i class="fas fa-edit me-2"></i> מתקן דיווח קיים';
+    document.getElementById('accidentModalTitle').innerHTML = '<i class="fas fa-edit me-2"></i> עריכת דיווח קיים';
     document.getElementById('accTitle').value = acc.title;
     document.getElementById('accCost').value = acc.cost;
     document.getElementById('accDescription').value = acc.description;
