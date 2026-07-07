@@ -640,7 +640,18 @@ body.dashboard-body {
         min-height: 60px;
         padding: 0.5rem !important;
         flex-wrap: nowrap !important; /* Force single line */
-        overflow-x: auto;
+        overflow: visible !important;
+    }
+
+    #globalSearchInput + i.fa-search {
+        min-width: 48px !important;
+        min-height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 10px !important;
+        z-index: 50 !important;
+        cursor: pointer !important;
     }
 
     .db-nav-content {
@@ -770,15 +781,23 @@ body.dashboard-body {
     .dashboard-footer-mini {
         padding: 8px 15px !important;
         gap: 5px !important;
+        color: #ffffff !important;
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
     }
     
     .dashboard-footer-mini .footer-text {
-        font-size: 10px !important;
+        font-size: 0.85rem !important;
+        color: #ffffff !important;
+        line-height: 1.4 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
     }
     
     .dashboard-footer-mini .footer-contact {
         padding: 4px 12px !important;
-        font-size: 10px !important;
+        font-size: 0.85rem !important;
+        color: #ffffff !important;
     }
 }@media (max-width: 767px) {
     .sidebar-heading {
