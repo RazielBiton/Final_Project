@@ -139,8 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('touchend', () => {
         if (isDraggingBtn) {
+            const wasTap = !clickTimeout; // true = quick tap, false = was dragged
             isDraggingBtn = false;
             chatWidgetBtn.style.transition = 'transform 0.3s ease, background-color 0.2s';
+
+            // touchstart.preventDefault() blocks the native click event.
+            // If it was a quick tap (not a drag), manually fire click.
+            if (wasTap) {
+                chatWidgetBtn.click();
+            }
         }
     });
 

@@ -827,9 +827,20 @@
             var bar = document.getElementById('mobileSearchBar');
             var mInput = document.getElementById('mobileSearchInput');
             var gInput = document.getElementById('globalSearchInput');
+
+            // Close the mobile search bar
             if (bar) bar.classList.remove('open');
-            if (mInput) { mInput.value = ''; mInput.blur(); }
-            if (gInput) { gInput.value = ''; gInput.blur(); }
+
+            // iOS trick: readonly=true dismisses keyboard on focused inputs.
+            // Clear value, make readonly (keyboard closes), blur, then
+            // remove readonly after 300ms so the user can still type.
+            [mInput, gInput].forEach(function(inp) {
+                if (!inp) return;
+                inp.value = '';
+                inp.setAttribute('readonly', 'readonly');
+                inp.blur();
+                setTimeout(function() { inp.removeAttribute('readonly'); }, 300);
+            });
         }
         // pageshow fires on fresh load AND bfcache restore (back/forward)
         window.addEventListener('pageshow', _resetMobileSearch);
