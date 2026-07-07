@@ -131,7 +131,7 @@
                             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             style="box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e9ecef; font-size: 0.95rem; padding-left: 2.7rem !important; direction: rtl; text-align: right;">
                         <div class="search-btn-wrapper position-absolute top-50 translate-middle-y" style="left: 18px; z-index: 10; cursor: pointer;"
-                            onclick="var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2);">
+                            onclick="if(window.innerWidth <= 768){ var bar=document.getElementById('mobileSearchBar'); bar.classList.toggle('open'); if(bar.classList.contains('open')){ var inp=document.getElementById('mobileSearchInput'); inp.focus(); } } else { var search_q2 = document.getElementById('globalSearchInput').value; if(search_q2) window.location.href='search_results.html?q=' + encodeURIComponent(search_q2); }">
                             <i class="fas fa-search text-primary fs-5"></i>
                         </div>
                         <ul id="globalAutocompleteList" class="list-group position-absolute w-100 shadow d-none"
@@ -166,6 +166,14 @@
                     </button>
                 </div>
             </nav>
+
+            <!-- Mobile Search Bar (appears below navbar on search icon click) -->
+            <div id="mobileSearchBar">
+                <input type="tel" id="mobileSearchInput" pattern="[0-9]*" autocomplete="off"
+                    placeholder="הכנס מספר רכב לחיפוש..."
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                    onkeydown="if(event.key==='Enter'){ var v=this.value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v); }">
+            </div>
 
             <div class="db-container-fluid px-4 py-4" id="dashboardContent">
                 <!-- SECTIONS LOADED MODULARLY VIA JS -->
@@ -579,7 +587,7 @@
                                     class="text-danger">*</span></label>
                             <select class="form-select db-form-control" id="expenseType" required
                                 onchange="toggleOtherExpenseInput()"
-                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500;">
+                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; padding-left: 2.5rem;">
                                 <option value="" disabled selected>-- בחר מקטגוריה --</option>
                                 <option value="test">טסט (רישוי שנתי)</option>
                                 <option value="cosmetics">קוסמטיקה וטיפוח</option>

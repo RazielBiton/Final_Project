@@ -651,8 +651,8 @@ body.dashboard-body {
     }
 
     .db-navbar {
-        height: 60px !important;
-        min-height: 60px;
+        height: 70px !important;
+        min-height: 70px;
         padding: 0.5rem !important;
         flex-wrap: nowrap !important; /* Force single line */
         overflow: visible !important;
@@ -772,6 +772,38 @@ body.dashboard-body {
 
     .fs-4 {
         font-size: 1.25rem !important;
+    }
+    /* Edit button spacing on mobile */
+    button[onclick="openEditModal()"] {
+        margin-right: 10px !important;
+    }
+
+    /* Mobile search bar that drops below navbar */
+    #mobileSearchBar {
+        display: none;
+        position: sticky;
+        top: 70px;
+        z-index: 1019;
+        background: #ffffff;
+        padding: 10px 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-bottom: 1px solid #e9ecef;
+    }
+    #mobileSearchBar.open {
+        display: block;
+    }
+    #mobileSearchBar input {
+        width: 100%;
+        border-radius: 50px;
+        border: 2px solid #e9ecef;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        direction: rtl;
+        outline: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    #mobileSearchBar input:focus {
+        border-color: #0071e3;
     }
 }
 
