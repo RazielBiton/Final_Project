@@ -228,3 +228,102 @@ body {
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .hover-lift { transition: transform 0.2s; }
 .hover-lift:hover { transform: translateY(-2px); }
+
+/* ===== MOBILE ONLY ===== */
+@media (max-width: 768px) {
+
+    /* --- Navbar --- */
+    /* Collapse search wrapper so it doesn't push items apart */
+    .db-navbar .db-nav-content.flex-grow-1 {
+        flex-grow: 0 !important;
+        padding: 0 !important;
+        min-width: 0 !important;
+    }
+
+    /* The search input itself – show only the icon, same as dashboard */
+    #topSearchInput {
+        width: 38px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: transparent;
+        transition: width 0.3s ease-in-out;
+    }
+    #topSearchInput:focus {
+        width: 180px !important;
+        background: #fff !important;
+        border: 2px solid #e9ecef !important;
+        padding-left: 2.5rem !important;
+        color: #212529 !important;
+    }
+
+    /* Hide DB stat fallback on mobile – JS removes d-none so we force it */
+    #dbStatFallback {
+        display: none !important;
+    }
+
+    /* Hide page title on mobile to save space */
+    #pageTitle {
+        display: none !important;
+    }
+
+    /* --- Filter Box --- */
+    .vibrant-filter-box {
+        padding: 1rem 1rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .vibrant-filter-box h4 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Results badge + clear button – smaller on mobile */
+    #resultsCountBadge {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.9rem !important;
+    }
+
+    .vibrant-filter-box .btn {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 1rem !important;
+    }
+
+    /* Filter columns header */
+    .vibrant-filter-box h6 {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Compact scrollable filter list */
+    .glass-scrollable {
+        max-height: 80px;
+    }
+
+    /* Filter pills – smaller on mobile */
+    .filter-pill label {
+        font-size: 0.8rem !important;
+        padding: 5px 12px !important;
+    }
+
+    /* --- Results grid – already row-cols-1 but ensure cards look good --- */
+    .vehicle-card {
+        padding: 1rem !important;
+    }
+
+    .card-logo-box {
+        width: 75px !important;
+        height: 75px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .license-plate-badge {
+        font-size: 1rem !important;
+    }
+
+    /* --- Body padding for fixed footer --- */
+    body {
+        padding-bottom: 90px !important;
+    }
+}

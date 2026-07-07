@@ -251,7 +251,7 @@
     }
     /* Raise chatbot button above fixed footer on mobile */
     .chat-widget-btn {
-        bottom: 170px !important;
+        bottom: 100px !important;
         left: 20px !important;
     }
     .chat-widget-window {

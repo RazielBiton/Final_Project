@@ -173,9 +173,9 @@
                     <input type="tel" id="mobileSearchInput" pattern="[0-9]*" autocomplete="off"
                         placeholder="הכנס מספר רכב לחיפוש..."
                         oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                        onkeydown="if(event.key==='Enter'){ var v=this.value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v); }">
+                        onkeydown="if(event.key==='Enter'){ var v=this.value; if(v){ this.value=''; document.getElementById('mobileSearchBar').classList.remove('open'); window.location.href='search_results.html?q='+encodeURIComponent(v); } }">
                     <button id="mobileSearchBtn"
-                        onclick="var v=document.getElementById('mobileSearchInput').value; if(v) window.location.href='search_results.html?q='+encodeURIComponent(v);">
+                        onclick="var inp=document.getElementById('mobileSearchInput'); var v=inp.value; if(v){ inp.value=''; document.getElementById('mobileSearchBar').classList.remove('open'); window.location.href='search_results.html?q='+encodeURIComponent(v); }">
                         <i class="fas fa-search"></i> חפש
                     </button>
                 </div>
@@ -819,6 +819,22 @@
     <script src="js/auth_utils.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/global-autosave.js"></script>
+
+    <!-- Mobile: reset search bar state on every page load/restore -->
+    <script>
+    if (window.innerWidth <= 768) {
+        function _resetMobileSearch() {
+            var bar = document.getElementById('mobileSearchBar');
+            var mInput = document.getElementById('mobileSearchInput');
+            var gInput = document.getElementById('globalSearchInput');
+            if (bar) bar.classList.remove('open');
+            if (mInput) { mInput.value = ''; mInput.blur(); }
+            if (gInput) { gInput.value = ''; gInput.blur(); }
+        }
+        // pageshow fires on fresh load AND bfcache restore (back/forward)
+        window.addEventListener('pageshow', _resetMobileSearch);
+    }
+    </script>
 </body>
 
 </html>
