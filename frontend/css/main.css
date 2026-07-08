@@ -17,11 +17,12 @@
     box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
     /* Modern subtle grid pattern for texture */
-    background-image: 
+    background-image:
         linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
     background-size: 50px 50px;
@@ -46,7 +47,8 @@ body.is-preload * {
     height: 100%;
     z-index: -1;
     overflow: hidden;
-    pointer-events: none; /* So the background doesn't block clicks */
+    pointer-events: none;
+    /* So the background doesn't block clicks */
 }
 
 .blob {
@@ -86,14 +88,20 @@ body.is-preload * {
     height: 40vw;
     max-width: 500px;
     max-height: 500px;
-    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%); /* Subtle purple mix */
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+    /* Subtle purple mix */
     animation-delay: -8s;
     animation-duration: 10s;
 }
 
 @keyframes floatBlob {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(-40px, 40px) scale(1.1); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(-40px, 40px) scale(1.1);
+    }
 }
 
 /* --- Top Navigation --- */
@@ -130,13 +138,13 @@ body.is-preload * {
 
 .nav-link {
     text-decoration: none;
-    color: var(--text-muted);
+    color: white;
     font-weight: 500;
     font-size: 1rem;
     padding: 0.5rem 1rem;
     border-radius: 20px;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.5); /* Glass pill effect */
+    background: var(--primary-blue);
     backdrop-filter: blur(5px);
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
@@ -145,7 +153,7 @@ body.is-preload * {
     color: var(--primary-blue);
     background-color: #ffffff;
     border-color: rgba(45, 116, 215, 0.2);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* --- Centered Main Content --- */
@@ -163,7 +171,8 @@ body.is-preload * {
 .content-wrapper {
     max-width: 650px;
     background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px); /* Glassmorphism card for the text */
+    backdrop-filter: blur(10px);
+    /* Glassmorphism card for the text */
     -webkit-backdrop-filter: blur(10px);
     padding: 3rem;
     border-radius: 24px;
@@ -179,7 +188,7 @@ body.is-preload * {
     margin-bottom: 0.5rem;
     letter-spacing: -0.03em;
     line-height: 1.1;
-    text-shadow: 0 2px 10px rgba(255,255,255,0.8);
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
 }
 
 .brand-subtitle {
@@ -221,6 +230,7 @@ body.is-preload * {
         opacity: 0;
         transform: translateY(30px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -228,8 +238,13 @@ body.is-preload * {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* --- Responsive --- */
@@ -238,9 +253,10 @@ body.is-preload * {
         padding: 1.5rem;
         justify-content: center;
     }
-    
+
     .nav-brand {
-        display: none; /* Keep it simpler on mobile */
+        display: none;
+        /* Keep it simpler on mobile */
     }
 
     .content-wrapper {
