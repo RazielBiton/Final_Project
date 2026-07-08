@@ -371,7 +371,7 @@ body.is-loading {
     .form-container {
         width: 100% !important;
         flex: none !important;
-        padding: 40px 20px !important;
+        padding: 28px 20px 20px !important;
         position: relative;
         background-color: #FFFFFF;
     }
@@ -380,7 +380,7 @@ body.is-loading {
         display: flex !important;
         width: 100% !important;
         flex: none !important;
-        padding: 30px 25px 45px 25px !important;
+        padding: 18px 25px 20px 25px !important;
         position: relative !important;
         left: 0 !important;
         transform: none !important;
