@@ -913,17 +913,53 @@ body.dashboard-body {
 }
 
 @media (max-width: 768px) {
-    /* Hide global footer when a modal is open on mobile */
-    body.modal-open footer,
-    body.modal-open .global-footer {
+
+    /* Accidents Modal Mobile UI Overrides */
+    #accidentsMobileHeader {
+        background: #fff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    #accidentModalTitle {
+        color: #dc3545 !important;
+        /* Red text */
+    }
+
+    #accidentTitleText {
         display: none !important;
+    }
+
+    #accidentModalTitle::after {
+        content: "";
+    }
+
+    #accidentsMobileClose {
+        filter: invert(1) grayscale(100%) brightness(0) !important;
+        /* Make white button black */
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    /* Hide global footer and chat widget when a modal is open on mobile */
+    body.modal-open footer,
+    body.modal-open .global-footer,
+    body.modal-open #chatWidgetBtn,
+    body.modal-open #chatWidgetWindow {
+        display: none !important;
+    }
+
+    .modal {
+        overflow: hidden !important;
     }
 
     .modal-dialog {
         margin: 0 !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
+        height: 100% !important;
+        max-height: 100% !important;
         padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
     .modal .modal-content {
@@ -933,6 +969,8 @@ body.dashboard-body {
         border: none !important;
         display: flex !important;
         flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
     }
 
     .modal .modal-header {
@@ -946,6 +984,7 @@ body.dashboard-body {
     .modal .modal-body {
         overflow-y: auto !important;
         flex: 1 1 auto !important;
+        min-height: 0 !important;
     }
 
     .modal .modal-footer {

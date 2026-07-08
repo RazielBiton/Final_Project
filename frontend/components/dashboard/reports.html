@@ -111,22 +111,26 @@
     <!-- MODAL: ADD REPORT -->
     <div class="modal fade" id="addReportModal" tabindex="-1" dir="rtl">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
-                <div class="modal-header py-4 border-0" style="background:linear-gradient(135deg, #1e3a5f, #2d74d7);">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-plus-circle me-2"></i>הוספת דוח תנועה חדש</h5>
-                    <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal"></button>
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.3rem; color: #df9537;">
+                        <i class="fas fa-clipboard-list ms-2"></i> הוספת דוח תנועה חדש
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
+                <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-report-form">
                         <input type="hidden" id="reportIdField">
                         
-                        <!-- Event Details -->
-                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:1rem;">
-                            <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">פרטי האירוע</h6>
+                        <!-- Section 1: Event Details -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי האירוע
+                            </h6>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">סוג עבירה</label>
-                                    <select id="report-type-select" class="form-select" onchange="toggleCustomType(this.value)" required style="border-radius:10px;">
+                                    <label class="form-label fw-bold text-dark fs-7">סוג עבירה <span class="text-danger">*</span></label>
+                                    <select id="report-type-select" class="form-select" onchange="toggleCustomType(this.value)" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                         <option value="" selected disabled>בחר סוג עבירה...</option>
                                         <option value="parking">חניה</option>
                                         <option value="speeding">מהירות</option>
@@ -136,18 +140,18 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div id="custom-type-container" style="display: none;">
-                                        <label class="form-label fw-bold small">פרט סוג עבירה</label>
-                                        <input type="text" id="report-type-custom" class="form-control" placeholder="לדוגמה: אי ציות לתמרור" style="border-radius:10px;">
+                                        <label class="form-label fw-bold text-dark fs-7">פרט סוג עבירה</label>
+                                        <input type="text" id="report-type-custom" class="form-control" placeholder="לדוגמה: אי ציות לתמרור" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">תאריך העבירה</label>
-                                    <input type="date" id="report-date" class="form-control" required style="border-radius:10px;">
+                                    <label class="form-label fw-bold text-dark fs-7">תאריך העבירה <span class="text-danger">*</span></label>
+                                    <input type="date" id="report-date" class="form-control" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">מיקום העבירה</label>
+                                    <label class="form-label fw-bold text-dark fs-7">מיקום העבירה <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="text" id="report-location" class="form-control" placeholder='עיר, רחוב או צומת' required>
+                                        <input type="text" id="report-location" class="form-control" placeholder='עיר, רחוב או צומת' required style="border-radius: 0 12px 12px 0; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                         <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('report-location')" title="השתמש במיקום נוכחי">
                                             <i class="fas fa-map-marker-alt text-primary"></i>
                                         </button>
@@ -159,41 +163,46 @@
                             </div>
                         </div>
 
-                        <!-- Fines and Points -->
-                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #fed7aa; margin-bottom:1rem;">
-                            <h6 class="fw-bold mb-3 text-warning border-bottom pb-2">תשלום ונקודות</h6>
+                        <!-- Section 2: Fines and Points -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #df9537;">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> תשלום ונקודות
+                            </h6>
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">סכום הקנס (₪)</label>
-                                    <input type="number" id="report-amount-input" class="form-control" placeholder="0" min="0" required style="border-radius:10px;">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">סכום הקנס (₪) <span class="text-danger">*</span></label>
+                                    <input type="number" id="report-amount-input" class="form-control" placeholder="0" min="0" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">מספר נקודות</label>
-                                    <input type="number" id="report-points-input" class="form-control" min="0" max="36" placeholder="0" required style="border-radius:10px;">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">מספר נקודות <span class="text-danger">*</span></label>
+                                    <input type="number" id="report-points-input" class="form-control" min="0" max="36" placeholder="0" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Reference Upload -->
-                        <div style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid #e2e8f0;">
-                            <h6 class="fw-bold mb-3 text-muted border-bottom pb-2">צילום דוח (אופציונלי)</h6>
-                            <div id="reportUploadPlaceholder" class="p-4 text-center rounded-3 border-dashed" style="border:2px dashed #cbd5e1; background:#f8fafc; cursor:pointer;" onclick="document.getElementById('reportImageInput').click()">
-                                <i class="fas fa-camera fa-2x text-muted mb-2"></i>
-                                <h6 class="fw-bold m-0 text-muted">לחץ להעלאת צילום הדוח</h6>
+                        <!-- Section 3: Reference Upload -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span> צילום דוח (אופציונלי)
+                            </h6>
+                            <div id="reportUploadPlaceholder" class="text-center p-4" style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; cursor: pointer;" onclick="document.getElementById('reportImageInput').click()">
+                                <div style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <i class="fas fa-camera text-primary fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.95rem;">לחץ להעלאת צילום הדוח</h6>
+                                <p class="text-muted m-0" style="font-size: 0.75rem;">תמונת הדוח לתיעוד</p>
                             </div>
                             <input type="file" id="reportImageInput" class="d-none" accept="image/*">
                             <!-- Beautiful Single Image Preview -->
                             <img id="reportSingleImagePreview" src="" alt="Report Preview" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 15px; display: none;">
                         </div>
-
-                        <div class="d-flex gap-3 mt-4">
-                            <button type="submit" class="db-btn flex-grow-1 py-3 fw-bold" style="background:linear-gradient(135deg, #1e3a5f, #2d74d7); color:white; border:none; border-radius:12px; box-shadow: 0 4px 12px rgba(30, 58, 95, 0.2);">שמור דוח במערכת</button>
-                            <button type="button" class="btn btn-outline-secondary flex-grow-1 py-3 fw-bold shadow-sm" data-bs-dismiss="modal" 
-                                style="border-radius:12px; border: 2px solid #cbd5e1; background: white; color: #64748b; transition: all 0.2s;">
-                                <i class="fas fa-times me-2"></i> ביטול
-                            </button>
-                        </div>
                     </form>
+                </div>
+                <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                    <button type="submit" form="add-report-form" class="btn fw-bold text-white" style="background: linear-gradient(135deg, #df9537, #c7832e); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(223, 149, 55, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                        <i class="fas fa-save me-1"></i> שמור דוח במערכת
+                    </button>
                 </div>
             </div>
         </div>

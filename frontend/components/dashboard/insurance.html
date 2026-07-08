@@ -132,13 +132,15 @@
 
 <!-- Edit Insurance Modal -->
 <div class="modal fade" id="editInsuranceModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold" id="editInsuranceModalTitle">עריכת ביטוח</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                <h5 class="modal-title fw-bold" id="editInsuranceModalTitle" style="font-size: 1.3rem; color: #479b72;">
+                    <i class="fas fa-shield-alt ms-2"></i> עריכת ביטוח
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                 <form id="editInsuranceForm">
                     <input type="hidden" id="insType">
                     
@@ -273,9 +275,11 @@
 
                 </form>
             </div>
-            <div class="modal-footer bg-light" style="border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end;">
-                <button type="button" class="db-btn bg-dark text-white ms-2" data-bs-dismiss="modal" style="border-radius:10px;">ביטול</button>
-                <button type="button" class="db-btn db-btn-primary" onclick="saveInsurance()" style="border-radius:10px; font-weight:700;"><i class="fas fa-check me-2"></i>שמור שינויים</button>
+            <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                <button type="button" class="btn fw-bold text-white" onclick="saveInsurance()" style="background: linear-gradient(135deg, #479b72, #3a8461); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(71, 155, 114, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                    <i class="fas fa-check me-1"></i> שמור שינויים
+                </button>
             </div>
         </div>
     </div>

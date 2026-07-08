@@ -134,11 +134,11 @@
 <div class="modal fade" id="addAccidentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.2rem 1.5rem; border-bottom: none; flex-shrink: 0;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.2rem 1.5rem; border-bottom: none; flex-shrink: 0;" id="accidentsMobileHeader">
                 <h5 class="modal-title fw-bold" id="accidentModalTitle" style="font-size: 1.2rem;">
-                    <i class="fas fa-car-crash ms-2" style="color: #fb7185;"></i> מילוי דוח אירוע
+                    <i class="fas fa-car-crash ms-2" style="color: #fb7185;"></i> <span id="accidentTitleText">מילוי דוח אירוע</span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity: 1;"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity: 1;" id="accidentsMobileClose"></button>
             </div>
             <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                 <form id="addAccidentForm">

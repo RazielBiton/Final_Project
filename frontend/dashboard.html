@@ -198,56 +198,83 @@
     <!-- מחלקות של בוטסטראפ עבור המודל - לא לשנות (must translate: Bootstrap classes for the modal - Do not change) -->
     <!-- הערה: הושארו מחלקות Bootstrap כגון modal, modal-fade, modal-dialog כי הקוד ב-JavaScript משתמש בהן לפתיחת החלון -->
     <div class="modal fade" id="addTreatmentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">הוספת טיפול חדש</h5>
-                    <button type="button" class="btn-close m-0" style="margin-left:0; margin-right:auto;" data-bs-dismiss="modal"></button>
-                    <!-- כפתור סגירה מובנה של בוטסטראפ -->
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.3rem; color: #b83730;">
+                        <i class="fas fa-tools ms-2"></i> הוספת טיפול חדש
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="addTreatmentForm">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">סוג הטיפול</label>
-                            <!-- form-label נשמר לתאימות או ניתן להחליף אם יש CSS -->
-                            <input type="text" class="db-form-control" id="tName" required
-                                placeholder="לדוג': טיפול 10,000">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">תאריך</label>
-                            <input type="date" class="db-form-control" id="tDate" required value="2026-07-01">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">שם / מיקום המוסך</label>
-                            <div class="input-group">
-                                <input type="text" class="db-form-control form-control" id="tGarage" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('tGarage')" title="השתמש במיקום נוכחי">
-                                    <i class="fas fa-map-marker-alt text-primary"></i>
-                                </button>
-                                <button class="btn btn-outline-secondary" type="button" onclick="window.openMapPicker('tGarage')" title="בחר מהמפה">
-                                    <i class="fas fa-map text-success"></i>
-                                </button>
+                        <!-- Section 1: Treatment Details -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי הטיפול
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <label class="form-label fw-bold text-dark fs-7">סוג הטיפול <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="tName" required placeholder="לדוג': טיפול 10,000">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-bold text-dark fs-7">תאריך <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="tDate" required value="2026-07-01">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold text-dark fs-7">שם / מיקום המוסך <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" style="border-radius: 0 12px 12px 0; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="tGarage" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="window.fetchCurrentLocation('tGarage')" title="השתמש במיקום נוכחי">
+                                            <i class="fas fa-map-marker-alt text-primary"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="window.openMapPicker('tGarage')" title="בחר מהמפה">
+                                            <i class="fas fa-map text-success"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="db-row">
-                            <div class="db-col-6 mb-3">
-                                <label class="form-label fw-bold">קילומטראז'</label>
-                                <input type="number" class="db-form-control" id="tKm" required>
-                            </div>
-                            <div class="db-col-6 mb-3">
-                                <label class="form-label fw-bold">עלות (₪)</label>
-                                <input type="number" class="db-form-control" id="tCost" required>
+
+                        <!-- Section 2: Cost & Mileage -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> עלות וקילומטראז'
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">קילומטראז' <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="tKm" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">עלות (₪) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;" id="tCost" required>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">צרף חשבונית (תמונה)</label>
-                            <input type="file" class="db-form-control" id="tInvoice" accept="image/*">
+
+                        <!-- Section 3: Invoice Upload -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span> צרף חשבונית (אופציונלי)
+                            </h6>
+                            <div class="text-center p-4" style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; cursor: pointer;" onclick="document.getElementById('tInvoice').click()">
+                                <div style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <i class="fas fa-camera text-primary fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.95rem;">העלאת תמונת חשבונית</h6>
+                                <p class="text-muted m-0" style="font-size: 0.75rem;">לחץ כאן לצרף תמונה</p>
+                            </div>
+                            <input type="file" class="d-none" id="tInvoice" accept="image/*">
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="button" class="db-btn db-btn-primary" onclick="saveTreatment()">שמור טיפול</button>
+                <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                    <button type="button" class="btn fw-bold text-white" onclick="saveTreatment()" style="background: linear-gradient(135deg, #b83730, #9b2d27); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(184, 55, 48, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                        <i class="fas fa-save me-1"></i> שמור טיפול
+                    </button>
                 </div>
             </div>
         </div>
@@ -481,47 +508,66 @@
 
     <!-- Add Alert Modal (Premium iOS Style) -->
     <div class="modal fade" id="addAlertModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0" style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
-                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
-                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.3rem;">יצירת משימה אישית</h5>
-                    <button type="button" class="btn-close me-auto ms-0" data-bs-dismiss="modal" style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.3rem; color: #1b2234;">
+                        <i class="fas fa-bell ms-2"></i> יצירת משימה אישית
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
                 </div>
-                <div class="modal-body px-4 pt-4 pb-3" style="background: #ffffff;">
+                <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-alert-form" onsubmit="event.preventDefault(); saveAlert();">
-                        <div class="mb-3">
-                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מה צריך לקרות? <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control db-form-control" id="alertTitle" required placeholder="לדוג': להחליף מגבים לקראת החורף" style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold;">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">תאריך יעד / תזכורת <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control db-form-control" id="alertDate" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-family: -apple-system, sans-serif;">
-                        </div>
-                        <div class="row g-3 mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סטטוס דחיפות</label>
-                                <select class="form-select db-form-control" id="alertPriority" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
-                                    <option value="gray" selected>רגיל (אפור)</option>
-                                    <option value="warning">חשוב למעקב (צהוב)</option>
-                                    <option value="danger">קריטי לבטיחות (אדום)</option>
-                                </select>
+                        <!-- Section 1: Task Details -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי המשימה
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <label class="form-label fw-bold text-dark fs-7">מה צריך לקרות? <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="alertTitle" required placeholder="לדוג': להחליף מגבים לקראת החורף" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; font-weight: bold;">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-bold text-dark fs-7">תאריך יעד / תזכורת <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="alertDate" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">מחזוריות משימה</label>
-                                <select class="form-select db-form-control" id="alertFrequency" required style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; background-position: left 0.75rem center; padding-left: 2.25rem; padding-right: 0.75rem;">
-                                    <option value="once" selected>חד פעמית</option>
-                                    <option value="daily">יומית</option>
-                                    <option value="weekly">שבועית</option>
-                                    <option value="monthly">חודשית</option>
-                                    <option value="yearly">שנתית (ריטואל)</option>
-                                </select>
+                        </div>
+
+                        <!-- Section 2: Priority & Frequency -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> הגדרות
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark fs-7">סטטוס דחיפות</label>
+                                    <select class="form-select" id="alertPriority" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                        <option value="gray" selected>רגיל (אפור)</option>
+                                        <option value="warning">חשוב למעקב (צהוב)</option>
+                                        <option value="danger">קריטי לבטיחות (אדום)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark fs-7">מחזוריות משימה</label>
+                                    <select class="form-select" id="alertFrequency" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                        <option value="once" selected>חד פעמית</option>
+                                        <option value="daily">יומית</option>
+                                        <option value="weekly">שבועית</option>
+                                        <option value="monthly">חודשית</option>
+                                        <option value="yearly">שנתית (ריטואל)</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #ffffff;">
-                    <button type="button" class="btn w-100 mb-2 fw-bold text-white shadow-sm hover-lift" onclick="document.getElementById('add-alert-form').requestSubmit();" style="border-radius: 14px; background: linear-gradient(135deg, #10b981, #059669); padding: 12px;">הוסף למאגר</button>
-                    <button type="button" class="btn w-100 fw-bold m-0" data-bs-dismiss="modal" style="border-radius: 14px; background: #f1f5f9; color: #64748b; padding: 12px;">סגור</button>
+                <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                    <button type="button" class="btn fw-bold text-white" onclick="document.getElementById('add-alert-form').requestSubmit();" style="background: linear-gradient(135deg, #1b2234, #2d3a52); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(27, 34, 52, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                        <i class="fas fa-save me-1"></i> הוסף למאגר
+                    </button>
                 </div>
             </div>
         </div>
@@ -576,70 +622,72 @@
         </div>
     </div>
 
-    <!-- Add Expense Modal (Premium iOS Style Redesign) -->
+    <!-- Add Expense Modal -->
     <div class="modal fade" id="addExpenseModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0"
-                style="border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden;">
-                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
-                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.3rem;">רישום הוצאה חדשה</h5>
-                    <button type="button" class="btn-close me-auto ms-0" data-bs-dismiss="modal"
-                        style="background-color: #e2e8f0; border-radius: 50%; opacity: 0.8;"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.3rem; color: #499ee3;">
+                        <i class="fas fa-wallet ms-2"></i> רישום הוצאה חדשה
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
                 </div>
-                <div class="modal-body px-4 pt-4 pb-3" style="background: #ffffff;">
+                <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-expense-form" onsubmit="event.preventDefault(); saveCustomExpense();">
-                        <div class="mb-3">
-                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סוג הוצאה <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select db-form-control" id="expenseType" required
-                                onchange="toggleOtherExpenseInput()"
-                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: 500; padding-left: 2.5rem;">
-                                <option value="" disabled selected>-- בחר מקטגוריה --</option>
-                                <option value="test">טסט (רישוי שנתי)</option>
-                                <option value="cosmetics">קוסמטיקה וטיפוח</option>
-                                <option value="wash">שטיפת רכב</option>
-                                <option value="other">אחר (חופשי)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 d-none" id="otherExpenseDiv">
-                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">פרט סוג
-                                הוצאה</label>
-                            <input type="text" class="form-control db-form-control" id="expenseTypeOther"
-                                placeholder="ספר לנו אודות ההוצאה..."
-                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0;">
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">סכום לתשלום (₪)
-                                    <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control db-form-control" id="expenseAmount" required
-                                    placeholder="0.00"
-                                    style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-weight: bold; font-family: -apple-system, sans-serif;">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">תאריך ביצוע
-                                    <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control db-form-control" id="expenseDate" required
-                                    style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; font-family: -apple-system, sans-serif;">
+                        <!-- Section 1: Expense Type -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> סוג ההוצאה
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold text-dark fs-7">סוג הוצאה <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="expenseType" required onchange="toggleOtherExpenseInput()" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                        <option value="" disabled selected>-- בחר מקטגוריה --</option>
+                                        <option value="test">טסט (רישוי שנתי)</option>
+                                        <option value="cosmetics">קוסמטיקה וטיפוח</option>
+                                        <option value="wash">שטיפת רכב</option>
+                                        <option value="other">אחר (חופשי)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12 d-none" id="otherExpenseDiv">
+                                    <label class="form-label fw-bold text-dark fs-7">פרט סוג הוצאה</label>
+                                    <input type="text" class="form-control" id="expenseTypeOther" placeholder="ספר לנו אודות ההוצאה..." style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted fw-bold" style="font-size: 0.85rem;">הערות פנימיות
-                                (אופציונלי)</label>
-                            <textarea class="form-control db-form-control" id="expenseNotes" rows="2"
-                                placeholder="כאן ניתן לרשום דברים לתיעוד אישי..."
-                                style="border-radius: 12px; background-color: #f8fafc; border-color: #e2e8f0; resize: none;"></textarea>
+
+                        <!-- Section 2: Amount & Date -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> סכום ותאריך
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">סכום לתשלום (₪) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="expenseAmount" required placeholder="0.00" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; font-weight: bold;">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-dark fs-7">תאריך ביצוע <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="expenseDate" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Notes -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span> הערות (אופציונלי)
+                            </h6>
+                            <textarea class="form-control" id="expenseNotes" rows="2" placeholder="כאן ניתן לרשום דברים לתיעוד אישי..." style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; resize: none;"></textarea>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #ffffff;">
-                    <button type="button" class="btn w-100 mb-2 fw-bold text-white shadow-sm hover-lift"
-                        onclick="document.getElementById('add-expense-form').requestSubmit();"
-                        style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9, #2563eb); padding: 12px;">הוסף
-                        הוצאה לארנק הרכב</button>
-                    <button type="button" class="btn w-100 fw-bold m-0" data-bs-dismiss="modal"
-                        style="border-radius: 14px; background: #f1f5f9; color: #64748b; padding: 12px;">ביטול
-                        פעולה</button>
+                <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                    <button type="button" class="btn fw-bold text-white" onclick="document.getElementById('add-expense-form').requestSubmit();" style="background: linear-gradient(135deg, #499ee3, #3b8cd0); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(73, 158, 227, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                        <i class="fas fa-save me-1"></i> הוסף הוצאה
+                    </button>
                 </div>
             </div>
         </div>
@@ -647,18 +695,22 @@
 
     <!-- Add Fuel Modal -->
     <div class="modal fade" id="addFuelModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addFuelModalTitle">הוספת תדלוק/טעינה</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="modal-header" style="background: #fff; padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                    <h5 class="modal-title fw-bold" id="addFuelModalTitle" style="font-size: 1.3rem; color: #4777eb;">
+                        <i class="fas fa-gas-pump ms-2"></i> הוספת תדלוק/טעינה
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin-left: 0; margin-right: auto;"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-fuel-form" onsubmit="event.preventDefault(); saveFuel();">
 
-                        <!-- Energy Type Selector -->
-                        <div class="mb-4 text-center d-none" id="energyTypeSelector">
-                            <label class="form-label d-block text-muted small fw-bold">סוג אנרגיה / דלק</label>
+                        <!-- Section 1: Energy Type -->
+                        <div class="d-none" id="energyTypeSelector" style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">⚡</span> סוג אנרגיה / דלק
+                            </h6>
                             <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="energyType" id="energyPetrol" value="fuel"
                                     autocomplete="off" checked onchange="toggleEnergyFields()">
@@ -686,37 +738,45 @@
                         <!-- Hidden field for Edit Mode -->
                         <input type="hidden" id="editFuelId">
 
-                        <div class="mb-3">
-                            <label class="form-label">תאריך ושעה</label>
-                            <input type="datetime-local" class="db-form-control" id="fDate" required>
+                        <!-- Section 2: Date & Amounts -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span> פרטי התדלוק
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold text-dark fs-7">תאריך ושעה <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control" id="fDate" required style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
+                                <div class="col-8" id="fuelAmountDiv">
+                                    <label class="form-label fw-bold text-dark fs-7" id="fAmountLabel">כמות ליטרים (אופציונלי)</label>
+                                    <input type="number" step="0.01" class="form-control" id="fAmount"
+                                        placeholder="לדוג': 25" oninput="calculateTotalFuelCost()" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label fw-bold text-dark fs-7" id="fPriceLabel">מחיר ליחידה</label>
+                                    <input type="number" step="0.0001" class="form-control" id="fPricePerUnit"
+                                        placeholder="לדוג': 7.02" oninput="calculateTotalFuelCost()" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;">
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Dynamic Fields Component -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-8" id="fuelAmountDiv">
-                                <label class="form-label text-muted small mb-1" id="fAmountLabel">כמות ליטרים
-                                    (אופציונלי)</label>
-                                <input type="number" step="0.01" class="db-form-control" id="fAmount"
-                                    placeholder="לדוג': 25" oninput="calculateTotalFuelCost()">
-                            </div>
-                            <div class="col-4">
-                                <label class="form-label text-muted small mb-1" id="fPriceLabel">מחיר ליחידה</label>
-                                <input type="number" step="0.0001" class="db-form-control" id="fPricePerUnit"
-                                    placeholder="לדוג': 7.02" oninput="calculateTotalFuelCost()">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label text-primary fw-bold">עלות כוללת (₪)</label>
-                            <input type="number" step="0.01" class="db-form-control border-primary bg-light" id="fCost"
-                                required placeholder="לדוג': 150" oninput="calculatePricePerUnit()">
+                        <!-- Section 3: Total Cost -->
+                        <div style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #4777eb;">
+                            <h6 style="color: #334155; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 28px; height: 28px; background: #e2e8f0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span> עלות כוללת
+                            </h6>
+                            <label class="form-label fw-bold fs-7" style="color: #4777eb;">עלות כוללת (₪) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="fCost"
+                                required placeholder="לדוג': 150" oninput="calculatePricePerUnit()" style="border-radius: 12px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; font-weight: bold;">
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="db-btn bg-secondary text-white" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" form="add-fuel-form" class="db-btn db-btn-primary" id="saveFuelSubmitBtn">שמור
-                        תדלוק</button>
+                <div class="modal-footer p-3 d-flex flex-nowrap justify-content-between align-items-center" style="background: white; border-top: 1px solid #e2e8f0; gap: 8px; flex-shrink: 0; min-height: fit-content;">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; color: #64748b; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; width: 30%;">ביטול</button>
+                    <button type="submit" form="add-fuel-form" class="btn fw-bold text-white" id="saveFuelSubmitBtn" style="background: linear-gradient(135deg, #4777eb, #3a63cc); border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(71, 119, 235, 0.2); padding: 0.6rem 1rem; width: 68%;">
+                        <i class="fas fa-save me-1"></i> שמור תדלוק
+                    </button>
                 </div>
             </div>
         </div>
