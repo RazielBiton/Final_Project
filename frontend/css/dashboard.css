@@ -355,6 +355,7 @@ body.dashboard-body {
 
 /* Navbar */
 .db-navbar {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 1020;
@@ -668,6 +669,10 @@ body.dashboard-body {
     }
 
     .db-navbar {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1020 !important;
         height: 70px !important;
         min-height: 70px;
         padding: 0.5rem !important;
@@ -908,18 +913,26 @@ body.dashboard-body {
 }
 
 @media (max-width: 768px) {
-    #editVehicleModal .modal-content {
+    .modal .modal-content {
         max-height: 90vh !important;
         display: flex !important;
         flex-direction: column !important;
     }
 
-    #editVehicleModal .modal-body {
+    .modal .modal-header {
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        background: #fff !important;
+        z-index: 10 !important;
+    }
+
+    .modal .modal-body {
         overflow-y: auto !important;
         flex: 1 1 auto !important;
     }
 
-    #editVehicleModal .modal-footer {
+    .modal .modal-footer {
         flex-shrink: 0 !important;
         position: sticky !important;
         bottom: 0 !important;
