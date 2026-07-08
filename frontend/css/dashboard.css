@@ -798,8 +798,15 @@ body.dashboard-body {
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         border-bottom: 1px solid #e9ecef;
     }
-    #mobileSearchBar.open {
-        display: block;
+    @media (max-width: 768px) {
+        #mobileSearchBar.open {
+            display: block;
+        }
+    }
+    @media (min-width: 769px) {
+        #mobileSearchBar {
+            display: none !important;
+        }
     }
     #mobileSearchBar input {
         flex: 1;
