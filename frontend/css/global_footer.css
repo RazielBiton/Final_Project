@@ -67,7 +67,7 @@
         width: 100% !important;
         z-index: 9999 !important;
         /* Solid background so it looks consistent across all pages */
-        background: #0073e6 !important;
+        background: #ffffff !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
@@ -83,7 +83,7 @@
 
     .global-footer .footer-contact {
         padding: 10px 30px;
-        margin-top: 7px;
+        margin-top: 0px;
         width: auto;
         /* Don't stretch on mobile, keep it like the image */
         background-color: #1c1c1e;
