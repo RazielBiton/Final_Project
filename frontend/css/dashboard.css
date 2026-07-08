@@ -913,8 +913,24 @@ body.dashboard-body {
 }
 
 @media (max-width: 768px) {
+    /* Hide global footer when a modal is open on mobile */
+    body.modal-open footer,
+    body.modal-open .global-footer {
+        display: none !important;
+    }
+
+    .modal-dialog {
+        margin: 0 !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        padding: 0 !important;
+    }
+
     .modal .modal-content {
-        max-height: 90vh !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
         display: flex !important;
         flex-direction: column !important;
     }
