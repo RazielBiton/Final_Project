@@ -254,10 +254,33 @@
         bottom: 100px !important;
         left: 20px !important;
     }
-    .chat-widget-window {
-        left: 20px;
-        bottom: 250px;
-        width: calc(100vw - 40px);
+    .chat-widget-window[style*="display: flex"] {
+        position: fixed !important;
+        top: 5vh !important;
+        bottom: 10vh !important;
+        left: 5vw !important;
+        right: 5vw !important;
+        width: 90vw !important;
+        height: auto !important;
+        max-height: 80vh !important;
+        z-index: 99999 !important;
+        border-radius: 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .chat-header {
+        flex-shrink: 0 !important;
+    }
+
+    .chat-box {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+    }
+
+    .chat-input-area {
+        flex-shrink: 0 !important;
     }
 }
 
