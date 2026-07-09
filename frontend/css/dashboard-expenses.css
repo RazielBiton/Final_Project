@@ -283,13 +283,16 @@
     margin-bottom: 2px;
 }
 
+/* Select dropdown fix for text overlapping arrow in RTL */
+#addExpenseModal select, #expenses-section select {
+    padding-right: 40px !important;
+    padding-left: 15px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
 /* ===== MOBILE ONLY ===== */
 @media (max-width: 768px) {
-    /* Fix: dropdown arrow overlapping text in expense type select */
-    #expenseType {
-        padding-left: 3.5rem !important;
-    }
-
     /* Fix: expense modal constrained above fixed footer */
     #addExpenseModal .modal-dialog {
         margin-bottom: 160px !important;

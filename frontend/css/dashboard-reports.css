@@ -103,6 +103,14 @@
     overflow-y: auto !important;
 }
 
+/* Select dropdown fix for text overlapping arrow in RTL */
+#addReportModal select, #reports-section select {
+    padding-right: 40px !important;
+    padding-left: 15px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
 /* --- Mobile Fixes for Reports Page --- */
 @media (max-width: 768px) {
     /* Modal sticky footer & scrolling fix */
