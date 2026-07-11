@@ -10,14 +10,20 @@
     "type": "git",
     "url": "git+https://github.com/RazielBiton/Final_Project.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "easycare",
+    "car",
+    "management",
+    "ai",
+    "dashboard"
+  ],
+  "author": "Raziel Biton",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RazielBiton/Final_Project/issues"
   },
   "homepage": "https://github.com/RazielBiton/Final_Project#readme",
-  "description": "",
+  "description": "EasyCare - Advanced Car Management System with AI Integrations",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.3",
@@ -25,9 +31,7 @@
     "dotenv": "^17.3.1",
     "ejs": "^5.0.2",
     "express": "^5.2.1",
-    "mssql": "^12.2.1",
-    "nodemailer": "^8.0.3",
-    "puppeteer": "^25.3.0"
+    "mssql": "^12.2.1"
   },
   "devDependencies": {
     "supabase": "^2.83.0"

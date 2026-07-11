@@ -1,80 +1,140 @@
-# EasyCare - Vehicle Management System
+# EasyCare - מערכת לניהול ותחזוקת רכבים מבוססת AI 🚗✨
 
-EasyCare is a comprehensive and intelligent vehicle management dashboard designed to help users track, manage, and optimize all aspects of their vehicle's lifecycle. 
+ברוכים הבאים למאגר הקוד הרשמי של פרויקט הגמר **EasyCare**! 
+מערכת חדשנית זו מספקת מעטפת מלאה, דיגיטלית וחכמה לניהול תחזוקת הרכב, המשלבת טכנולוגיות מתקדמות ובינה מלאכותית (Google Gemini).
 
-## 🌟 Key Features
+---
 
-- **Dashboard Overview:** Get a quick glance at your vehicle's status, reliability score, mileage, and active alerts.
-- **Smart AI Assistant:** Integrated AI chatbot (powered by Google Gemini) that understands your vehicle's context and provides expert mechanical advice.
-- **Fuel Tracking & Analytics:** Log fuel expenses, track price per unit, and calculate total costs automatically.
-- **Maintenance & Treatments:** Keep a detailed history of garage visits, costs, and upload invoices.
-- **Expense & Insurance Management:** Track general car expenses, insurance policies (mandatory, comprehensive, third-party), and manage renewals.
-- **Accidents & Reports Handling:** Document accidents, view reports, upload related documents, and manage traffic fines.
-- **Global Search & Public Reports:** Look up vehicles via license plate or manufacturer for public-facing reports.
-- **User Authentication:** Secure registration and login flow with session management.
+## 1. רקע, מטרות וקהל היעד
 
-## 🛠️ Technology Stack
+### רקע קצר על התחום
+ניהול רכב פרטי דורש מעקב מתמיד אחר מגוון רחב של היבטים: טיפולים תקופתיים, חידוש ביטוחים, תשלומי אגרות רישוי, ניהול הוצאות דלק, טיפול בדוחות תנועה ותיעוד תאונות. רוב בעלי הרכבים מנהלים מידע זה בצורה מבוזרת – בקלסרים פיזיים, פתקים או בזיכרון, דבר שמוביל לאובדן מידע, קנסות על איחורים ולירידת ערך הרכב במעמד המכירה בשל חוסר בתיעוד היסטורי רציף.
 
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript (Responsive design, based on HTML5 UP Helios).
-- **Backend:** Node.js, Express.js.
-- **Database:** Microsoft SQL Server (Azure SQL).
-- **AI Integration:** Google Generative AI (Gemini Flash).
+### הבעיה שאותה ניסינו לפתור
+הקושי המרכזי הוא **ביזור וחוסר סדר**. אין מערכת אחת שמאגדת את כלל המידע על הרכב בצורה חכמה ואוטומטית. בעלי רכבים שוכחים מתי פג תוקף הביטוח או מתי בוצע הטיפול האחרון, מתקשים למצוא חשבוניות, ומבזבזים זמן רב בהפקת נתונים לקראת מכירת הרכב. בנוסף, חסר כלי חכם שיודע לנתח מסמכים (כמו פוליסות ביטוח) ולשאוב מהם מידע אוטומטית כדי לחסוך הזנה ידנית מייגעת.
 
-## 🚀 Getting Started
+### מטרות הפרויקט והמוטיבציה
+* **ריכוז נתונים (Single Source of Truth):** יצירת ממשק אחד חכם ונוח המכיל את כלל היסטוריית הרכב (טיפולים, ביטוחים, הוצאות, דוחות).
+* **אוטומציה וחיסכון בזמן:** שימוש בבינה מלאכותית (AI) לשאיבת נתונים אוטומטית ממסמכים מצולמים, כגון פוליסות ביטוח.
+* **בקרה פיננסית:** מתן כלי ויזואלי לניהול ומעקב אחר הוצאות הרכב (דלק, תיקונים, קנסות) לאורך השנה.
+* **השבחת ערך הרכב:** הפקת "דוח רכב" מהימן ומפורט בלחיצת כפתור המאפשר לקונים פוטנציאליים לקבל שקיפות מלאה על היסטוריית הטיפולים והתאונות במעמד המכירה.
 
-### Prerequisites
+### קהל היעד
+* **בעלי רכבים פרטיים** המעוניינים בניהול חכם, דיגיטלי ומרוכז של הוצאות והיסטוריית הרכב.
+* **משפחות או ארגונים קטנים** המחזיקים במספר רכבים וזקוקים לבקרה מסודרת.
+* **מוכרי רכבים** שרוצים לייצר דוח שקיפות קריא ומקצועי לקונים פוטנציאליים.
 
-Ensure you have the following installed on your machine:
-- [Node.js](https://nodejs.org/) (v14 or newer recommended)
-- SQL Server instance (or access to an Azure SQL Database)
+---
 
-### Installation
+## 2. שלבי העבודה ומימושים מרכזיים
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/RazielBiton/Final_Project.git
-   cd Final_Project
-   ```
+### שלבי העבודה המרכזיים
+1. **אפיון המערכת וה-UI/UX:** הגדרת הדרישות, חלוקה למודולים השונים (טיפולים, ביטוחים, דלק וכו') ותכנון ממשק משתמש מודרני, נקי ורספונסיבי (Mobile-First).
+2. **פיתוח צד לקוח (Frontend):** בניית הממשק באמצעות HTML5, CSS3 ו-Vanilla JavaScript בשילוב Bootstrap 5. יצירת ארכיטקטורה מבוססת רכיבים נטענים (SPA approach).
+3. **פיתוח צד שרת (Backend):** הקמת שרת Node.js מבוסס Express לאספקת שירותי API, עיבוד בקשות, ואבטחת נתונים.
+4. **תכנון והקמת בסיס הנתונים:** שימוש ב-Supabase (PostgreSQL) ו-Azure SQL לניהול משתמשים, רכבים וכלל הרשומות הפיננסיות. יצירת טבלאות סכמה והגדרת קשרי גומלין.
+5. **אינטגרציית שירותים חכמים:** שילוב מודלי בינה מלאכותית (Google Gemini API) לניתוח מסמכים חכם, צ'אטבוט מוסכניק אישי, ושליפת מחירי דלק עדכניים.
+6. **בדיקות (QA) ודיבוג:** מעבר קפדני על כלל המסכים בדסקטופ ובמובייל, תיקון באגי תצוגה (Touch-zone shifts) והבטחת זרימת נתונים תקינה (CRUD).
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### מימושים עיקריים שפותחו
+* **מנגנון AI לניתוח פוליסות ביטוח:** שליחת קובץ PDF לשרת וחילוץ כלל פרטי הפוליסה ישירות לטופס ללא צורך בהקלדה.
+* **דשבורד פיננסי חכם:** גרפים המבוססים על Chart.js המנתחים הוצאות דלק, טיפולים וביטוחים בחלוקה חודשית/שנתית.
+* **צ'אט מוסכניק וירטואלי (AI Chat):** עוזר חכם המכיר את ההיסטוריה של הרכב הספציפי ומייעץ בנושאי תחזוקה.
+* **מנגנון הפקת דוח מכירה פומבי:** יצירת עמוד פומבי (Public Report) המציג נתונים נבחרים (טיפולים, תאונות) לקונה הפוטנציאלי.
 
-3. **Environment Setup:**
-   Create a `.env` file in the root directory and configure your database and API keys:
-   ```env
-   DB_USER=your_db_username
-   DB_PASSWORD=your_db_password
-   DB_SERVER=your_db_server_url
-   DB_DATABASE=your_db_name
-   GEMINI_API_KEY=your_google_gemini_api_key
-   ```
+---
 
-4. **Database Initialization:**
-   Ensure your database schema is set up. You can refer to `database_setup.sql` or use the setup scripts:
-   ```bash
-   node check_db.js
-   node migrate.js
-   ```
+## 3. ארכיטקטורה, צד שרת, צד משתמש ובסיס נתונים
 
-5. **Run the server:**
-   ```bash
-   npm start
-   ```
+### צד משתמש (Frontend)
+ממשק המשתמש נבנה בגישת Mobile-First המבטיחה תאימות מושלמת למסכי מגע. 
+הוא מבוסס על **HTML5, CSS3, Bootstrap 5 ו-Vanilla JavaScript**.
+הארכיטקטורה בצד הלקוח משתמשת בטעינה דינמית של רכיבים: קובץ מרכזי (`dashboard.html`) טוען את קבצי המודולים הספציפיים (לדוגמה `components/dashboard/treatments.html`) בהתאם לניווט של המשתמש, וכך נשמרת תחושה של יישום מודרני, מהיר ורציף (SPA - Single Page Application) ללא ריענון עמודים.
 
-6. **Access the application:**
-   Open your browser and navigate to `http://localhost:3000`.
+### צד שרת (Backend) ופריסה (Hosting)
+השרת פותח ב-**Node.js** עם פריימוורק **Express** ופרוס בענן באמצעות פלטפורמת **Render**. 
+השרת משמש כ-API Gateway ומרכז לוגיקה עסקית, כגון:
+* יצירת קשר ותיווך בין הלקוח לבסיס הנתונים (Azure SQL) ולשירותי אימות (Supabase).
+* ניהול אינטגרציות עם מודלים של בינה מלאכותית (Google Gemini API).
+* שירות כשכבת אבטחה המונעת חשיפת מפתחות API חסויים בקוד צד הלקוח.
 
-## 📂 Project Structure
+### בסיס הנתונים (Database)
+בסיס הנתונים הראשי של המערכת הוא בסיס נתונים רלוציוני עוצמתי **Azure SQL Database** של מיקרוסופט.
+הבחירה ב-Azure SQL נועדה להבטיח ביצועים גבוהים, אבטחת נתונים מחמירה (Enterprise-grade), ואמינות לאורך זמן.
+הוא מאחסן את כלל המידע של המערכת בטבלאות:
+* טבלת משתמשים המקושרת למזהי Auth.
+* טבלת רכבים (Vehicles) - פרטי הרכב, מודל, שנה, קילומטראז'.
+* טבלאות משנה עבור כל מודול (Treatments, Insurance, Reports, Accidents, Expenses, Fuel, Alerts) המקושרות כולן במפתח זר (Foreign Key) ל-ID של הרכב.
 
-- `server.js`: The main Express server file handling API routes and backend logic.
-- `db.js`: Handles database connection pooling and configuration.
-- `dashboard.html`, `login.html`, `index.html`: Main frontend interfaces.
-- `/css/`, `/js/`, `/images/`: Static assets housing styles, logic, and graphics.
-- `/components/`: Reusable HTML/JS components.
+---
 
-## 📄 License & Credits
+## 4. אינטגרציות וממשקים חיצוניים בקוד (External Interfaces)
 
-- Template Base: [Helios by HTML5 UP](https://html5up.net/) (CCA 3.0 license).
-- EasyCare Custom Implementations: Final Project Team.
+> **הערה חשובה בנושא תשתיות חופשיות (Free Tiers Cold Start):**
+> מאחר שהפרויקט עושה שימוש במסלולים חינמיים להדגמה, יש לקחת בחשבון שתי התנהגויות של המערכת בהדלקה קרה:
+> 1. **שרת Render:** השרת נכבה אוטומטית לאחר שעה ללא פעילות. הגישה הראשונה אליו לאחר מנוחה עשויה לקחת כ-50 שניות עד לעלייה מלאה.
+> 2. **מסד נתונים Azure SQL:** בדומה לשרת, מסד הנתונים מושהה (Paused) במצב חינם. בניסיון ההתחברות הראשון (לחיצה על "התחברות" במסך הפתיחה), המערכת עשויה לא להגיב באופן מיידי מכיוון שהיא שולחת "פקודת התעוררות" ל-DB. יש להמתין כדקה עד דקה וחצי ולאחר מכן ללחוץ שוב, ואז המערכת תפעל באופן חלק ומהיר.
+
+1. **Microsoft Azure SQL Database:** בסיס הנתונים הראשי (CRUD מלא מול השרת דרך מחרוזת מאובטחת).
+2. **Supabase (Auth & Edge Functions):** אחראי על Authentication וניהול מזהי משתמשים. כמו כן משמש להרצת פונקציות צד שרת Serverless כמו מערך Contact Us.
+3. **Resend:** שירות שליחת אימיילים מודרני מובנה בתוך פונקציית הקצה של Supabase לניתוב הודעות טופס צור קשר.
+4. **Render:** ענן אירוח המריץ את שרת ה-Node.js ומחובר ב-CI/CD לעדכונים ישירים מה-GitHub.
+5. **Google Gemini AI API:** מנוע הבינה המלאכותית שחולץ נתונים מפוליסות ביטוח ומתפקד כמוסכניק בצ'אטבוט מבוסס RAG.
+6. **Google Maps / Places API:** שירות השלמה אוטומטית לכתובות (לתיעוד מיקום מוסך, תאונה וכו').
+
+---
+
+## 5. רשימת ה-APIs במערכת
+
+להלן פירוט ה-Endpoints המרכזיים בשרת (`backend/server.js`) המחולקים לפי קטגוריות:
+
+### א. משתמשים ואימות (Authentication)
+* **`POST /api/register`** - רישום משתמש חדש מול שירותי Supabase.
+* **`POST /api/login`** - התחברות משתמש קיים.
+* **`POST /api/auth/send-otp`** - הפקת קוד אימות ושליחתו למייל המשתמש באמצעות **Supabase Auth** לשם כניסה למערכת ללא סיסמה.
+* **`POST /api/auth/verify-otp`** - אימות הקוד שהוזן ואישור זהות.
+
+### ב. ניהול רכבים ומידע שוטף
+* **רכבים:** `GET /api/vehicles`, `POST /api/vehicles`, `PUT /api/vehicles/:id`, `DELETE /api/vehicles/:id`
+* **מודולים נתמכים (GET/POST):**
+  * `/api/treatments/:vehicleId`
+  * `/api/insurance/:vehicleId`
+  * `/api/fines/:vehicleId`
+  * `/api/accidents/:vehicleId`
+  * `/api/fuellogs/:vehicleId`
+  * `/api/expenses/:vehicleId`
+  * `/api/alerts/:vehicleId`
+  * `/api/gallery/:vehicleId`
+
+### ג. בינה מלאכותית 
+* **`POST /api/ai/parse-insurance`** - קבלת קובץ PDF והפעלת מודל Gemini לחילוץ נתוני ביטוח ל-JSON.
+* **`POST /api/chat`** - שולח היסטוריית רכב ומקבל מענה AI בעל אופי של "מוסכניק וירטואלי".
+* **`GET /api/current-fuel-ai`** - שולף מחירי דלק רשמיים תוך שימוש במנגנון Caching (קובץ לוקאלי `fuel_cache.json`) למניעת חריגת עומס רשת.
+
+---
+
+## 6. מדריך פונקציונליות מקיף
+
+1. **דשבורד ובית:** תצוגה גרפית מרהיבה המשווה הוצאות חודשיות, ווידג'ט מחיר דלק Live וגישה מהירה לפעולות.
+2. **טיפולים:** תיעוד טיפולים במוסך, הוספת צילום חשבונית (עם תצוגה מקדימה מובנית), מיקום מוסך וקילומטראז'.
+3. **ביטוחים:** חיווי סטטוס פוליסות. לחצן חכם ל"ייבוא אוטומטי ממסמך" שממלא את כל טופס הפוליסה בעזרת AI.
+4. **תדלוקים:** מעקב שוטף אחרי כמות הליטרים ועלויות הדלק.
+5. **דוחות וקנסות:** ניהול דוחות (משטרה, חניה) ותיעוד הסטטוס הפיננסי (שולם/לא שולם).
+6. **תאונות:** יומן תאונות, העלאת עד 10 תמונות מזירת אירוע ותיעוד פרטי צד ג'.
+7. **הוצאות כלליות:** תיעוד שטיפות, אביזרים נלווים ותחזוקה משלימה.
+8. **התראות (Alerts):** הוספת תזכורות (כמו חידוש טסט או פוליסה) לפי רמות דחיפות.
+9. **השבחה למכירה:** הפקת עמוד אינטרנט ציבורי וייעודי למכירת הרכב המאגד את תמונות הגלריה, והיסטוריית הטיפולים לביטחון הקונה כולל יצירת קוד QR להדפסה לשמשת הרכב.
+
+---
+
+## 7. עיצוב המערכת והארכיטקטורה הוויזואלית
+
+המערכת בנויה לפי עקרונות עיצוב מודרניים (**Modern Flat & Soft UI**), השואבים השראה מאפליקציות פיננסיות וניהול מתקדמות.
+* **כרטיסיות ו-Glassmorphism:** המידע ממוקם בתוך כרטיסיות מרווחות בעלות צלליות עדינות להענקת תחושת "ריחוף". 
+* **צבעים מרכזיים:**
+  * כחול עמוק (`#3b82f6` עד `#2563eb`) כצבע ראשי למקצועיות ואמון.
+  * ירוק חיוני לסטטוס הצלחה, אדום להתראות/קנסות, וכתום למשימות המתנה.
+  * אפור סלייט (`#f8fafc`, `#334155`) למניעת עייפות ראייה ושמירה על קריאות גבוהה.
+
+---
+*פרויקט זה נבנה והוגש כפרויקט גמר (Final Project).*
