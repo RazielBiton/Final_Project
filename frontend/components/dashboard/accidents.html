@@ -269,11 +269,12 @@
                             תיעוד מצולם
                         </h6>
                         <div class="text-center p-4 relative"
-                            style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;"
+                            style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;"
                             onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9'"
                             onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
                             <input type="file" id="accImageInput" class="d-none" accept="image/*" multiple>
-                            <div id="accImagePlaceholder" class="w-100 m-0" onclick="document.getElementById('accImageInput').click()" style="cursor: pointer;">
+                            <div id="accImagePlaceholder" class="w-100 m-0"
+                                onclick="document.getElementById('accImageInput').click()" style="cursor: pointer;">
                                 <div
                                     style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                                     <i class="fas fa-camera text-primary fs-4"></i>

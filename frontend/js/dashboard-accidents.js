@@ -189,17 +189,24 @@ window.loadAccidents = function () {
 
         let imageHtml = '';
         if (acc.images && acc.images.length > 0) {
-            let imgsHtml = acc.images.map((img, idx) => `
-                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="viewAccidentImage('${acc.id}', ${idx})" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <img src="${img}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'};">
+            let imgsHtml = acc.images.map((img, idx) => {
+                const isPdf = img.startsWith('data:application/pdf');
+                const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : img;
+                const fileType = isPdf ? 'pdf' : 'image';
+                return `
+                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); ${isPdf ? 'background: white;' : ''}" onclick="window.showFilePreview('${img}', '${fileType}')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${displaySrc}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'}; ${isPdf ? 'padding: 5px;' : ''}">
                 </div>
-            `).join('');
+            `}).join('');
             imageHtml = `<div class="mt-3 d-flex flex-wrap gap-2">${imgsHtml}</div>`;
         } else if (acc.image) {
+            const isPdf = acc.image.startsWith('data:application/pdf');
+            const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : acc.image;
+            const fileType = isPdf ? 'pdf' : 'image';
             imageHtml = `
             <div class="mt-3 d-flex flex-wrap gap-2">
-                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="viewAccidentImage('${acc.id}', 0)" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <img src="${acc.image}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'};">
+                <div style="position: relative; cursor: pointer; transition: transform 0.2s; overflow: hidden; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); ${isPdf ? 'background: white;' : ''}" onclick="window.showFilePreview('${acc.image}', '${fileType}')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${displaySrc}" style="height: 70px; width: 70px; object-fit: cover; filter: ${isResolved ? 'grayscale(30%)' : 'none'}; ${isPdf ? 'padding: 5px;' : ''}">
                 </div>
             </div>`;
         }
@@ -338,9 +345,12 @@ window.renderAccidentImagesPreview = function () {
         previewContainer.classList.remove('d-none');
 
         currentBase64AccidentImages.forEach((imgSrc, index) => {
+            const isPdf = imgSrc.startsWith('data:application/pdf');
+            const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : imgSrc;
+            const fileType = isPdf ? 'pdf' : 'image';
             const imgHtml = `
-            <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${imgSrc}', 'image')">
-                <img src="${imgSrc}" class="img-fluid rounded shadow-sm" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff;">
+            <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${imgSrc}', '${fileType}')">
+                <img src="${displaySrc}" class="img-fluid rounded shadow-sm" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff; ${isPdf ? 'padding:10px; background:white;' : ''}">
                 <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); removeAccidentImage(${index})" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
                     <i class="fas fa-times" style="font-size: 10px;"></i>
                 </button>

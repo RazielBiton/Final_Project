@@ -29,16 +29,16 @@ window.loadReports = function () {
 
     sortedReports.forEach(report => {
         const isPaid = report.status === 'paid';
-        
+
         // Robust date parsing
         const dateStr = window.formatDate(report.date);
         const dueDateStr = window.formatDate(report.dueDate);
-        
+
         let statusText = 'אין מועד תשלום מוגדר';
         let statusClass = 'text-muted';
         let progressClass = 'bg-secondary';
         let progressPercent = 0;
-        
+
         const dDate = report.dueDate ? new Date(report.dueDate) : null;
         if (dDate && !isNaN(dDate.getTime())) {
             const now = new Date();
@@ -62,15 +62,18 @@ window.loadReports = function () {
         }
 
         const iconClass = offenseIcons[report.typeVal] || offenseIcons['other'];
-        
+
         let imageHtml = '';
         if (report.images && report.images.length > 0) {
             imageHtml = `
                 <div class="d-flex gap-2 mt-3 overflow-auto pb-2">
-                    ${report.images.map(img => `
-                        <img src="${img}" style="height: 60px; border-radius: 8px; cursor: pointer; border: 1px solid #e2e8f0;" 
-                             onclick="window.openReportImage('${img}')">
-                    `).join('')}
+                    ${report.images.map(img => {
+                        const isPdf = img.startsWith('data:application/pdf');
+                        const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : img;
+                        const fileType = isPdf ? 'pdf' : 'image';
+                        return `<img src="${displaySrc}" style="height: 60px; border-radius: 8px; cursor: pointer; border: 1px solid #e2e8f0; ${isPdf ? 'padding: 5px; background: white;' : ''}" 
+                             onclick="window.showFilePreview('${img}', '${fileType}')">`;
+                    }).join('')}
                 </div>`;
         }
 
@@ -193,7 +196,7 @@ window.updateVisibilityAndTotals = function () {
             pointsProg.style.width = progWidth + '%';
             pointsProg.className = 'progress-bar ' + (totalPoints >= 24 ? 'bg-danger' : totalPoints >= 12 ? 'bg-warning' : 'bg-success');
         }
-        
+
         if (statusBadge) {
             if (totalPoints === 0) {
                 statusBadge.textContent = 'סטטוס: נקי';
@@ -219,8 +222,8 @@ window.updateVisibilityAndTotals = function () {
     if (courseContainer) {
         courseContainer.innerHTML = '';
         if (totalPoints >= 12) {
-            const courseText = totalPoints >= 36 ? 'פסילת רישיון ל-3 חודשים' : 
-                               totalPoints >= 24 ? 'קורס נהיגה מונעת מתקדם' : 'קורס נהיגה נכונה בסיסי';
+            const courseText = totalPoints >= 36 ? 'פסילת רישיון ל-3 חודשים' :
+                totalPoints >= 24 ? 'קורס נהיגה מונעת מתקדם' : 'קורס נהיגה נכונה בסיסי';
             courseContainer.innerHTML = `
                 <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-3" style="border-radius:12px;">
                     <i class="fas fa-exclamation-circle fa-lg"></i>
@@ -249,7 +252,7 @@ window.generateSafetyInsights = function () {
     if (types['speeding']) tips.push('מומלץ להשתמש בבקרת שיוט בכבישים מהירים לגילוי מוקדם של מצלמות והימנעות מקנסות.');
     if (types['phone']) tips.push('התקן דיבורית איכותית ברכב כדי למנוע היסח דעת וקנסות כבדים בגין שימוש בנייד.');
     if (types['parking']) tips.push('שים לב לשילוט עירוני והשתמש באפליקציות חניה חכמות (כגון פנגו/סלופארק) כדי להימנע מדוחות.');
-    
+
     tips.push('זכור: צבירת 36 נקודות תגרור שלילת רישיון נהיגה ל-3 חודשים לפחות.');
     tips.push('נהיגה מונעת מצילה חיים - הקפד על שמירת מרחק ראוי מהרכב שלפניך.');
 
@@ -257,12 +260,12 @@ window.generateSafetyInsights = function () {
     textEl.textContent = randomTip;
 }
 
-window.toggleCustomType = function(val) {
+window.toggleCustomType = function (val) {
     const container = document.getElementById('custom-type-container');
     if (container) container.style.display = (val === 'other' ? 'block' : 'none');
 }
 
-window.openAddReportModal = function() {
+window.openAddReportModal = function () {
     const form = document.getElementById('add-report-form');
     if (form) form.reset();
     document.getElementById('reportIdField').value = '';
@@ -271,29 +274,29 @@ window.openAddReportModal = function() {
         previewImg.src = '';
         previewImg.style.display = 'none';
     }
-    
+
     const modalTitle = document.querySelector('#addReportModal .modal-title');
     if (modalTitle) {
         modalTitle.innerHTML = '<i class="fas fa-plus-circle me-2"></i>הוספת דוח תנועה חדש';
     }
-    
+
     const dateInput = document.getElementById('report-date');
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
         dateInput.max = today;
     }
-    
+
     const modal = new bootstrap.Modal(document.getElementById('addReportModal'));
     modal.show();
 }
 
-window.saveReport = function(e) {
+window.saveReport = function (e) {
     e.preventDefault();
     const id = document.getElementById('reportIdField').value;
     const typeSelect = document.getElementById('report-type-select').value;
     const typeCustom = document.getElementById('report-type-custom').value;
     const typeVal = (typeSelect === 'other' ? ('other:' + typeCustom) : typeSelect);
-    
+
     const images = currentBase64ReportImage ? [currentBase64ReportImage] : [];
 
     const reportDateStr = document.getElementById('report-date').value;
@@ -331,17 +334,17 @@ window.saveReport = function(e) {
     const modalEl = document.getElementById('addReportModal');
     const modal = bootstrap.Modal.getInstance(modalEl);
     if (modal) modal.hide();
-    
+
     saveToLocalStorage();
     loadReports();
 }
 
-window.editReport = function(id) {
+window.editReport = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (!report) return;
 
     document.getElementById('reportIdField').value = report.id;
-    
+
     const typeVal = report.typeVal || '';
     if (typeVal.startsWith('other:')) {
         document.getElementById('report-type-select').value = 'other';
@@ -377,7 +380,7 @@ window.editReport = function(id) {
     modal.show();
 }
 
-window.deleteReport = function(id) {
+window.deleteReport = function (id) {
     if (confirm('האם אתה בטוח שברצונך למחוק דוח זה?')) {
         currentCar.reports = currentCar.reports.filter(r => String(r.id) !== String(id));
         saveToLocalStorage();
@@ -385,7 +388,7 @@ window.deleteReport = function(id) {
     }
 }
 
-window.markAsPaid = function(id) {
+window.markAsPaid = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
         report.status = 'paid';
@@ -394,7 +397,7 @@ window.markAsPaid = function(id) {
     }
 }
 
-window.markAsUnpaid = function(id) {
+window.markAsUnpaid = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
         report.status = 'unpaid';
@@ -407,9 +410,9 @@ window.filterReports = function (status) {
     const container = document.getElementById('reports-list-container');
     const items = container.querySelectorAll('.report-item');
     const btn = document.getElementById('reportFilterBtn');
-    
+
     btn.innerHTML = `<i class="fas fa-filter me-1"></i> ${status === 'all' ? 'הכל' : status === 'unpaid' ? 'רק פתוחים' : 'שולמו'}`;
-    
+
     items.forEach(item => {
         if (status === 'all') item.style.display = 'block';
         else if (status === 'unpaid' && item.dataset.status !== 'paid') item.style.display = 'block';
@@ -422,17 +425,17 @@ window.filterReports = function (status) {
 let currentBase64ReportImage = null;
 let currentReportImageType = null;
 
-document.addEventListener('change', function(e) {
+document.addEventListener('change', function (e) {
     if (e.target && e.target.id === 'reportImageInput') {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         currentReportImageType = file.type;
         const reader = new FileReader();
-        
-        reader.onload = function(event) {
+
+        reader.onload = function (event) {
             if (file.type.startsWith('image/') && typeof window.compressImage === 'function') {
-                window.compressImage(event.target.result, 800, 0.7, function(compressed) {
+                window.compressImage(event.target.result, 800, 0.7, function (compressed) {
                     currentBase64ReportImage = compressed;
                     renderReportImagePreview();
                 });
@@ -445,7 +448,7 @@ document.addEventListener('change', function(e) {
     }
 });
 
-window.renderReportImagePreview = function() {
+window.renderReportImagePreview = function () {
     const placeholder = document.getElementById('reportUploadPlaceholder');
     const previewContainer = document.getElementById('reportPreviewContainer');
     const previewArea = document.getElementById('reportPreviewArea');
@@ -477,7 +480,7 @@ window.renderReportImagePreview = function() {
     }
 }
 
-window.removeReportImage = function() {
+window.removeReportImage = function () {
     currentBase64ReportImage = null;
     currentReportImageType = null;
     const input = document.getElementById('reportImageInput');
@@ -493,13 +496,13 @@ document.addEventListener('hidden.bs.modal', function (e) {
 });
 
 // INITIALIZE FORM SUBMISSION VIA DELEGATION (Crucial for dynamic loading)
-document.addEventListener('submit', function(e) {
+document.addEventListener('submit', function (e) {
     if (e.target && e.target.id === 'add-report-form') {
         window.saveReport(e);
     }
 });
 
-window.openReportImage = function(src) {
+window.openReportImage = function (src) {
     const preview = document.getElementById('reportImageModalPreview');
     if (preview) {
         preview.src = src;
