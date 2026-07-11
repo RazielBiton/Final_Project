@@ -17,7 +17,10 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
-    }
+    },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000
 });
 
 const app = express();
@@ -1282,65 +1285,23 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        const mailOptions = {
-            from: process.env.GMAIL_USER,
-            to: process.env.GMAIL_USER,
-            replyTo: email,
-            subject: `התקבלה פנייה חדשה מ - ${name} דרך אתר EasyCare`,
-            html: `
-          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background-color: #ffffff;">
-            
-            <div style="background-color: #007bff; color: white; padding: 25px; text-align: center;">
-              <h2 style="margin: 0; font-size: 22px; font-weight: 600;">התקבלה פנייה חדשה באתר</h2>
-              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">EasyCare - Lead Management System</p>
-            </div>
-
-            <div style="padding: 30px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666; width: 35%;"><strong>שם הלקוח:</strong></td>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #333; font-weight: 500;">${name}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666;"><strong>אימייל לחזרה:</strong></td>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
-                    <a href="mailto:${email}" style="color: #007bff; text-decoration: none; font-weight: 500;">${email}</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666;"><strong>מספר טלפון:</strong></td>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #333; font-weight: 500;">${phone || 'לא הוזן'}</td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="padding: 20px 12px 10px 12px; color: #666;"><strong>תוכן ההודעה:</strong></td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="padding: 15px; color: #444; line-height: 1.6; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
-                    ${message.replace(/\\n/g, '<br>')}
-                  </td>
-                </tr>
-              </table>
-            </div>
-
-            <div style="padding: 25px; background-color: #fdfdfd; text-align: center; border-top: 1px solid #f0f0f0;">
-              <a href="mailto:${email}" style="background-color: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">השב ללקוח במייל</a>
-              <div style="margin-top: 20px; font-size: 12px; color: #999;">
-                <p style="margin: 0;">נשלח באופן אוטומטי דרך EasyCare</p>
-                <p style="margin: 5px 0 0 0;">${new Date().toLocaleString('he-IL')}</p>
-              </div>
-            </div>
-
-          </div>
-            `
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Nodemailer Error:', error);
-                return res.status(500).json({ error: 'תקלה בשליחת האימייל. נסה שוב מאוחר יותר.' });
-            }
-            res.json({ success: true, message: 'Message sent successfully.' });
+        // Call Supabase Edge Function directly instead of using Nodemailer (bypasses Render SMTP block)
+        const response = await fetch(`${supabaseUrl}/functions/v1/contact-us`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify({ name, email, message })
         });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Supabase Edge Function Error:', errorData);
+            return res.status(500).json({ error: 'תקלה בשליחת הפנייה. נסה שוב מאוחר יותר.' });
+        }
+
+        res.json({ success: true, message: 'Message sent successfully.' });
     } catch (err) {
         console.error('Contact endpoint error:', err);
         res.status(500).json({ error: 'Server error' });

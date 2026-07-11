@@ -21,6 +21,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 const openModals = document.querySelectorAll('.modal.show');
                 if (openModals.length === 0) {
                     footerContainer.style.display = 'flex'; // Restore default footer flex display
+                    document.body.classList.remove('modal-open');
+                } else {
+                    document.body.classList.add('modal-open'); // Force body to stay modal-open
                 }
             }, 50); // slight delay to allow Bootstrap classes to update
         });
