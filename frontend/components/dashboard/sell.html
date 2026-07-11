@@ -189,12 +189,12 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-4">
-                        <label for="sellGalleryUpload"
-                            class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm"
+                        <div onclick="document.getElementById('sellGalleryUpload').click()"
+                            class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm d-inline-block"
                             style="cursor: pointer;">
                             <i class="fas fa-plus me-1"></i> העלאת תמונות נוספות
-                        </label>
-                        <input style="opacity: 0; position: absolute; z-index: -1;" type="file" id="sellGalleryUpload" accept="image/*" multiple
+                        </div>
+                        <input class="d-none" type="file" id="sellGalleryUpload" accept="image/*" multiple
                             onchange="window.handleGalleryUpload(event)">
                     </div>
 
