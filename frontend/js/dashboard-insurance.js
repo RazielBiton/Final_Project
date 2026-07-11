@@ -158,11 +158,16 @@ window.openEditInsurance = function (type) {
 
     document.getElementById('insDoc').value = '';
 
-    const docInfo = document.getElementById('currentDocInfo');
     if (insData.file) {
-        docInfo.classList.remove('d-none');
+        currentBase64InsuranceDoc = insData.file;
+        currentInsuranceDocType = insData.file.startsWith('data:application/pdf') ? 'application/pdf' : 'image/jpeg';
     } else {
-        docInfo.classList.add('d-none');
+        currentBase64InsuranceDoc = null;
+        currentInsuranceDocType = null;
+    }
+    
+    if (typeof renderInsuranceDocPreview === 'function') {
+        renderInsuranceDocPreview();
     }
 
     // Advanced fields Optional Block 1 (Roadside)
