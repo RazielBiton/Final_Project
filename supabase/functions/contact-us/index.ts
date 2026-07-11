@@ -24,48 +24,65 @@ serve(async (req) => {
         'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
       },
       body: JSON.stringify({
-        from: 'EasyCare Leads <onboarding@resend.dev>', // כאן שמים את המייל המאומת שלך ב-Resend
-        to: ['[EMAIL_ADDRESS]'], // המייל שאליו הלידים יישלחו
-        subject: `New message from ${name} by easycare contact-us`,
+        from: 'EasyCare Leads <onboarding@resend.dev>', // חשוב: ב-Resend אפשר לשלוח רק מהכתובת המאומתת!
+        to: ['easycare.support@gmail.com'], // הכתובת אליה המייל יגיע! תוקן בהצלחה.
+        subject: `[פנייה חדשה] - הודעה מאת ${name} (EasyCare)`,
         html: `
-          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background-color: #ffffff;">
-            
-            <div style="background-color: #007bff; color: white; padding: 25px; text-align: center;">
-              <h2 style="margin: 0; font-size: 22px; font-weight: 600;">התקבלה פנייה חדשה באתר</h2>
-              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">EasyCare - Lead Management System</p>
-            </div>
-
-            <div style="padding: 30px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666; width: 35%;"><strong>שם הלקוח:</strong></td>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #333; font-weight: 500;">${name}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #666;"><strong>אימייל לחזרה:</strong></td>
-                  <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
-                    <a href="mailto:${email}" style="color: #007bff; text-decoration: none; font-weight: 500;">${email}</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="padding: 20px 12px 10px 12px; color: #666;"><strong>תוכן ההודעה:</strong></td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="padding: 15px; color: #444; line-height: 1.6; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
-                    ${message.replace(/\n/g, '<br>')}
-                  </td>
-                </tr>
-              </table>
-            </div>
-
-            <div style="padding: 25px; background-color: #fdfdfd; text-align: center; border-top: 1px solid #f0f0f0;">
-              <a href="mailto:${email}" style="background-color: #28a745; color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">השב ללקוח במייל</a>
-              <div style="margin-top: 20px; font-size: 12px; color: #999;">
-                <p style="margin: 0;">נשלח באופן אוטומטי דרך EasyCare Edge Functions</p>
-                <p style="margin: 5px 0 0 0;">${new Date().toLocaleString('he-IL')}</p>
+          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; padding: 40px 20px; text-align: right;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+              
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #ffffff; padding: 40px 30px; text-align: center; border-bottom: 4px solid #3b82f6;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">התקבלה פנייה חדשה</h1>
+                <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 16px;">מערכת ניהול לקוחות - EasyCare</p>
               </div>
-            </div>
 
+              <!-- Body -->
+              <div style="padding: 40px 30px;">
+                
+                <p style="font-size: 16px; color: #475569; margin-bottom: 25px; line-height: 1.6;">
+                  שלום צוות EasyCare,<br>
+                  התקבלה פנייה חדשה מאתר האינטרנט. להלן פרטי הלקוח ותוכן הפנייה:
+                </p>
+
+                <!-- Details Card -->
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 30px;">
+                  <h3 style="margin: 0 0 20px 0; color: #1e293b; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">פרטי הלקוח</h3>
+                  
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 10px 0; color: #64748b; width: 35%; font-size: 15px;"><strong>שם מלא:</strong></td>
+                      <td style="padding: 10px 0; color: #0f172a; font-weight: 600; font-size: 16px;">${name}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; color: #64748b; font-size: 15px;"><strong>כתובת אימייל:</strong></td>
+                      <td style="padding: 10px 0;">
+                        <a href="mailto:${email}" style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 16px;">${email}</a>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Message Content -->
+                <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 18px;">תוכן ההודעה</h3>
+                <div style="background-color: #ffffff; border-right: 4px solid #3b82f6; border-left: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; color: #334155; line-height: 1.8; font-size: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                  ${message.replace(/\n/g, '<br>')}
+                </div>
+
+              </div>
+
+              <!-- Footer -->
+              <div style="background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <a href="mailto:${email}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25); transition: all 0.3s ease;">
+                  השב ללקוח עכשיו
+                </a>
+                <p style="margin: 25px 0 0 0; font-size: 13px; color: #94a3b8;">
+                  הודעה זו נשלחה אוטומטית על ידי שרתי EasyCare.<br>
+                  ${new Date().toLocaleString('he-IL')}
+                </p>
+              </div>
+
+            </div>
           </div>
         `,
       }),

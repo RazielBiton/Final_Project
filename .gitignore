@@ -29,3 +29,4 @@ supabase/.temp/
 # Skills lock
 skills-lock.json
 test_email.js
+test_edge.js
