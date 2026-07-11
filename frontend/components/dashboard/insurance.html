@@ -232,12 +232,12 @@
                         style="border:1px dashed #3b82f6; border-radius:12px; background:#eff6ff;">
                         <p class="small text-muted mb-2 fw-bold" style="color:#1e40af !important;">יש לכם PDF של
                             הפוליסה? תנו ל-AI למלא הכל אוטומטית!</p>
-                        <label class="db-btn mb-0 d-inline-block"
+                        <button type="button" class="db-btn mb-0 d-inline-block"
                             style="background:#3b82f6; color:white; font-weight:700; border-radius:8px; cursor:pointer;"
-                            for="aiDocInput">
+                            onclick="document.getElementById('aiDocInput').click()">
                             <i class="fas fa-magic me-2"></i> ייבוא נתונים אוטומטי ממסמך
-                        </label>
-                        <input type="file" id="aiDocInput" accept="application/pdf" class="d-none"
+                        </button>
+                        <input type="file" id="aiDocInput" accept="application/pdf" style="opacity: 0; position: absolute; z-index: -1;"
                             onchange="processAiDoc(this)">
                         <div id="aiLoading" class="d-none mt-3">
                             <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
@@ -277,8 +277,8 @@
                         style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;"
                         onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9'"
                         onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
-                        <input type="file" id="insDoc" class="d-none" accept="application/pdf, image/*">
-                        <label id="insDocPlaceholder" class="w-100 m-0" for="insDoc" style="cursor: pointer;">
+                        <input type="file" id="insDoc" style="opacity: 0; position: absolute; z-index: -1;" accept="application/pdf, image/*">
+                        <div id="insDocPlaceholder" class="w-100 m-0" onclick="document.getElementById('insDoc').click()" style="cursor: pointer;">
                             <div
                                 style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                                 <i class="fas fa-file-pdf text-danger fs-4"></i>
@@ -286,7 +286,7 @@
                             <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.95rem;">לחץ להעלאת קובץ ביטוח
                             </h6>
                             <p class="text-muted m-0" style="font-size: 0.75rem;">קובץ PDF או תמונה</p>
-                        </label>
+                        </div>
 
                         <div id="insDocPreviewContainer" class="d-none mt-2">
                             <div class="d-flex justify-content-center" id="insDocPreviewArea"></div>

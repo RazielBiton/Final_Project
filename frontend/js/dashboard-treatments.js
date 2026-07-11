@@ -148,8 +148,13 @@ window.openEditTreatmentModal = function (tId) {
 
     // Clear invoice input so previous file label reflects 'unchanged' if no new file is added
     document.getElementById('editTInvoice').value = "";
-    currentBase64TreatmentInvoice = null;
-    currentTreatmentInvoiceType = null;
+    if (t.invoice) {
+        currentBase64TreatmentInvoice = t.invoice;
+        currentTreatmentInvoiceType = t.invoice.startsWith('data:application/pdf') ? 'application/pdf' : 'image/jpeg';
+    } else {
+        currentBase64TreatmentInvoice = null;
+        currentTreatmentInvoiceType = null;
+    }
     if (typeof renderEditTreatmentInvoicePreview === 'function') renderEditTreatmentInvoicePreview();
 
     new bootstrap.Modal(document.getElementById('editTreatmentModal')).show();
@@ -181,6 +186,8 @@ window.updateTreatment = function () {
 
         if (base64Invoice) {
             currentCar.treatments[tIndex].invoice = base64Invoice;
+        } else if (!currentBase64TreatmentInvoice) {
+            delete currentCar.treatments[tIndex].invoice;
         }
 
         saveToLocalStorage();
