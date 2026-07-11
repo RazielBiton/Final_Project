@@ -30,3 +30,9 @@ supabase/.temp/
 skills-lock.json
 test_email.js
 test_edge.js
+
+# AI Agent files
+.agents/
+skills-lock.json
+Final_Project.code-workspace
+
