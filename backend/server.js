@@ -829,9 +829,8 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
         const pool = await poolPromise;
         const vRes = await pool.request()
             .input('Id', sql.Int, vehicleId)
-            .input('UserId', sql.Int, req.userId)
-            .query('SELECT * FROM Vehicles WHERE Id = @Id AND UserId = @UserId AND IsDeleted = 0');
-        if (vRes.recordset.length === 0) return res.status(404).json({ error: 'Not found or access denied' });
+            .query('SELECT * FROM Vehicles WHERE Id = @Id AND IsDeleted = 0');
+        if (vRes.recordset.length === 0) return res.status(404).json({ error: 'Not found' });
 
         const car = vRes.recordset[0];
 
