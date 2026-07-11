@@ -339,11 +339,14 @@ window.renderAccidentImagesPreview = function () {
 
         currentBase64AccidentImages.forEach((imgSrc, index) => {
             const imgHtml = `
-            <div class="position-relative d-inline-block">
+            <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${imgSrc}', 'image')">
                 <img src="${imgSrc}" class="img-fluid rounded shadow-sm" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff;">
-                <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="removeAccidentImage(${index})" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%);">
+                <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); removeAccidentImage(${index})" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
                     <i class="fas fa-times" style="font-size: 10px;"></i>
                 </button>
+                <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 text-center" style="background: rgba(0,0,0,0.5); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                    <i class="fas fa-eye text-white" style="font-size: 10px; padding: 2px 0;"></i>
+                </div>
             </div>`;
             listContainer.insertAdjacentHTML('beforeend', imgHtml);
         });

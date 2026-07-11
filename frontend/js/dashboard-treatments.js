@@ -71,7 +71,6 @@ window.saveTreatment = function () {
     const tGarage = document.getElementById('tGarage').value;
     const tKm = document.getElementById('tKm').value;
     const tCost = document.getElementById('tCost').value;
-    const tFile = document.getElementById('tInvoice').files[0];
 
     if (!tName || !tDate || !tGarage || !tKm || !tCost) {
         alert('נא למלא את כל השדות החובה');
@@ -115,19 +114,7 @@ window.saveTreatment = function () {
         document.getElementById('addTreatmentForm').reset();
     };
 
-    if (tFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            if (typeof compressImage === 'function') {
-                window.compressImage(e.target.result, 800, 0.7, finishSave);
-            } else {
-                finishSave(e.target.result); // Fallback if no compression method found
-            }
-        };
-        reader.readAsDataURL(tFile);
-    } else {
-        finishSave(null);
-    }
+    finishSave(currentBase64TreatmentInvoice || null);
 }
 
 window.deleteTreatment = function (id) {
@@ -724,3 +711,80 @@ window.confirmMapSelection = function() {
         if (modal) modal.hide();
     }
 };
+
+// --- INVOICE UPLOAD UI LOGIC ---
+let currentBase64TreatmentInvoice = null;
+let currentTreatmentInvoiceType = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tInvoiceInput = document.getElementById('tInvoice');
+    if (tInvoiceInput) {
+        tInvoiceInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentTreatmentInvoiceType = file.type;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (file.type.startsWith('image/') && typeof window.compressImage === 'function') {
+                        window.compressImage(event.target.result, 800, 0.7, function(compressed) {
+                            currentBase64TreatmentInvoice = compressed;
+                            renderTreatmentInvoicePreview();
+                        });
+                    } else {
+                        currentBase64TreatmentInvoice = event.target.result;
+                        renderTreatmentInvoicePreview();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+window.renderTreatmentInvoicePreview = function() {
+    const placeholder = document.getElementById('tInvoicePlaceholder');
+    const previewContainer = document.getElementById('tInvoicePreviewContainer');
+    const previewArea = document.getElementById('tInvoicePreviewArea');
+
+    if (!placeholder || !previewContainer || !previewArea) return;
+
+    if (currentBase64TreatmentInvoice) {
+        placeholder.classList.add('d-none');
+        previewContainer.classList.remove('d-none');
+
+        const isPdf = currentTreatmentInvoiceType === 'application/pdf';
+        const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : currentBase64TreatmentInvoice;
+        const previewType = isPdf ? 'pdf' : 'image';
+
+        previewArea.innerHTML = `
+        <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${currentBase64TreatmentInvoice}', '${previewType}')">
+            <img src="${displaySrc}" class="img-fluid rounded shadow-sm bg-white" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff; padding: ${isPdf ? '10px' : '0'}">
+            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); removeTreatmentInvoice()" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
+                <i class="fas fa-times" style="font-size: 10px;"></i>
+            </button>
+            <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 text-center" style="background: rgba(0,0,0,0.5); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                <i class="fas fa-eye text-white" style="font-size: 10px; padding: 2px 0;"></i>
+            </div>
+        </div>`;
+    } else {
+        placeholder.classList.remove('d-none');
+        previewContainer.classList.add('d-none');
+        previewArea.innerHTML = '';
+    }
+}
+
+window.removeTreatmentInvoice = function() {
+    currentBase64TreatmentInvoice = null;
+    currentTreatmentInvoiceType = null;
+    const input = document.getElementById('tInvoice');
+    if (input) input.value = '';
+    renderTreatmentInvoicePreview();
+}
+
+// Ensure the form reset clears the invoice upload too
+const originalAddTreatmentModalListener = document.getElementById('addTreatmentModal');
+if (originalAddTreatmentModalListener) {
+    originalAddTreatmentModalListener.addEventListener('hidden.bs.modal', function () {
+        removeTreatmentInvoice();
+    });
+}

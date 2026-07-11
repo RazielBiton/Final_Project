@@ -29,3 +29,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+// Global Function to show Quick View for images or PDFs
+window.showFilePreview = function (src, type = 'image') {
+    const modalEl = document.getElementById('filePreviewModal');
+    if (!modalEl) return;
+    
+    const imgPreview = document.getElementById('filePreviewImg');
+    const iframePreview = document.getElementById('filePreviewIframe');
+
+    if (type === 'pdf') {
+        imgPreview.classList.add('d-none');
+        iframePreview.classList.remove('d-none');
+        iframePreview.src = src;
+    } else {
+        iframePreview.classList.add('d-none');
+        imgPreview.classList.remove('d-none');
+        imgPreview.src = src;
+    }
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}

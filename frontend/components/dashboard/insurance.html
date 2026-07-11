@@ -177,30 +177,23 @@
                             <input type="date" class="db-form-control" id="insDate" required>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-size:0.9rem; font-weight:600; color:#475569;">מסמך פוליסה (PDF בלבד)</label>
-                        
-                        <!-- Existing Document Info -->
-                        <div id="currentDocInfo" class="d-none mb-3 p-3" style="background:#f1f5f9; border-radius:12px; display:flex; align-items:center; justify-content:space-between; border:1px solid #e2e8f0;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <i class="fas fa-file-pdf text-danger" style="font-size:1.5rem;"></i>
-                                <div>
-                                    <div style="font-size:0.85rem; font-weight:700; color:#1e293b;">קיים מסמך פוליסה</div>
-                                    <div style="font-size:0.75rem; color:#64748b;">ניתן להחליפו ע"י העלאת קובץ חדש</div>
+                        <div class="text-center p-4 relative" style="border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
+                            <input type="file" id="insDoc" class="d-none" accept="application/pdf">
+                            <div id="insDocPlaceholder" onclick="document.getElementById('insDoc').click()">
+                                <div style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    <i class="fas fa-file-pdf text-danger fs-4"></i>
                                 </div>
+                                <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.95rem;">לחץ להעלאת קובץ ביטוח</h6>
+                                <p class="text-muted m-0" style="font-size: 0.75rem;">קובץ PDF בלבד</p>
                             </div>
-                            <div style="display:flex; gap:8px;">
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewCurrentInsuranceDoc()" style="border-radius:8px; font-weight:600; padding:4px 12px; font-size:0.8rem; background:white;">
-                                    <i class="fas fa-eye me-1"></i>צפה
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeInsuranceDoc()" style="border-radius:8px; font-weight:600; padding:4px 12px; font-size:0.8rem; background:white;">
-                                    <i class="fas fa-trash-alt me-1"></i>הסר
+                            
+                            <div id="insDocPreviewContainer" class="d-none mt-2">
+                                <div class="d-flex justify-content-center" id="insDocPreviewArea"></div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-3 fw-bold rounded-pill shadow-sm" onclick="event.stopPropagation(); document.getElementById('insDoc').click()">
+                                    <i class="fas fa-sync-alt me-1"></i> החלף מסמך
                                 </button>
                             </div>
                         </div>
-
-                        <input type="file" class="db-form-control" id="insDoc" accept="application/pdf">
-                    </div>
 
                     <hr class="my-4">
                     <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-layer-group"></i> הרחבות ומידע משלים <span class="badge bg-secondary ms-2" style="font-size:0.7rem; font-weight:normal;">אופציונלי</span></h6>

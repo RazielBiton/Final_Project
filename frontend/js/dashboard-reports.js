@@ -294,8 +294,7 @@ window.saveReport = function(e) {
     const typeCustom = document.getElementById('report-type-custom').value;
     const typeVal = (typeSelect === 'other' ? ('other:' + typeCustom) : typeSelect);
     
-    const previewImg = document.getElementById('reportSingleImagePreview');
-    const images = (previewImg && previewImg.style.display !== 'none' && previewImg.src) ? [previewImg.src] : [];
+    const images = currentBase64ReportImage ? [currentBase64ReportImage] : [];
 
     const reportDateStr = document.getElementById('report-date').value;
     const reportDate = new Date(reportDateStr);
@@ -419,53 +418,77 @@ window.filterReports = function (status) {
     });
 }
 
-// Handle image uploads via button with Canvas Compression
+// Handle image uploads via button
+let currentBase64ReportImage = null;
+let currentReportImageType = null;
+
 document.addEventListener('change', function(e) {
     if (e.target && e.target.id === 'reportImageInput') {
         const file = e.target.files[0];
         if (!file) return;
         
-        const previewImg = document.getElementById('reportSingleImagePreview');
+        currentReportImageType = file.type;
         const reader = new FileReader();
         
         reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800;
-                const MAX_HEIGHT = 800;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // Export as compressed JPEG
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                
-                // Show the beautiful preview
-                if (previewImg) {
-                    previewImg.src = compressedBase64;
-                    previewImg.style.display = 'block';
-                }
-            };
-            img.src = event.target.result;
+            if (file.type.startsWith('image/') && typeof window.compressImage === 'function') {
+                window.compressImage(event.target.result, 800, 0.7, function(compressed) {
+                    currentBase64ReportImage = compressed;
+                    renderReportImagePreview();
+                });
+            } else {
+                currentBase64ReportImage = event.target.result;
+                renderReportImagePreview();
+            }
         };
         reader.readAsDataURL(file);
+    }
+});
+
+window.renderReportImagePreview = function() {
+    const placeholder = document.getElementById('reportUploadPlaceholder');
+    const previewContainer = document.getElementById('reportPreviewContainer');
+    const previewArea = document.getElementById('reportPreviewArea');
+
+    if (!placeholder || !previewContainer || !previewArea) return;
+
+    if (currentBase64ReportImage) {
+        placeholder.classList.add('d-none');
+        previewContainer.classList.remove('d-none');
+
+        const isPdf = currentReportImageType === 'application/pdf';
+        const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : currentBase64ReportImage;
+        const previewType = isPdf ? 'pdf' : 'image';
+
+        previewArea.innerHTML = `
+        <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${currentBase64ReportImage}', '${previewType}')">
+            <img src="${displaySrc}" class="img-fluid rounded shadow-sm bg-white" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff; padding: ${isPdf ? '10px' : '0'}">
+            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); removeReportImage()" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
+                <i class="fas fa-times" style="font-size: 10px;"></i>
+            </button>
+            <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 text-center" style="background: rgba(0,0,0,0.5); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                <i class="fas fa-eye text-white" style="font-size: 10px; padding: 2px 0;"></i>
+            </div>
+        </div>`;
+    } else {
+        placeholder.classList.remove('d-none');
+        previewContainer.classList.add('d-none');
+        previewArea.innerHTML = '';
+    }
+}
+
+window.removeReportImage = function() {
+    currentBase64ReportImage = null;
+    currentReportImageType = null;
+    const input = document.getElementById('reportImageInput');
+    if (input) input.value = '';
+    renderReportImagePreview();
+}
+
+// Ensure the form reset clears the upload too
+document.addEventListener('hidden.bs.modal', function (e) {
+    if (e.target.id === 'addReportModal') {
+        removeReportImage();
     }
 });
 

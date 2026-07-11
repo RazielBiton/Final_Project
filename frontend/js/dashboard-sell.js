@@ -413,13 +413,16 @@ window.renderGallery = function () {
     currentCar.gallery.forEach((imgBase64, index) => {
         grid.innerHTML += `
             <div class="col-6 col-md-3 mt-3">
-                <div class="position-relative" style="aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div class="position-relative" style="cursor: pointer; aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" onclick="window.showFilePreview('${imgBase64}', 'image')">
                     <img src="${imgBase64}" class="w-100 h-100" style="object-fit: cover;">
                     <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center hover-lift" 
-                        onclick="window.deleteGalleryImage(${index})" 
+                        onclick="event.stopPropagation(); window.deleteGalleryImage(${index})" 
                         style="width:28px; height:28px; padding:0; z-index: 10; border: 2px solid #fff;">
                         <i class="fas fa-times" style="font-size: 0.8rem;"></i>
                     </button>
+                    <div class="position-absolute bottom-0 start-0 w-100 text-center" style="background: rgba(0,0,0,0.5); padding: 4px 0;">
+                        <i class="fas fa-eye text-white" style="font-size: 0.9rem;"></i>
+                    </div>
                 </div>
             </div>
         `;

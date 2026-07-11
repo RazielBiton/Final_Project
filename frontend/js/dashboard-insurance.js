@@ -224,7 +224,6 @@ window.saveInsurance = function () {
     const policyNum = document.getElementById('insPolicyNum').value;
     const cost = document.getElementById('insCost').value;
     const dateInput = document.getElementById('insDate').value;
-    const file = document.getElementById('insDoc').files[0];
 
     if (!dateInput) {
         alert('יש להזין תוקף ביטוח');
@@ -282,7 +281,7 @@ window.saveInsurance = function () {
             currentCar.insurance[type].protection = '';
         }
 
-        if (base64Doc) {
+        if (base64Doc !== null) {
             currentCar.insurance[type].file = base64Doc;
         }
 
@@ -304,15 +303,7 @@ window.saveInsurance = function () {
         document.getElementById('editInsuranceForm').reset();
     };
 
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            finishSave(e.target.result);
-        };
-        reader.readAsDataURL(file);
-    } else {
-        finishSave(null);
-    }
+    finishSave(typeof currentBase64InsuranceDoc !== 'undefined' ? currentBase64InsuranceDoc : null);
 }
 
 window.deleteInsuranceType = function (type) {
@@ -434,7 +425,11 @@ window.viewInsuranceDoc = function (type) {
 
 window.viewCurrentInsuranceDoc = function () {
     const type = document.getElementById('insType').value;
-    window.viewInsuranceDoc(type);
+    if (typeof window.showFilePreview === 'function') {
+        window.showFilePreview(currentCar.insurance[type].file, currentCar.insurance[type].file.startsWith('data:application/pdf') ? 'pdf' : 'image');
+    } else {
+        window.viewInsuranceDoc(type);
+    }
 }
 
 window.removeInsuranceDoc = function () {
@@ -447,3 +442,70 @@ window.removeInsuranceDoc = function () {
         }
     }
 }
+
+// Global variable for dynamic insurance document upload
+let currentBase64InsuranceDoc = null;
+let currentInsuranceDocType = null;
+
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'insDoc') {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        currentInsuranceDocType = file.type;
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            currentBase64InsuranceDoc = event.target.result;
+            renderInsuranceDocPreview();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+window.renderInsuranceDocPreview = function() {
+    const placeholder = document.getElementById('insDocPlaceholder');
+    const previewContainer = document.getElementById('insDocPreviewContainer');
+    const previewArea = document.getElementById('insDocPreviewArea');
+
+    if (!placeholder || !previewContainer || !previewArea) return;
+
+    if (currentBase64InsuranceDoc) {
+        placeholder.classList.add('d-none');
+        previewContainer.classList.remove('d-none');
+
+        const isPdf = currentInsuranceDocType === 'application/pdf';
+        const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : currentBase64InsuranceDoc;
+        const previewType = isPdf ? 'pdf' : 'image';
+
+        previewArea.innerHTML = `
+        <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${currentBase64InsuranceDoc}', '${previewType}')">
+            <img src="${displaySrc}" class="img-fluid rounded shadow-sm bg-white" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff; padding: ${isPdf ? '10px' : '0'}">
+            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); window.removeDynamicInsuranceDoc()" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
+                <i class="fas fa-times" style="font-size: 10px;"></i>
+            </button>
+            <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 text-center" style="background: rgba(0,0,0,0.5); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                <i class="fas fa-eye text-white" style="font-size: 10px; padding: 2px 0;"></i>
+            </div>
+        </div>`;
+    } else {
+        placeholder.classList.remove('d-none');
+        previewContainer.classList.add('d-none');
+        previewArea.innerHTML = '';
+    }
+}
+
+window.removeDynamicInsuranceDoc = function() {
+    currentBase64InsuranceDoc = null;
+    currentInsuranceDocType = null;
+    const input = document.getElementById('insDoc');
+    if (input) input.value = '';
+    renderInsuranceDocPreview();
+}
+
+// Reset dynamic upload on modal close
+document.addEventListener('hidden.bs.modal', function (e) {
+    if (e.target.id === 'editInsuranceModal') {
+        window.removeDynamicInsuranceDoc();
+    }
+});
