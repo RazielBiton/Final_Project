@@ -129,18 +129,9 @@ window.deleteTreatment = function (id) {
 window.viewInvoice = function (tId) {
     const t = currentCar.treatments.find(x => x.id == tId);
     if (t && t.invoice) {
-        document.getElementById('invoicePreviewImg').src = t.invoice;
-        const modalElem = document.getElementById('invoiceModal');
-        const modalInstance = new bootstrap.Modal(modalElem);
-        
-        // Overlay Click: Close if clicking anywhere outside the image
-        modalElem.onclick = function(event) {
-            if (event.target.id !== 'invoicePreviewImg') {
-                modalInstance.hide();
-            }
-        };
-
-        modalInstance.show();
+        if (typeof window.showFilePreview === 'function') {
+            window.showFilePreview(t.invoice, t.invoice.startsWith('data:application/pdf') ? 'pdf' : 'image');
+        }
     }
 }
 
