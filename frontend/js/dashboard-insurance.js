@@ -154,7 +154,7 @@ window.openEditInsurance = function (type) {
     document.getElementById('insCompany').value = insData.company || '';
     document.getElementById('insPolicyNum').value = insData.policyNum || '';
     document.getElementById('insCost').value = insData.cost || '';
-    document.getElementById('insDate').value = window.toInputDate(insData.date);
+    document.getElementById('insDate').value = insData.date ? window.toInputDate(insData.date) : '2026-07-01';
 
     document.getElementById('insDoc').value = '';
 
