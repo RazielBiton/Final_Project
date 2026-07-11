@@ -751,15 +751,15 @@ app.get('/api/accidents/:vehicleId', async (req, res) => {
 });
 app.post('/api/accidents', async (req, res) => {
     try {
-        const { vehicleId, title, date, description, damageDetails, estimatedCost, cost, documentBase64, thirdPartyInvolved, isHandled } = req.body;
+        const { vehicleId, title, date, description, damageDetails, estimatedCost, cost, documentBase64, thirdPartyInvolved, isHandled, location } = req.body;
         const result = await (await poolPromise).request()
             .input('VehicleId', sql.Int, vehicleId).input('Title', sql.NVarChar, title).input('Date', sql.Date, date)
             .input('Description', sql.NVarChar, description).input('DamageDetails', sql.NVarChar, damageDetails)
             .input('EstimatedCost', sql.Decimal(10, 2), estimatedCost).input('Cost', sql.Decimal(10, 2), cost)
             .input('DocumentBase64', sql.NVarChar(sql.MAX), documentBase64).input('ThirdPartyInvolved', sql.Bit, thirdPartyInvolved ? 1 : 0)
-            .input('IsHandled', sql.Bit, isHandled ? 1 : 0)
-            .query(`INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, Cost, DocumentBase64, ThirdPartyInvolved, IsHandled) 
-                    OUTPUT INSERTED.Id VALUES (@VehicleId, @Title, @Date, @Description, @DamageDetails, @EstimatedCost, @Cost, @DocumentBase64, @ThirdPartyInvolved, @IsHandled)`);
+            .input('IsHandled', sql.Bit, isHandled ? 1 : 0).input('Location', sql.NVarChar, location || '')
+            .query(`INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, Cost, DocumentBase64, ThirdPartyInvolved, IsHandled, Location) 
+                    OUTPUT INSERTED.Id VALUES (@VehicleId, @Title, @Date, @Description, @DamageDetails, @EstimatedCost, @Cost, @DocumentBase64, @ThirdPartyInvolved, @IsHandled, @Location)`);
         res.json({ success: true, id: result.recordset[0].Id });
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
@@ -899,6 +899,7 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
                 title: a.Title || '',
                 date: a.Date,
                 description: a.Description || '',
+                location: a.Location || '',
                 damageDetails: a.DamageDetails || '',
                 repairCost: parseFloat(a.EstimatedCost || a.RepairCost || a.Cost) || 0,
                 cost: parseFloat(a.EstimatedCost || a.RepairCost || a.Cost) || 0,
@@ -1097,8 +1098,9 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
                     .input('Cost', sql.Decimal(10, 2), repairCostVal)
                     .input('ThirdParty', sql.Bit, (a.thirdPartyInvolved || (a.involvedVehicles && a.involvedVehicles.length > 0)) ? 1 : 0)
                     .input('Handled', sql.Bit, (a.isHandled || a.status === 'resolved' || a.done === true) ? 1 : 0)
+                    .input('Location', sql.NVarChar, a.location || '')
                     .input('Doc', sql.NVarChar(sql.MAX), (a.images && a.images.length ? JSON.stringify(a.images) : null))
-                    .query('INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, ThirdPartyInvolved, IsHandled, DocumentBase64) VALUES (@Vid, @Title, @Date, @Desc, @DmgDetails, @Cost, @ThirdParty, @Handled, @Doc)');
+                    .query('INSERT INTO Accidents (VehicleId, Title, Date, Description, DamageDetails, EstimatedCost, ThirdPartyInvolved, IsHandled, Location, DocumentBase64) VALUES (@Vid, @Title, @Date, @Desc, @DmgDetails, @Cost, @ThirdParty, @Handled, @Location, @Doc)');
             }
         }
 

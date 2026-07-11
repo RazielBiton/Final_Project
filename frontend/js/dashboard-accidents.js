@@ -260,6 +260,11 @@ window.openAddAccidentModal = function () {
     const accDateInput = document.getElementById('accDate');
     if(accDateInput) accDateInput.max = new Date().toISOString().split('T')[0];
 
+    document.getElementById('accLocation').value = '';
+    if (window.attachAddressAutocomplete) {
+        setTimeout(() => window.attachAddressAutocomplete(document.getElementById('accLocation')), 100);
+    }
+
     // Bind image listener
     attachAccidentImageListener();
 
@@ -492,6 +497,7 @@ window.saveAccident = function () {
     const cost = document.getElementById('accCost').value.trim();
     const dateInput = document.getElementById('accDate').value;
     const desc = document.getElementById('accDescription').value.trim();
+    const locationVal = document.getElementById('accLocation').value.trim();
 
     if (!title || !cost || !dateInput || !desc) {
         alert("נא למלא את כל שדות החובה");
@@ -544,6 +550,7 @@ window.saveAccident = function () {
         cost: cost,
         repairCost: parseFloat(cost) || 0,      // also stored as repairCost for DB sync compatibility
         date: formattedDate,
+        location: locationVal,
         description: desc,
         images: currentBase64AccidentImages,
         involvedVehicles: involvedVehiclesToSave,
@@ -592,6 +599,11 @@ window.editAccident = function (id) {
     document.getElementById('accTitle').value = acc.title;
     document.getElementById('accCost').value = acc.cost;
     document.getElementById('accDescription').value = acc.description;
+    document.getElementById('accLocation').value = acc.location || '';
+
+    if (window.attachAddressAutocomplete) {
+        setTimeout(() => window.attachAddressAutocomplete(document.getElementById('accLocation')), 100);
+    }
 
     const accDateInput = document.getElementById('accDate');
     if(accDateInput) accDateInput.max = new Date().toISOString().split('T')[0];

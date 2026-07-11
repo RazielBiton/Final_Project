@@ -147,6 +147,7 @@ CREATE TABLE [dbo].[Accidents] (
     [RepairCost] DECIMAL(10,2) NULL,
     [DocumentBase64] NVARCHAR(MAX) NULL, -- Legacy
     [DocumentUrl] NVARCHAR(MAX) NULL,
+    [Location] NVARCHAR(255) NULL,
     [ThirdPartyInvolved] BIT NOT NULL DEFAULT 0,
     [IsHandled] BIT NOT NULL DEFAULT 0,
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
