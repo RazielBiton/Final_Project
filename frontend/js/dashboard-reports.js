@@ -269,11 +269,10 @@ window.openAddReportModal = function () {
     const form = document.getElementById('add-report-form');
     if (form) form.reset();
     document.getElementById('reportIdField').value = '';
-    const previewImg = document.getElementById('reportSingleImagePreview');
-    if (previewImg) {
-        previewImg.src = '';
-        previewImg.style.display = 'none';
-    }
+    document.getElementById('reportImageInput').value = "";
+    currentBase64ReportImage = null;
+    currentReportImageType = null;
+    if (typeof renderReportImagePreview === 'function') renderReportImagePreview();
 
     const modalTitle = document.querySelector('#addReportModal .modal-title');
     if (modalTitle) {
@@ -360,16 +359,15 @@ window.editReport = function (id) {
     document.getElementById('report-amount-input').value = report.amount || 0;
     document.getElementById('report-points-input').value = report.points || 0;
 
-    const previewImg = document.getElementById('reportSingleImagePreview');
-    if (previewImg) {
-        if (report.images && report.images.length > 0) {
-            previewImg.src = report.images[0];
-            previewImg.style.display = 'block';
-        } else {
-            previewImg.src = '';
-            previewImg.style.display = 'none';
-        }
+    document.getElementById('reportImageInput').value = "";
+    if (report.images && report.images.length > 0) {
+        currentBase64ReportImage = report.images[0];
+        currentReportImageType = currentBase64ReportImage.startsWith('data:application/pdf') ? 'application/pdf' : 'image/jpeg';
+    } else {
+        currentBase64ReportImage = null;
+        currentReportImageType = null;
     }
+    if (typeof renderReportImagePreview === 'function') renderReportImagePreview();
 
     const modalTitle = document.querySelector('#addReportModal .modal-title');
     if (modalTitle) {
