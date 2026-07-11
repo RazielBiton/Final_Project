@@ -148,6 +148,9 @@ window.openEditTreatmentModal = function (tId) {
 
     // Clear invoice input so previous file label reflects 'unchanged' if no new file is added
     document.getElementById('editTInvoice').value = "";
+    currentBase64TreatmentInvoice = null;
+    currentTreatmentInvoiceType = null;
+    if (typeof renderEditTreatmentInvoicePreview === 'function') renderEditTreatmentInvoicePreview();
 
     new bootstrap.Modal(document.getElementById('editTreatmentModal')).show();
 }
@@ -730,6 +733,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const editTInvoiceInput = document.getElementById('editTInvoice');
+    if (editTInvoiceInput) {
+        editTInvoiceInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentTreatmentInvoiceType = file.type;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (file.type.startsWith('image/') && typeof window.compressImage === 'function') {
+                        window.compressImage(event.target.result, 800, 0.7, function(compressed) {
+                            currentBase64TreatmentInvoice = compressed;
+                            renderEditTreatmentInvoicePreview();
+                        });
+                    } else {
+                        currentBase64TreatmentInvoice = event.target.result;
+                        renderEditTreatmentInvoicePreview();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 
 window.renderTreatmentInvoicePreview = function() {
@@ -764,12 +790,52 @@ window.renderTreatmentInvoicePreview = function() {
     }
 }
 
+window.renderEditTreatmentInvoicePreview = function() {
+    const placeholder = document.getElementById('editTInvoicePlaceholder');
+    const previewContainer = document.getElementById('editTInvoicePreviewContainer');
+    const previewArea = document.getElementById('editTInvoicePreviewArea');
+
+    if (!placeholder || !previewContainer || !previewArea) return;
+
+    if (currentBase64TreatmentInvoice) {
+        placeholder.classList.add('d-none');
+        previewContainer.classList.remove('d-none');
+
+        const isPdf = currentTreatmentInvoiceType === 'application/pdf';
+        const displaySrc = isPdf ? 'https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' : currentBase64TreatmentInvoice;
+        const previewType = isPdf ? 'pdf' : 'image';
+
+        previewArea.innerHTML = `
+        <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="window.showFilePreview('${currentBase64TreatmentInvoice}', '${previewType}')">
+            <img src="${displaySrc}" class="img-fluid rounded shadow-sm bg-white" style="height: 80px; width: 80px; object-fit: cover; border: 2px solid #fff; padding: ${isPdf ? '10px' : '0'}">
+            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 shadow" onclick="event.stopPropagation(); removeEditTreatmentInvoice()" style="width:22px; height:22px; padding:0; line-height:1; transform: translate(30%, -30%); z-index: 2;">
+                <i class="fas fa-times" style="font-size: 10px;"></i>
+            </button>
+            <div class="position-absolute bottom-0 start-50 translate-middle-x w-100 text-center" style="background: rgba(0,0,0,0.5); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                <i class="fas fa-eye text-white" style="font-size: 10px; padding: 2px 0;"></i>
+            </div>
+        </div>`;
+    } else {
+        placeholder.classList.remove('d-none');
+        previewContainer.classList.add('d-none');
+        previewArea.innerHTML = '';
+    }
+}
+
 window.removeTreatmentInvoice = function() {
     currentBase64TreatmentInvoice = null;
     currentTreatmentInvoiceType = null;
     const input = document.getElementById('tInvoice');
     if (input) input.value = '';
     renderTreatmentInvoicePreview();
+}
+
+window.removeEditTreatmentInvoice = function() {
+    currentBase64TreatmentInvoice = null;
+    currentTreatmentInvoiceType = null;
+    const input = document.getElementById('editTInvoice');
+    if (input) input.value = '';
+    if (typeof renderEditTreatmentInvoicePreview === 'function') renderEditTreatmentInvoicePreview();
 }
 
 // Ensure the form reset clears the invoice upload too
