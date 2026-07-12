@@ -1,18 +1,21 @@
 <!DOCTYPE html>
+<!-- 
+  @fileoverview dashboard.html
+  @description לוח המחוונים המרכזי (Dashboard) המנהל את כל פרטי הרכב. טוען אזורים מודולריים שונים כמו טיפולים, ביטוח, דוחות, הוצאות, ותזכורות.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <html lang="he" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyCare - לוחי מחוונונים (Dashboard)</title>
-    <!-- Bootstrap 5 CSS -->
+    <!-- === הגדרות דף וקישורים (Head) === -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Main CSS -->
     <link rel="stylesheet" href="css/dashboard.css">
 
-    <!-- Component Specific CSS -->
     <link rel="stylesheet" href="css/dashboard-overview.css">
     <link rel="stylesheet" href="css/dashboard-treatments.css">
     <link rel="stylesheet" href="css/dashboard-insurance.css">
@@ -24,10 +27,8 @@
     <link rel="stylesheet" href="css/dashboard-expenses.css">
     <link rel="stylesheet" href="css/pdf_generator.css">
 
-    <!-- Global CSS -->
     <link rel="stylesheet" href="css/global_footer.css">
     <link rel="stylesheet" href="css/chatbot.css">
-    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -35,8 +36,7 @@
 <body class="dashboard-body">
 
     <div id="wrapper" style="display: flex; width: 100%;">
-        <!-- הגדרת פלקס ראשית עבור תפריט צד ותוכן -->
-        <!-- Sidebar -->
+        <!-- === סרגל צד (Sidebar) === -->
         <div id="sidebar-wrapper" style="border-right: 1px solid #dee2e6; display: flex; flex-direction: column;">
             <!-- גבול ימני לתפריט -->
             <div class="sidebar-heading text-center primary-text fs-4 fw-bold text-uppercase position-relative"
@@ -111,11 +111,11 @@
             </a>
         </div>
 
-        <!-- Page Content -->
+        <!-- === אזור התוכן הראשי (Page Content) === -->
         <div id="page-content-wrapper" style="flex: 1; min-width: 0;">
 
 
-            <!-- Top Nav -->
+            <!-- === סרגל ניווט עליון (Top Nav) === -->
             <nav class="db-navbar">
                 <div class="db-nav-content">
                     <i class="fas fa-align-right primary-text fs-2 db-me-3" id="menu-toggle"
@@ -123,7 +123,7 @@
                     <h2 class="m-0" id="pageTitle" style="font-size: 1.5rem;">מבט על</h2>
                 </div>
 
-                <!-- Global Search Bar -->
+                <!-- === שורת חיפוש גלובלית (Global Search Bar) === -->
                 <div id="navSearchWrapper"
                     class="db-nav-content flex-grow-1 d-flex justify-content-center px-2 px-md-4">
                     <form class="d-flex position-relative w-100" style="max-width: 400px;"
@@ -143,9 +143,8 @@
                     </form>
                 </div>
 
-                <!-- Wrapper for Left Positioning -->
+                <!-- === עיטוף למיקום שמאלי (Left Positioning Wrapper) === -->
                 <div class="db-nav-content" style="margin-right: auto; display: flex; align-items: center; gap: 15px;">
-                    <!-- דוחף לשמאל -->
                     <div
                         style="display: flex; align-items: center; background: #ffffff; border-radius: 50px; padding: 6px 20px 6px 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; transition: all 0.3s ease;">
                         <div class="text-end me-3" style="line-height: 1.3;">
@@ -170,7 +169,7 @@
                 </div>
             </nav>
 
-            <!-- Mobile Search Bar (appears below navbar on search icon click) -->
+            <!-- === שורת חיפוש במובייל (Mobile Search Bar) === -->
             <div id="mobileSearchBar">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <input type="tel" id="mobileSearchInput" pattern="[0-9]*" autocomplete="off"
@@ -184,7 +183,7 @@
             </div>
 
             <div class="db-container-fluid px-4 py-4" id="dashboardContent">
-                <!-- SECTIONS LOADED MODULARLY VIA JS -->
+                <!-- === אזור טעינה מודולרי (Dynamic Content Area) === -->
                 <div id="loadingIndicator" class="text-center text-muted" style="padding: 3rem;">
                     <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
                     <h5>טוען נתונים...</h5>
@@ -195,10 +194,9 @@
     </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Add Treatment Modal -->
-    <!-- מחלקות של בוטסטראפ עבור המודל - לא לשנות (must translate: Bootstrap classes for the modal - Do not change) -->
-    <!-- הערה: הושארו מחלקות Bootstrap כגון modal, modal-fade, modal-dialog כי הקוד ב-JavaScript משתמש בהן לפתיחת החלון -->
+    <!-- === מודלים וטפסים (Modals) === -->
+    
+    <!-- מודל הוספת טיפול -->
     <div class="modal fade" id="addTreatmentModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg"
@@ -213,7 +211,7 @@
                 </div>
                 <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="addTreatmentForm">
-                        <!-- Section 1: Treatment Details -->
+                        <!-- אזור 1: פרטי הטיפול -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -257,7 +255,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 2: Cost & Mileage -->
+                        <!-- אזור 2: עלות וקילומטראז' -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -284,7 +282,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 3: Invoice Upload -->
+                        <!-- אזור 3: העלאת חשבונית -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -334,7 +332,7 @@
         </div>
     </div>
 
-    <!-- Edit Treatment Modal -->
+    <!-- מודל עריכת טיפול -->
     <div class="modal fade" id="editTreatmentModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg"
@@ -350,7 +348,7 @@
                 <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="editTreatmentForm">
                         <input type="hidden" id="editTId">
-                        <!-- Section 1: Treatment Details -->
+                        <!-- אזור 1: פרטי הטיפול -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -395,7 +393,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 2: Cost & Mileage -->
+                        <!-- אזור 2: עלות וקילומטראז' -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -422,7 +420,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 3: Invoice Upload -->
+                        <!-- אזור 3: העלאת חשבונית -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -472,7 +470,7 @@
         </div>
     </div>
 
-    <!-- Map Picker Modal -->
+    <!-- מודל בחירת מיקום ממפה -->
     <div class="modal fade" id="mapPickerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -483,9 +481,9 @@
                         data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-0" style="position: relative;">
-                    <!-- Map Canvas -->
+                    <!-- אזור שרטוט מפה (Canvas) -->
                     <div id="mapPickerCanvas" style="width: 100%; height: 400px; background: #e2e8f0;"></div>
-                    <!-- Selected Address Overlay -->
+                    <!-- שכבת תצוגת הכתובת הנבחרת -->
                     <div
                         style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(255,255,255,0.95); padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-map-pin text-danger fa-lg"></i>
@@ -509,9 +507,7 @@
         </div>
     </div>
 
-    <!-- QR Modal -->
-    <!-- הערה: מחלקות בוטסטראפ נשמרו לפונקציונליות -->
-    <!-- Premium QR Modal -->
+    <!-- מודל קוד סריקה (QR Modal) -->
     <div class="modal fade" id="qrModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered text-center">
             <div class="modal-content border-0"
@@ -537,7 +533,7 @@
         </div>
     </div>
 
-    <!-- File Preview Modal (Global) -->
+    <!-- מודל תצוגה מקדימה לקבצים (גלובלי) -->
     <div class="modal fade" id="filePreviewModal" tabindex="-1"
         onclick="if(event.target === this) bootstrap.Modal.getInstance(this).hide();">
         <div class="modal-dialog modal-dialog-centered text-center"
@@ -551,10 +547,10 @@
                             style="top: -15px; left: -15px; z-index: 9999; background-color: rgba(0,0,0,0.7); color: white; border: 2px solid rgba(255,255,255,0.9); border-radius: 50%; width: 36px; height: 36px; opacity: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding: 0;">
                             <i class="fas fa-times" style="font-size: 1.1rem;"></i>
                         </button>
-                        <!-- For Images -->
+                        <!-- עבור תמונות -->
                         <img id="filePreviewImg" class="d-none" src=""
                             style="max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                        <!-- For PDFs -->
+                        <!-- עבור קבצי PDF -->
                         <iframe id="filePreviewIframe" class="d-none" src=""
                             style="width: 90vw; max-width: 800px; height: 90vh; border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: white;"></iframe>
                     </div>
@@ -563,7 +559,7 @@
         </div>
     </div>
 
-    <!-- Edit Vehicle Modal (Premium SaaS Style) -->
+    <!-- מודל עריכת פרטי רכב -->
     <div class="modal fade" id="editVehicleModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0"
@@ -709,7 +705,7 @@
         </div>
     </div>
 
-    <!-- Add Alert Modal (Premium iOS Style) -->
+    <!-- מודל הוספת התראה -->
     <div class="modal fade" id="addAlertModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg"
@@ -724,7 +720,7 @@
                 </div>
                 <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-alert-form" onsubmit="event.preventDefault(); saveAlert();">
-                        <!-- Section 1: Task Details -->
+                        <!-- אזור 1: פרטי המשימה -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -750,7 +746,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 2: Priority & Frequency -->
+                        <!-- אזור 2: עדיפות ותדירות -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -798,7 +794,7 @@
         </div>
     </div>
 
-    <!-- Edit Alert Modal (Premium iOS Style) -->
+    <!-- מודל עריכת התראה -->
     <div class="modal fade" id="editAlertModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0"
@@ -861,7 +857,7 @@
         </div>
     </div>
 
-    <!-- Add Expense Modal -->
+    <!-- מודל הוספת הוצאה -->
     <div class="modal fade" id="addExpenseModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg"
@@ -876,7 +872,7 @@
                 </div>
                 <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-expense-form" onsubmit="event.preventDefault(); saveCustomExpense();">
-                        <!-- Section 1: Expense Type -->
+                        <!-- אזור 1: סוג ההוצאה -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -908,7 +904,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 2: Amount & Date -->
+                        <!-- אזור 2: סכום ותאריך -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -934,7 +930,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 3: Notes -->
+                        <!-- אזור 3: הערות -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -963,7 +959,7 @@
         </div>
     </div>
 
-    <!-- Add Fuel Modal -->
+    <!-- מודל הוספת תדלוק/טעינה -->
     <div class="modal fade" id="addFuelModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg"
@@ -979,7 +975,7 @@
                 <div class="modal-body p-3 p-md-4" style="background: #f8fafc; flex: 1 1 auto; overflow-y: auto;">
                     <form id="add-fuel-form" onsubmit="event.preventDefault(); saveFuel();">
 
-                        <!-- Section 1: Energy Type -->
+                        <!-- אזור 1: סוג דלק/אנרגיה -->
                         <div class="d-none" id="energyTypeSelector"
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -1012,10 +1008,10 @@
                             </div>
                         </div>
 
-                        <!-- Hidden field for Edit Mode -->
+                        <!-- שדה נסתר עבור מצב עריכה -->
                         <input type="hidden" id="editFuelId">
 
-                        <!-- Section 2: Date & Amounts -->
+                        <!-- אזור 2: תאריך וכמויות -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; margin-bottom: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                             <h6
@@ -1048,7 +1044,7 @@
                             </div>
                         </div>
 
-                        <!-- Section 3: Total Cost -->
+                        <!-- אזור 3: עלות כוללת -->
                         <div
                             style="background: white; border-radius: 16px; padding: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-right: 4px solid #4777eb;">
                             <h6
@@ -1078,11 +1074,11 @@
         </div>
     </div>
 
-    <!-- Global Footer -->
+    <!-- === כותרת תחתונה גלובלית (Footer) === -->
     <footer class="global-footer dashboard-footer-mini"></footer>
 
 
-    <!-- Scripts -->
+    <!-- === סקריפטים (Scripts) === -->
     <script src="js/global_footer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1115,7 +1111,7 @@
         }
     </script>
 
-    <!-- Premium Chatbot Widget (Apple Inspired) -->
+    <!-- === יישומון צ'אטבוט חכם (Chatbot Widget) === -->
     <button class="chat-widget-btn" id="chatWidgetBtn" title="דבר עם המוסכניק החכם (AI)">
         <div
             style="position:relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
@@ -1151,7 +1147,7 @@
             <span class="typing-dot"></span>
         </div>
 
-        <!-- Smart Quick Actions -->
+        <!-- === פעולות מהירות חכמות (Quick Actions) === -->
         <div class="quick-actions-wrapper">
             <button class="scroll-btn scroll-right" onclick="scrollQuickActions(1)"><i
                     class="fas fa-chevron-right"></i></button>
@@ -1183,7 +1179,7 @@
     <script src="js/chatbot.js"></script>
     <script src="js/global-autosave.js"></script>
 
-    <!-- Mobile: reset search bar state on every page load/restore -->
+    <!-- פונקציונליות מובייל: איפוס שורת החיפוש בכל טעינת עמוד -->
     <script>
         if (window.innerWidth <= 768) {
             function _resetMobileSearch() {

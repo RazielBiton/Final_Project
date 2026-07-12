@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+  @fileoverview results.html
+  @description עמוד תוצאות מפורט עבור רכב בודד הנמשך ממאגרי המידע הממשלתיים. מציג נתונים טכניים, תאריכי תוקף ואפשרות הוספה לצי הרכבים האישי.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <html lang="he" dir="rtl">
 
 <head>
@@ -15,17 +21,17 @@
 </head>
 
 <body class="homepage is-loading">
-    <!-- Loading Overlay -->
+    <!-- === שכבת טעינה (Loading Overlay) === -->
     <div id="loading" class="loading-overlay">
         <div class="loading-spinner"></div>
         <span>מתחבר למאגר הממשלתי...</span>
     </div>
 
-    <!-- Animated Mesh Background -->
+    <!-- === רקע מעוצב (Mesh Background) === -->
     <div class="mesh-bg"></div>
 
     <div class="layout-container">
-        <!-- Sidebar Navigation (Main Fleet Level) -->
+        <!-- === סרגל צד (תפריט ניווט ראשי צי רכבים) === -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
@@ -47,7 +53,7 @@
                 </div>
             </nav>
             
-            <!-- User Profile Section at Bottom -->
+            <!-- אזור פרופיל משתמש בתחתית הסרגל -->
             <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
                 <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                 <div class="text-end me-3">
@@ -59,20 +65,20 @@
 
         <main class="main-content">
             
-            <!-- Mobile Top Nav (Visible only on mobile) -->
+            <!-- === ניווט עליון במובייל (Mobile Top Nav) === -->
             <div class="mobile-top-nav d-md-none">
                 <a href="after_login.html" class="btn-back-mobile">
                     <i class="fas fa-arrow-right"></i> חזרה לצי הרכבים
                 </a>
             </div>
 
-            <!-- Results Hero -->
+            <!-- === כותרת תוצאות ראשית (Hero) === -->
             <div class="results-hero">
                 <h1><i class="fas fa-car" style="color: var(--primary-blue); margin-left: 12px;"></i> פרטי הרכב</h1>
                 <div class="plate-badge" id="plateBadge">---</div>
             </div>
 
-            <!-- Vehicle Detail Cards -->
+            <!-- === כרטיסיות פרטי הרכב (Grid) === -->
             <div class="detail-grid" id="detailGrid">
                 <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-hashtag"></i></div><div class="detail-card-text"><label>מספר רישוי</label><span id="res_plate">—</span></div></div>
                 <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-industry"></i></div><div class="detail-card-text"><label>יצרן</label><span id="res_make">—</span></div></div>
@@ -86,7 +92,7 @@
                 <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-circle-notch"></i></div><div class="detail-card-text"><label>צמיג קדמי</label><span id="res_tire_f">—</span></div></div>
                 <div class="detail-card"><div class="detail-card-icon"><i class="fas fa-circle-notch"></i></div><div class="detail-card-text"><label>צמיג אחורי</label><span id="res_tire_r">—</span></div></div>
                 
-                <!-- Editable fields (Redesigned) -->
+                <!-- שדות הניתנים לעריכה על ידי המשתמש (קילומטראז', נפח, כ"ס) -->
                 <div class="detail-card editable-card">
                     <div class="detail-card-icon bg-light text-primary"><i class="fas fa-tachometer-alt"></i></div>
                     <div class="detail-card-text w-100">
@@ -119,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- Disabled Tag Notice -->
+            <!-- === התראת תג נכה (Disabled Tag Notice) === -->
             <div id="disabledTagBox" class="notice-card warning" style="display:none;">
                 <div class="notice-icon"><i class="fas fa-wheelchair"></i></div>
                 <div class="notice-text">
@@ -128,7 +134,7 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- === אזור כפתורי פעולה (Action Area) === -->
             <div class="action-area">
                 <button class="btn-add-car" id="addBtn">
                     <i class="fas fa-plus-circle"></i> הוסף לרשימת הרכבים שלי
@@ -151,12 +157,21 @@
     <script src="js/brand-map.js"></script>
     
     <script>
-    // ── Remove is-loading class ──────────────────────────────
+    /**
+     * מסיר את קלאס הטעינה לאחר שהעמוד נטען במלואו.
+     * 
+     * @returns {void}
+     */
     document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove('is-loading');
     });
 
-    // ── Sidebar User ──────────────────────────────────────
+    /**
+     * טוען נתוני משתמש לסרגל הצד (Sidebar).
+     * במידה ויש משתמש מחובר ב-SessionStorage - יציג את שמו ותמונתו.
+     * 
+     * @returns {void}
+     */
     (function() {
         const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
         const nameEl = document.getElementById('sidebarUserName');
@@ -167,7 +182,12 @@
         }
     })();
 
-    // ── Date Helpers ──────────────────────────────────────
+    /**
+     * מחזיר תאריך בפורמט DD/MM/YYYY.
+     * 
+     * @param {string} dateStr - מחרוזת תאריך מהשרת
+     * @returns {string} תאריך מעוצב
+     */
     function formatDateOnly(dateStr) {
         if (!dateStr) return "אין נתונים";
         const d = new Date(dateStr);
@@ -175,6 +195,13 @@
         return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     }
 
+    /**
+     * פורמט תאריך טסט הבא.
+     * מוסיף שנה לתאריך שנמשך כדי להציג את מועד מבחן הרישוי הבא.
+     * 
+     * @param {string} dateStr - מחרוזת תאריך מקורית מהשרת
+     * @returns {string} תאריך טסט מעוצב ומוגדל בשנה
+     */
     function formatNextTestDate(dateStr) {
         if (!dateStr) return "אין נתונים";
         const d = new Date(dateStr);
@@ -183,7 +210,12 @@
         return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     }
 
-    // ── Fetch Vehicle Data ────────────────────────────────
+    /**
+     * מאזין לאירוע טעינת הדף, מושך את מספר הרישוי מה-URL ומבצע בקשות ל-API הממשלתי (data.gov.il).
+     * מפענח את התשובה ומאכלס את השדות בדף התוצאות, כולל בדיקת זכאות לתו נכה.
+     * 
+     * @returns {Promise<void>}
+     */
     document.addEventListener('DOMContentLoaded', async () => {
         const plate = new URLSearchParams(window.location.search).get('plate');
         if (!plate) { alert("לא הוזן מספר רכב"); window.location.href = 'search.html'; return; }
@@ -243,7 +275,12 @@
         }
     });
 
-    // ── Add Vehicle ───────────────────────────────────────
+    /**
+     * פונקציית הוספת הרכב הנבחר לצי הרכבים האישי של המשתמש.
+     * בונה אובייקט רכב מתוך הנתונים שמוצגים בדף ושולחת אותו ל-API השמירה שלנו.
+     * 
+     * @returns {Promise<void>}
+     */
     document.getElementById('addBtn').onclick = async function() {
         const btn = this;
         btn.textContent = "מעבד...";

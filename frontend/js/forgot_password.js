@@ -1,3 +1,16 @@
+/**
+ * @fileoverview forgot_password.js
+ * @description מנהל את תהליך איפוס הסיסמה של המשתמש. מטפל בשלבי התצוגה השונים, שליחת קוד אימות חד-פעמי (OTP) למייל ואימותו מול השרת לצורך עדכון סיסמה חדשה.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * מאזין לאירוע טעינת הדף (DOMContentLoaded).
+ * מפעיל את רכיבי ממשק המשתמש ואת מאזיני האירועים הנדרשים לתהליך איפוס הסיסמה, הכוללים מעבר בין שלבים ותקשורת מול ה-API.
+ * 
+ * @returns {void}
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
@@ -14,7 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinner1 = document.getElementById('spinner1');
     const spinner2 = document.getElementById('spinner2');
 
-    // 1. Send OTP
+    /**
+     * מאזין לאירוע לחיצה על כפתור "שלח קוד".
+     * אוסף את כתובת האימייל שהוזנה, מתקף אותה, ושולח בקשה לשרת להפקת ושליחת קוד אימות (OTP).
+     * מנהל את מצב תצוגת ההמתנה (Spinner) ומעביר לשלב הבא במקרה של הצלחה.
+     * 
+     * @param {Event} [e] - אובייקט אירוע הלחיצה (מועבר אוטומטית למרות שלא נעשה בו שימוש ישיר)
+     * @returns {Promise<void>}
+     * @throws {Error} - נזרקת במקרה של שגיאת תקשורת מול השרת או החזרת סטטוס שגיאה מפורש
+     */
     sendOtpBtn.addEventListener('click', async () => {
         const email = fpEmail.value.trim();
         if (!email) {
@@ -22,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Show spinner, disable button
         sendOtpBtn.disabled = true;
         spinner1.style.display = 'inline-block';
 
@@ -41,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
-                // Move to step 2
                 step1.classList.remove('active');
                 step2.classList.add('active');
             } else {
@@ -56,7 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Verify OTP & Reset Password
+    /**
+     * מאזין לאירוע לחיצה על כפתור "אמת קוד ועדכן סיסמה".
+     * מבצע אימות מקומי של הנתונים (קיום הערכים, תאימות סיסמאות ואורך מינימלי).
+     * לאחר מכן שולח את קוד ה-OTP והסיסמה החדשה לשרת לשם אימות ועדכון, מנהל את תצוגת הטעינה ומעביר למסך ההצלחה בסיום מוצלח.
+     * 
+     * @param {Event} [e] - אובייקט אירוע הלחיצה (מועבר אוטומטית למרות שלא נעשה בו שימוש ישיר)
+     * @returns {Promise<void>}
+     * @throws {Error} - נזרקת במקרה של כשל תקשורת מול השרת או החזרת סטטוס חריג
+     */
     verifyOtpBtn.addEventListener('click', async () => {
         const email = fpEmail.value.trim();
         const otp = fpOtp.value.trim();
@@ -78,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Show spinner, disable button
         verifyOtpBtn.disabled = true;
         spinner2.style.display = 'inline-block';
 
@@ -109,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
-                // Move to step 3 (Success)
                 step2.classList.remove('active');
                 step3.classList.add('active');
             } else {

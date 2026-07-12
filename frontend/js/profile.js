@@ -1,16 +1,23 @@
 /**
- * ── PROFILE PAGE CONTROLLER ──
- * Avatar, personal details, password (Supabase OTP), reminders with recurrence.
+ * @fileoverview profile.js
+ * @description מנהל את עמוד פרופיל המשתמש, כולל עדכון פרטים אישיים, החלפת תמונת פרופיל (Avatar), שינוי סיסמה וניהול תזכורות אישיות עם תמיכה בחזרתיות.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
  */
 
-/* ── INIT ─────────────────────────────────────────────────────────── */
+/**
+ * מאזין לאירוע טעינת הדף (DOMContentLoaded).
+ * מאתחל את כל רכיבי הדף: נתוני המשתמש בסרגל הצד, נתוני הפרופיל בטופס, ברכת השלום, ותזכורות מותאמות אישית.
+ * בנוסף, מגדיר מאזיני אירועים לשינוי תמונת פרופיל, שמירת פרטים ושינוי סוג תזכורת.
+ * 
+ * @returns {void}
+ */
 document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();
     loadProfileData();
     initHeroGreeting();
     loadCustomReminders();
 
-    // Avatar upload
     document.getElementById('avatarFile').addEventListener('change', function () {
         const file = this.files[0];
         if (!file) return;
@@ -18,13 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = async e => {
             const rawBase64 = e.target.result;
             
-            // Compress avatar before saving
             window.compressImage(rawBase64, 400, 0.6, async (base64) => {
                 document.getElementById('profileAvatar').src = base64;
                 const sb = document.getElementById('sidebarUserImg');
                 if (sb) sb.src = base64;
 
-                // Auto-save to DB immediately
                 try {
                     const fullName = val('fullName');
                     const email = val('email');
@@ -38,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.success) {
                         toast('תמונת הפרופיל עודכנה ונשמרה!');
-                        // Update local cache
                         let u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
                         u.avatar = base64;
                         sessionStorage.setItem('loggedInUser', JSON.stringify(u));
@@ -51,17 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
     });
 
-    // Details form
     document.getElementById('detailsForm').addEventListener('submit', saveDetails);
 
-    // Custom recurrence toggle
     document.getElementById('reminderRecurrence').addEventListener('change', function () {
         document.getElementById('customIntervalRow').style.display =
             this.value === 'custom' ? 'flex' : 'none';
     });
 });
 
-/* ── HERO GREETING ────────────────────────────────────────────────── */
+/**
+ * מאתחל ומציג ברכת שלום מותאמת אישית למשתמש בחלק העליון של הדף.
+ * הברכה משתנה בהתאם לשעה ביום (בוקר, צהריים, ערב, לילה) וכוללת את השם הפרטי של המשתמש.
+ * 
+ * @returns {void}
+ */
 function initHeroGreeting() {
     const el = document.getElementById('heroGreeting');
     if (!el) return;
@@ -78,7 +85,12 @@ function initHeroGreeting() {
     el.textContent = `${g}, ${name}!`;
 }
 
-/* ── SIDEBAR SYNC ─────────────────────────────────────────────────── */
+/**
+ * טוען את פרטי המשתמש המחובר (שם ותמונת פרופיל) מהאחסון המקומי ומעדכן את תצוגת סרגל הצד (Sidebar).
+ * אם אין תמונה זמינה, נוצרת תמונת ברירת מחדל עם האות הראשונה של השם.
+ * 
+ * @returns {void}
+ */
 function loadUserProfile() {
     const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const nameEl = document.getElementById('sidebarUserName');
@@ -89,13 +101,18 @@ function loadUserProfile() {
     }
 }
 
-/* ── LOAD DATA ────────────────────────────────────────────────────── */
+/**
+ * שולף את נתוני הפרופיל המלאים של המשתמש מהאחסון המקומי ומהשרת (API) ומאכלס אותם בטופס הפרטים האישיים.
+ * מעדכן את שדות הטקסט ואת תמונת הפרופיל המרכזית.
+ * 
+ * @returns {Promise<void>}
+ */
 async function loadProfileData() {
     const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     setField('fullName', user.fullName);
     setField('email', user.email);
     setField('phone', user.phone);
-    setField('pwEmail', user.email);  // pre-fill password email field
+    setField('pwEmail', user.email);  
     setDisplay('profileDisplayName', user.fullName || 'משתמש');
 
     if (user.avatar) {
@@ -126,7 +143,14 @@ async function loadProfileData() {
     } catch (e) { console.warn('Sync error', e); }
 }
 
-/* ── SAVE PERSONAL DETAILS ────────────────────────────────────────── */
+/**
+ * שומר את פרטי המשתמש המעודכנים שהוזנו בטופס (שם, אימייל, טלפון ותמונה).
+ * שולח את הנתונים לשרת (API), ולאחר מכן מעדכן את האחסון המקומי (sessionStorage) ומרענן את התצוגה בהתאם.
+ * 
+ * @param {Event} e - אובייקט האירוע של הגשת הטופס (submit)
+ * @returns {Promise<void>}
+ * @throws {Error} - נזרקת במקרה של שגיאת רשת מול השרת
+ */
 async function saveDetails(e) {
     e.preventDefault();
     const fullName = val('fullName');
@@ -144,18 +168,17 @@ async function saveDetails(e) {
         const data = await res.json();
         if (data.success) {
             toast('הפרטים נשמרו בהצלחה!');
-            // Update local cache
             let u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
             u.fullName = fullName;
             u.email = email;
             u.phone = phone;
-            u.avatar = avatarToSave; // Keep it lowercase 'avatar' for legacy frontend compatibility
+            u.avatar = avatarToSave; 
             sessionStorage.setItem('loggedInUser', JSON.stringify(u));
             
             setDisplay('profileDisplayName', fullName);
             setField('pwEmail', email);
-            loadUserProfile(); // Refresh sidebar
-            loadProfileData(); // Refresh form and avatar
+            loadUserProfile(); 
+            loadProfileData(); 
         } else {
             toast('שגיאה: ' + (data.error || ''), true);
         }
@@ -165,12 +188,12 @@ async function saveDetails(e) {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   PASSWORD CHANGE 
-   ═══════════════════════════════════════════════════════════════════ */
-
 /**
- * Direct Password Update
+ * מאמת את הסיסמה הנוכחית מול השרת ומעדכן לסיסמה חדשה במידה וכל הבדיקות המקומיות (תקינות קלט ותאימות סיסמאות) תקינות.
+ * מנהל את תצוגת ההמתנה (Spinner) ומציג הודעות חיווי בהתאם לתוצאות הפעולה מה-API.
+ * 
+ * @returns {Promise<void>}
+ * @throws {Error} - נזרקת במקרה של תקלת תקשורת מול השרת
  */
 async function updatePasswordDirectly() {
     const currentPwd = val('currentPassword');
@@ -213,7 +236,6 @@ async function updatePasswordDirectly() {
         if (data.success) {
             toast('הסיסמה עודכנה בהצלחה! ✓');
             
-            // Transition to success step
             document.getElementById('pwDirectArea').style.display = 'none';
             document.getElementById('pwStep3').style.display = 'block';
         } else {
@@ -229,14 +251,21 @@ async function updatePasswordDirectly() {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   CUSTOM REMINDERS — with recurrence support
-   ═══════════════════════════════════════════════════════════════════ */
-
+/**
+ * שולף את רשימת התזכורות המותאמות אישית מתוך האחסון המקומי (localStorage).
+ * 
+ * @returns {Array<Object>} - מערך של אובייקטי התזכורות, או מערך ריק במידה ואין כאלו
+ */
 function getReminders() {
     return JSON.parse(localStorage.getItem('customReminders') || '[]');
 }
 
+/**
+ * שומר את רשימת התזכורות המותאמות אישית חזרה לאחסון המקומי (localStorage).
+ * 
+ * @param {Array<Object>} arr - מערך אובייקטי התזכורות שיש לשמור
+ * @returns {void}
+ */
 function saveReminders(arr) {
     localStorage.setItem('customReminders', JSON.stringify(arr));
 }
@@ -250,6 +279,13 @@ const recurrenceLabels = {
     custom: 'מותאם אישית'
 };
 
+/**
+ * מפרמט אובייקט חזרתיות (Recurrence) של תזכורת למחרוזת קריאה בעברית.
+ * מתרגם מרווחי זמן מותאמים אישית או הגדרות מובנות מראש לטקסט מובן למשתמש.
+ * 
+ * @param {Object} r - אובייקט הגדרות החזרתיות של התזכורת
+ * @returns {string} - מחרוזת טקסט המייצגת את תדירות התזכורת
+ */
 function formatRecurrence(r) {
     if (!r || r.type === 'once') return 'חד פעמי';
     if (r.type === 'custom') {
@@ -259,6 +295,12 @@ function formatRecurrence(r) {
     return recurrenceLabels[r.type] || r.type;
 }
 
+/**
+ * טוען את כל התזכורות השמורות מהאחסון המקומי ומרנדר (בונה) אותן בממשק ה-HTML.
+ * במקרה שאין תזכורות, מציג הודעת מצב ריק.
+ * 
+ * @returns {void}
+ */
 function loadCustomReminders() {
     const list = document.getElementById('reminderList');
     const reminders = getReminders();
@@ -288,6 +330,13 @@ function loadCustomReminders() {
     });
 }
 
+/**
+ * אוספת את המידע מטופס הוספת תזכורת חדשה (תיאור, תאריך ותדירות חזרתיות), 
+ * מאמתת את הקלט, יוצרת אובייקט תזכורת חדש ושומרת אותו באחסון המקומי.
+ * מנקה את הטופס ומעדכנת את תצוגת התזכורות בסיום בהצלחה.
+ * 
+ * @returns {void}
+ */
 function addCustomReminder() {
     const text = val('reminderText');
     const date = val('reminderDate');
@@ -320,6 +369,13 @@ function addCustomReminder() {
     document.getElementById('customIntervalRow').style.display = 'none';
 }
 
+/**
+ * מוחקת תזכורת ספציפית ממערך התזכורות שבאחסון המקומי לפי האינדקס שלה.
+ * שומרת את הרשימה המעודכנת, ומרעננת את התצוגה המקומית.
+ * 
+ * @param {number} index - המיקום (אינדקס) של התזכורת במערך
+ * @returns {void}
+ */
 function deleteReminder(index) {
     const reminders = getReminders();
     reminders.splice(index, 1);
@@ -328,7 +384,14 @@ function deleteReminder(index) {
     toast('התזכורת נמחקה.');
 }
 
-/* ── PASSWORD VISIBILITY ──────────────────────────────────────────── */
+/**
+ * מחליפה בין תצוגת טקסט גלוי לבין תצוגת סיסמה מוסתרת בשדה קלט,
+ * ומעדכנת בהתאמה את סמל (אייקון) כפתור התצוגה (עין פקוחה/סגורה).
+ * 
+ * @param {string} id - מזהה (ID) של שדה הקלט של הסיסמה
+ * @param {HTMLElement} btn - כפתור הלחיצה שבאמצעותו הופעלה הפונקציה
+ * @returns {void}
+ */
 function togglePwd(id, btn) {
     const inp = document.getElementById(id);
     const icon = btn.querySelector('i');
@@ -341,7 +404,14 @@ function togglePwd(id, btn) {
     }
 }
 
-/* ── TOAST ─────────────────────────────────────────────────────────── */
+/**
+ * מציגה הודעה קופצת (Toast Notification) במסך לתקופה קצרה למטרות חיווי למשתמש.
+ * ההודעה מעוצבת באופן אוטומטי כהצלחה או כשגיאה בהתאם לפרמטר המועבר.
+ * 
+ * @param {string} msg - הטקסט שיוצג בהודעה הקופצת
+ * @param {boolean} [isErr=false] - האם ההודעה מסמלת שגיאה (אדום) או הצלחה (ירוק)
+ * @returns {void}
+ */
 function toast(msg, isErr = false) {
     document.querySelectorAll('.pf-toast').forEach(t => t.remove());
     const el = document.createElement('div');
@@ -355,14 +425,48 @@ function toast(msg, isErr = false) {
     }, 3500);
 }
 
-/* ── HELPERS ───────────────────────────────────────────────────────── */
+/**
+ * שולפת את מזהה המשתמש (ID) השמור באחסון המקומי (sessionStorage) של הפעלת המשתמש הנוכחית.
+ * 
+ * @returns {string|null} - מזהה המשתמש, או null אם אינו קיים
+ */
 function getUserId() {
     const u = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     return u.id || null;
 }
+
+/**
+ * שולפת במעטפת בטוחה את הערך מתוך שדה קלט לפי מזהה (ID), כולל הסרת רווחים לבנים (trim).
+ * 
+ * @param {string} id - מזהה (ID) של שדה הקלט (Input)
+ * @returns {string} - ערך המחרוזת הנקי או מחרוזת ריקה אם לא נמצא
+ */
 function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
+
+/**
+ * מגדירה את הערך (value) של שדה קלט בממשק אם הוא קיים בדף.
+ * 
+ * @param {string} id - מזהה (ID) של שדה הקלט
+ * @param {string} v - הערך שיש להזין לתוך השדה
+ * @returns {void}
+ */
 function setField(id, v) { const el = document.getElementById(id); if (el && v) el.value = v; }
+
+/**
+ * מגדירה את תוכן הטקסט הפנימי (textContent) של אלמנט תצוגה HTML אם הוא קיים בדף.
+ * 
+ * @param {string} id - מזהה (ID) של אלמנט ה-HTML
+ * @param {string} v - הטקסט שיוכנס לאלמנט
+ * @returns {void}
+ */
 function setDisplay(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
+/**
+ * בורחת (Escapes) מחרוזת נתונים כדי למנוע הזרקת קוד זדוני (XSS) לפני שהיא מוצגת בממשק.
+ * 
+ * @param {string} str - המחרוזת המקורית שיש לנקות
+ * @returns {string} - המחרוזת הנקייה ובטוחה להצגה
+ */
 function escapeHtml(str) {
     const d = document.createElement('div');
     d.textContent = str;

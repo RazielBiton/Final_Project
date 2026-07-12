@@ -1,12 +1,22 @@
-// ============================================
-// GLOBAL FORM AUTOSAVE DRAFT FEATURE (EASYCARE)
-// Saves input field state automatically per page
-// ============================================
+/**
+ * @fileoverview global-autosave.js
+ * @description רכיב גלובלי האחראי לשמירה אוטומטית של נתונים (טיוטה) בשדות קלט בטפסים ברחבי האפליקציה (EasyCare). המנגנון מונע אובדן נתונים במקרה של רענון או עזיבת הדף, ומנקה את הטיוטות לאחר שמירה או שליחת טופס מוצלחת.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * מאזין לאירוע טעינת הדף (DOMContentLoaded).
+ * מפעיל השהיה (setTimeout) של 1.5 שניות כדי לאפשר לתוכן הדינמי (SPA) להיטען במלואו.
+ * לאחר מכן מאתחל את כל מנגנוני הטיוטה: שחזור נתונים קיימים, האזנה להקלדות לשמירת טיוטה, 
+ * והאזנה לשליחת טפסים ולחיצות כפתור לשם ניקוי הטיוטות.
+ * 
+ * @returns {void}
+ */
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const ignoreTypes = ['password', 'file', 'submit', 'button', 'hidden'];
         
-        // Restore drafted values across all pages
         document.querySelectorAll('input, select, textarea').forEach(field => {
             if (!field.id || ignoreTypes.includes(field.type)) return;
             const context = window.location.search + window.location.hash;
@@ -16,12 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (field.type === 'checkbox' || field.type === 'radio') field.checked = (draftedValue === 'true');
                 else field.value = draftedValue;
                 
-                // Dispatch event to trigger visual changes (like switches revealing blocks)
                 field.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
 
-        // Listen dynamically for typing/clicking and save
+        /**
+         * מאזין באופן דינמי לאירועי קלט (input) בכל שדות הטופס ברחבי הדף.
+         * בעת הזנת תוכן על ידי המשתמש, שומר את הערך הנוכחי באחסון המקומי (localStorage) 
+         * תחת מפתח ייחודי המבוסס על נתיב הדף ומזהה השדה.
+         * 
+         * @param {Event} e - אובייקט אירוע הקלט (input event)
+         * @returns {void}
+         */
         document.body.addEventListener('input', (e) => {
             const field = e.target;
             if (!field.id || ignoreTypes.includes(field.type)) return;
@@ -31,7 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem(draftKey, val);
         });
 
-        // Clear drafts natively when a form is successfully submitted/saved
+        /**
+         * מאזין לאירוע שליחת טופס (submit).
+         * בעת שליחה מוצלחת, עובר על כל שדות הטופס ומנקה את טיוטות האחסון המקומי שלהם,
+         * על מנת שהמשתמש לא יקבל מידע ישן בכניסה הבאה לטופס.
+         * 
+         * @param {Event} e - אובייקט אירוע שליחת הטופס (submit event)
+         * @returns {void}
+         */
         document.body.addEventListener('submit', (e) => {
             const formInputs = e.target.querySelectorAll('input, select, textarea');
             formInputs.forEach(field => {
@@ -42,7 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Clear drafts on dynamic save buttons
+        /**
+         * מאזין לאירועי לחיצה (click) על כפתורי שמירה דינמיים ברחבי האתר (למשל במודלים).
+         * במידה ונלחץ כפתור המיועד לשמירה, מאתר את הטופס או המודל הרלוונטי
+         * ומנקה את הטיוטות באחסון המקומי של כלל שדותיו.
+         * 
+         * @param {Event} e - אובייקט אירוע הלחיצה (click event)
+         * @returns {void}
+         */
         document.body.addEventListener('click', (e) => {
             if (e.target.closest('.db-btn-primary') || e.target.closest('[onclick*="save"]')) {
                 const modalOrForm = e.target.closest('.modal') || e.target.closest('form');
@@ -56,5 +86,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-    }, 1500); // 1.5s delay to allow dynamic SPA content to load
+    }, 1500); 
 });

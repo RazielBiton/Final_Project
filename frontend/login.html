@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- 
+  @fileoverview login.html
+  @description עמוד התחברות והרשמה. משתמש בעיצוב של פאנל כפול (Overlay) כדי להחליף בין טופס התחברות לטופס הרשמה באותו העמוד.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
+<html lang="he" dir="rtl">
 
 <head>
 	<meta charset="UTF-8">
@@ -11,7 +17,9 @@
 
 <body class="homepage is-loading">
 
+    <!-- === מעטפת דף ההתחברות וההרשמה (Main Container) === -->
 	<div class="container" id="container">
+        <!-- === אזור הרשמה (Sign Up Container) === -->
 		<div class="form-container sign-up-container">
 			<form action="#">
 				<h1>צור משתמש</h1>
@@ -29,6 +37,8 @@
 				<button>הרשם</button>
 			</form>
 		</div>
+
+        <!-- === אזור התחברות (Sign In Container) === -->
 		<div class="form-container sign-in-container">
 			<form action="#">
 				<h1>התחברות</h1>
@@ -46,14 +56,18 @@
 				<button type="button" class="login_btn" data-href="after_login.html">התחברות</button>
 			</form>
 		</div>
+
+        <!-- === אזור חופף (Overlay Panels) === -->
 		<div class="overlay-container">
 			<div class="overlay">
+                <!-- פאנל אנימציה שמאלי -->
 				<div class="overlay-panel overlay-left">
 					<img src="images/logo.png" alt="Logo" class="Logo_img">
 					<h1>!אורח יקר</h1>
 					<p>.הזן את הפרטים האישיים שלך והתחל את המסע שלך</p>
 					<button class="ghost" id="signIn">התחברות</button>
 				</div>
+                <!-- פאנל אנימציה ימני -->
 				<div class="overlay-panel overlay-right">
 					<img src="images/logo.png" alt="Logo" class="Logo_img">
 					<h1>!היי</h1>
@@ -64,8 +78,10 @@
 		</div>
 	</div>
 
+    <!-- === כותרת תחתונה גלובלית (Footer) === -->
 	<footer class="global-footer"></footer>
-	<!-- Supabase JS SDK -->
+	
+    <!-- === סקריפטים (Scripts) === -->
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script src="js/login.js"></script>
 	<script src="js/global_footer.js"></script>

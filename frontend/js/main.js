@@ -1,7 +1,17 @@
-/*
-    Helios by HTML5 UP (Vanilla JS Version)
-*/
+/**
+ * @fileoverview main.js
+ * @description קובץ האתחול הראשי של ממשק המשתמש (מבוסס תבנית Helios). אחראי על ניהול אנימציות טעינה ראשוניות, הגדרת תפריט הניווט למובייל (Nav Panel) ויצירת כפתורי הניווט.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
 
+/**
+ * פונקציית מעטפת (IIFE) המריצה באופן אוטומטי את קוד האתחול של האתר.
+ * פונקציה זו מגדירה את משתני הסביבה של החלון וה-DOM, ומאתחלת את רכיבי הניווט ותצוגת הדף.
+ * השימוש בפונקציה בעילום שם מבטיח שמירה על סביבת משתנים מבודדת (Scope) שאינה מתנגשת עם סקריפטים אחרים.
+ * 
+ * @returns {void}
+ */
 (function() {
     "use strict";
 
@@ -15,38 +25,36 @@
         },
     };
 
-    // 1. Play initial animations on page load
+    /**
+     * מאזין לאירוע טעינת הדף (load).
+     * מסיר את מחלקת ה-preload מתגית ה-body לאחר השהיה קלה, 
+     * פעולה המאפשרת לאנימציות ה-CSS ההתחלתיות (מעברים) לפעול בצורה חלקה רק לאחר סיום טעינת התוכן.
+     * 
+     * @returns {void}
+     */
     $window.addEventListener('load', () => {
         $window.setTimeout(() => {
             $body.classList.remove('is-preload');
         }, 100);
     });
 
-    // 2. Dropdowns (במקום dropotron - דורש מימוש CSS פשוט או ספריה אחרת)
-    // כרגע נשאיר מקום למימוש מותאם אישית אם תרצה
     console.log("Navigation dropdowns ready");
-
-    // 3. Nav Button & Panel (שימוש ב-Utils שיצרנו קודם)
     
-    // יצירת כפתור התפריט
     const navButton = document.createElement('div');
     navButton.id = 'navButton';
     navButton.innerHTML = '<a href="#navPanel" class="toggle"></a>';
     $body.appendChild(navButton);
 
-    // יצירת הפאנל
     const navElement = document.querySelector('#nav');
     const navPanel = document.createElement('div');
     navPanel.id = 'navPanel';
     navPanel.innerHTML = `<nav>${Utils.navList(navElement)}</nav>`;
     $body.appendChild(navPanel);
 
-    // הפעלת הפאנל
     Utils.panel(navPanel, {
         delay: 500,
         hideOnClick: true,
         visibleClass: 'navPanel-visible'
     });
-
 
 })();

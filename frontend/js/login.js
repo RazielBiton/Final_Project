@@ -1,37 +1,64 @@
-// your code goes here
+/**
+ * @fileoverview login.js
+ * @description מנהל את עמוד ההתחברות וההרשמה למערכת. מטפל במעבר בין תצוגות (אנימציות), אימות משתמשים (Login/Register) מול שרת ה-API, וכן אימות באמצעות התחברות חברתית (OAuth) מול Supabase.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 const signUpButton = document.getElementById('signUp');
 const signInButton = document.getElementById('signIn');
 const container = document.getElementById('container');
 
+/**
+ * מאזין לאירוע לחיצה על כפתור "הרשמה" (Sign Up).
+ * מפעיל אנימציית CSS המעבירה את הפאנל לתצוגת טופס ההרשמה.
+ * 
+ * @returns {void}
+ */
 signUpButton.addEventListener('click', () => {
     container.classList.add("right-panel-active");
 });
 
+/**
+ * מאזין לאירוע לחיצה על כפתור "התחברות" (Sign In).
+ * מפעיל אנימציית CSS המעבירה את הפאנל לתצוגת טופס ההתחברות.
+ * 
+ * @returns {void}
+ */
 signInButton.addEventListener('click', () => {
     container.classList.remove("right-panel-active");
 });
 
+/**
+ * פונקציית מעטפת (IIFE) אסינכרונית לניהול זרימת ההתחברות וההרשמה.
+ * הפונקציה מנהלת טעינה ראשונית, הפניית משתמשים מחוברים, הגדרת מנגנון האימות החברתי (Supabase), והצמדת מאזיני אירועים לטפסים.
+ * 
+ * @returns {Promise<void>}
+ */
 (async function () {
     "use strict";
 
-    // 1. ברגע שהדף נטען - Fade In
+    /**
+     * מסירה את מחלקת הטעינה (is-loading) מתגית ה-body כדי לאפשר לתצוגת הדף להופיע (Fade In) בצורה חלקה.
+     * 
+     * @returns {void}
+     */
     function removeLoading() {
         document.body.classList.remove('is-loading');
     }
+    
     if (document.readyState === 'complete') {
         removeLoading();
     } else {
         window.addEventListener('load', removeLoading);
     }
 
-    // Redirect if already logged in (and not in the middle of an OAuth callback)
     const hasAuthHash = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'));
     if (sessionStorage.getItem('loggedInUser') && !hasAuthHash) {
         window.location.href = 'after_login.html';
         return;
     }
 
-    // Initialize Supabase
     let supabase;
     try {
         const configRes = await fetch('/api/config/supabase');
@@ -46,7 +73,6 @@ signInButton.addEventListener('click', () => {
                 }
             });
             
-            // ONLY check for social login callback if we have the hash from Supabase
             if (hasAuthHash) {
                 checkSocialLoginCallback(supabase);
             }
@@ -55,12 +81,17 @@ signInButton.addEventListener('click', () => {
         console.error('Failed to init Supabase:', err);
     }
 
+    /**
+     * בודקת האם המשתמש הופנה חזרה מדף אימות חברתי (OAuth Callback).
+     * במידה וכן, מאמתת את פרטי המשתמש מול Supabase ושולחת לשרת הפנימי לסנכרון המסד ופתיחת סשן (Session) מקומי.
+     * 
+     * @param {Object} supabaseClient - אובייקט הלקוח של Supabase
+     * @returns {Promise<void>}
+     */
     async function checkSocialLoginCallback(supabaseClient) {
         const { data: { session }, error } = await supabaseClient.auth.getSession();
         
         if (session && session.user) {
-            // User successfully logged in via OAuth
-            // Send to our backend to register/login in Azure SQL
             try {
                 document.body.classList.add('is-loading');
                 const user = session.user;
@@ -101,6 +132,13 @@ signInButton.addEventListener('click', () => {
         }
     }
 
+    /**
+     * מתחילה את תהליך ההתחברות החברתית (OAuth) מול ספק חיצוני (למשל Google) דרך Supabase.
+     * מפנה את המשתמש לדף האימות של הספק.
+     * 
+     * @param {string} provider - שם ספק האימות (לדוגמה 'google')
+     * @returns {Promise<void>}
+     */
     async function handleOAuthLogin(provider) {
         if (!supabase) {
             alert('שגיאת תקשורת עם שרת האימות. נסה שוב מאוחר יותר.');
@@ -124,20 +162,32 @@ signInButton.addEventListener('click', () => {
         }
     }
 
-    // Attach events to social buttons
     document.querySelectorAll('.google-btn').forEach(btn => {
+        /**
+         * מאזין ללחיצה על כפתור ההתחברות עם חשבון גוגל ומפעיל את זרימת האימות החברתי.
+         * 
+         * @param {Event} e - אובייקט הלחיצה
+         * @returns {void}
+         */
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             handleOAuthLogin('google');
         });
     });
 
-    // === REGISTRATION FLOW ===
     const signUpForm = document.querySelector('.sign-up-container form');
     const registerBtn = signUpForm.querySelector('button');
 
+    /**
+     * מאזין לאירוע שליחת טופס ההרשמה במערכת.
+     * אוסף את נתוני המשתמש מהטופס, בודק תקינות, ומעביר לשרת לצורך יצירת חשבון חדש (Registration).
+     * בסיום מוצלח מרוקן את הטופס ומעביר חזרה למסך ההתחברות.
+     * 
+     * @param {Event} e - אובייקט הלחיצה על כפתור ההרשמה
+     * @returns {Promise<void>}
+     */
     registerBtn.addEventListener('click', async (e) => {
-        e.preventDefault(); // Prevent page reload
+        e.preventDefault(); 
         const firstName = signUpForm.querySelector('.first_name').value.trim();
         const lastName = signUpForm.querySelector('.last_name').value.trim();
         const email = signUpForm.querySelector('.email').value.trim();
@@ -158,9 +208,7 @@ signInButton.addEventListener('click', () => {
 
             if (data.success) {
                 alert('הרשמה בוצעה בהצלחה! אנא התחבר.');
-                // Clear fields
                 signUpForm.reset();
-                // Switch to login view
                 container.classList.remove("right-panel-active");
             } else {
                 alert(data.error || 'שגיאה בהרשמה.');
@@ -171,12 +219,19 @@ signInButton.addEventListener('click', () => {
         }
     });
 
-    // === LOGIN FLOW ===
     const signInForm = document.querySelector('.sign-in-container form');
     const loginBtn = signInForm.querySelector('.login_btn');
 
+    /**
+     * מאזין לאירוע שליחת טופס ההתחברות הסטנדרטי (אימייל וסיסמה).
+     * שולח את פרטי הגישה לשרת לשם אימות (Authentication), שומר את פרטי המשתמש באחסון המקומי,
+     * ומבצע הפניה לאזור האישי במקרה של הצלחה תוך שימוש באנימציית מעבר.
+     * 
+     * @param {Event} e - אובייקט הלחיצה על כפתור ההתחברות
+     * @returns {Promise<void>}
+     */
     loginBtn.addEventListener('click', async (e) => {
-        e.preventDefault(); // Prevent default link/button action
+        e.preventDefault(); 
 
         const email = signInForm.querySelector('.email').value.trim();
         const password = signInForm.querySelector('.password').value;
@@ -195,22 +250,18 @@ signInButton.addEventListener('click', () => {
             const data = await res.json();
 
             if (data.success) {
-                // שמירת המזהה של המשתמש לסשן
                 sessionStorage.setItem('userId', data.userId);
                 sessionStorage.setItem('userName', data.fullName);
                 sessionStorage.setItem('userEmail', email);
 
-                // Initialize Profile Object for Sidebar and Settings
                 sessionStorage.setItem('loggedInUser', JSON.stringify({
                     id: data.userId,
                     fullName: data.fullName,
                     email: email
                 }));
 
-                // הפעלת ה-Fade Out
                 document.body.classList.add('is-loading');
 
-                // מעבר דף לאחר חצי שנייה
                 setTimeout(() => {
                     window.location.href = loginBtn.getAttribute('data-href') || 'after_login.html';
                 }, 500);
