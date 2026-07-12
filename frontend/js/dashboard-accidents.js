@@ -1,8 +1,17 @@
-// --- MODULE: ACCIDENTS ---
+/**
+ * @fileoverview frontend/js/dashboard-accidents.js
+ * @description מודול המנהל את מערכת הדיווח על תאונות ונזקים (Accidents Dashboard). כולל חישוב מדדי ביצוע (KPI), העלאת תמונות ומסמכים (כולל PDF) מרובים, סריקת רכבים מעורבים צד ג' (דרך API ממשלתי) וסינון מתקדם.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
 
 window.currentAccidentFilter = 'all';
 window.currentAccidentSearch = '';
 
+/**
+ * מסנן את רשימת התאונות לפי סטטוס (הכל, פתוח, טופל, מעורב צד ג') ומעדכן את הממשק בהתאם.
+ * @param {string} type - סוג הסינון המבוקש ('all', 'pending', 'resolved', 'involved').
+ */
 window.filterAccidents = function(type) {
     window.currentAccidentFilter = type;
     
@@ -25,11 +34,18 @@ window.filterAccidents = function(type) {
     window.loadAccidents(); // Will re-render using the current filter state
 };
 
+/**
+ * מפעיל סינון טקסטואלי (חיפוש) על תאונות בהתאם לשורת החיפוש החופשי שמזין המשתמש.
+ */
 window.filterAccidentsSearch = function() {
     window.currentAccidentSearch = (document.getElementById('accFilterSearch').value || '').toLowerCase();
     window.loadAccidents();
 };
 
+/**
+ * פונקציית הליבה לטעינת ועיבוד נתוני התאונות של הרכב הנוכחי.
+ * הפונקציה מחשבת את מדדי ה-KPI (עלויות, כמות תאונות וכו'), מסדרת את האירועים כרונולוגית (תוך התחשבות בסינון) ומייצרת (מרנדרת) את כרטיסיות התצוגה של ציר הזמן (Timeline).
+ */
 window.loadAccidents = function () {
     const listContainer = document.getElementById('accidents-list-container');
     const emptyState = document.getElementById('accidents-empty-state');
@@ -41,10 +57,8 @@ window.loadAccidents = function () {
 
     listContainer.innerHTML = '<div style="position: absolute; right: 40px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; z-index: 1;"></div>';
 
-    // Ensure array exists
     if (!currentCar.accidents) currentCar.accidents = [];
 
-    // KPI Calculations
     let totalCost = 0;
     let pendingCount = 0;
     let resolvedCount = 0;
@@ -98,20 +112,18 @@ window.loadAccidents = function () {
         window.accTipSet = true;
     }
 
-    // Sort by status first (resolved last), then date descending, then filter
     const sortedAccidents = [...currentCar.accidents].sort((a, b) => {
         if (a.status === 'resolved' && b.status !== 'resolved') return 1;
         if (a.status !== 'resolved' && b.status === 'resolved') return -1;
         return (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0);
     }).filter(acc => {
-        // Filter by type
+
         const typeMatch = 
             window.currentAccidentFilter === 'all' ||
             (window.currentAccidentFilter === 'pending' && acc.status !== 'resolved') ||
             (window.currentAccidentFilter === 'resolved' && acc.status === 'resolved') ||
             (window.currentAccidentFilter === 'involved' && (acc.involvedVehicles?.length > 0 || acc.involvedVehicle));
-            
-        // Filter by text search
+
         const searchMatch = !window.currentAccidentSearch || 
             (acc.title && acc.title.toLowerCase().includes(window.currentAccidentSearch)) ||
             (acc.description && acc.description.toLowerCase().includes(window.currentAccidentSearch)) ||
@@ -122,7 +134,7 @@ window.loadAccidents = function () {
     });
 
     if (sortedAccidents.length === 0) {
-        // Show a "No results found for filter" message inside the list container
+
         listContainer.innerHTML += `
         <div class="text-center py-5" style="width: 100%; position: relative; z-index: 2;">
             <div style="width: 60px; height: 60px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: #94a3b8; font-size: 1.5rem;">
@@ -165,7 +177,7 @@ window.loadAccidents = function () {
                 ${vhtml}
             </div>`;
         } else if (acc.involvedVehicle && acc.involvedVehicle.plate) {
-            // Backwards compat
+
             let logoHtml = acc.involvedVehicle.logo ? `<img src="${acc.involvedVehicle.logo}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; border:1px solid #e2e8f0; padding:2px; margin-left:12px;">` : `<div style="width:36px; height:36px; border-radius:50%; background:#f8fafc; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin-left:12px;"><i class="fas fa-car text-slate-400"></i></div>`;
             involvedHtml = `
             <div style="margin-top: 1.5rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; border-right: 4px solid #f43f5e;">
@@ -258,7 +270,9 @@ window.loadAccidents = function () {
     });
 }
 
-// Modal Toggle Functions
+/**
+ * פותח את חלון המודאל (Modal) לדיווח על תאונה חדשה ומאפס את כלל השדות, התמונות והרכבים המעורבים הקודמים.
+ */
 window.openAddAccidentModal = function () {
     document.getElementById('addAccidentForm').reset();
     document.getElementById('accidentId').value = '';
@@ -272,13 +286,10 @@ window.openAddAccidentModal = function () {
         setTimeout(() => window.attachAddressAutocomplete(document.getElementById('accLocation')), 100);
     }
 
-    // Bind image listener
     attachAccidentImageListener();
 
-    // Reset image preview
     clearAccidentImage();
 
-    // Reset radio buttons
     document.getElementById('accRadioNo').checked = true;
     toggleInvolvedVehicle();
 
@@ -287,6 +298,9 @@ window.openAddAccidentModal = function () {
 
 let currentInvolvedVehicles = [];
 
+/**
+ * חושף או מסתיר את אזור הזנת הנתונים לרכב מעורב (צד ג') בטופס הדיווח, תוך מחיקת נתונים קודמים במידה ונבחר "לא".
+ */
 window.toggleInvolvedVehicle = function () {
     const isYes = document.getElementById('accRadioYes').checked;
     const container = document.getElementById('involvedVehicleContainer');
@@ -302,9 +316,11 @@ window.toggleInvolvedVehicle = function () {
     }
 }
 
-// Global Image logic
 let currentBase64AccidentImages = [];
 
+/**
+ * מחבר מאזין לשדה העלאת הקבצים (תמונות ומסמכים). דוחס תמונות בפורמט Base64 לפני שמירתן לצורך חיסכון במקום ואופטימיזציה.
+ */
 window.attachAccidentImageListener = function () {
     const accImageInput = document.getElementById('accImageInput');
     if (accImageInput) {
@@ -331,6 +347,9 @@ window.attachAccidentImageListener = function () {
     }
 }
 
+/**
+ * מציג תצוגה מקדימה חזותית של התמונות והמסמכים (PDF) שהמשתמש העלה לטופס הדיווח הנוכחי, ומאפשר צפייה או הסרה שלהם.
+ */
 window.renderAccidentImagesPreview = function () {
     const listContainer = document.getElementById('accImagesList');
     const placeholder = document.getElementById('accImagePlaceholder');
@@ -366,11 +385,18 @@ window.renderAccidentImagesPreview = function () {
     }
 }
 
+/**
+ * מסיר קובץ (תמונה או מסמך) מרשימת ההעלאות המקומית בטרם שמירה.
+ * @param {number} index - המיקום הסידורי (אינדקס) של התמונה במערך התמונות המקומי.
+ */
 window.removeAccidentImage = function (index) {
     currentBase64AccidentImages.splice(index, 1);
     renderAccidentImagesPreview();
 }
 
+/**
+ * מוחק את כלל התמונות והמסמכים המקומיים מהזיכרון ומאפס את שדה ההעלאה בטופס.
+ */
 window.clearAccidentImage = function () {
     currentBase64AccidentImages = [];
     const input = document.getElementById('accImageInput');
@@ -380,6 +406,9 @@ window.clearAccidentImage = function () {
 
 let currentFetchedInvolvedCar = null;
 
+/**
+ * מציג (מרנדר) ויזואלית את רשימת הרכבים המעורבים (צד ג') שנבחרו בחלון המודאל, כולל לוגו הרכב ומספר רישוי.
+ */
 window.renderInvolvedVehicles = function () {
     const container = document.getElementById('selectedInvolvedVehiclesContainer');
     if (!container) return;
@@ -406,11 +435,18 @@ window.renderInvolvedVehicles = function () {
     });
 }
 
+/**
+ * מוחק רכב מעורב ספציפי מרשימת הרכבים שנוספו לטופס דיווח התאונה.
+ * @param {number} index - האינדקס של הרכב המעורב שיש להסיר.
+ */
 window.removeInvolvedVehicle = function (index) {
     currentInvolvedVehicles.splice(index, 1);
     renderInvolvedVehicles();
 }
 
+/**
+ * מצרף רכב מעורב חדש (שפרטיו עובדו ממשאב ממשלתי) לרשימת הרכבים בצד ג' עבור טופס התאונה הנוכחי, תוך מניעת כפילויות.
+ */
 window.addInvolvedCarToList = function () {
     if (!currentFetchedInvolvedCar) return;
 
@@ -427,6 +463,11 @@ window.addInvolvedCarToList = function () {
     currentFetchedInvolvedCar = null;
 }
 
+/**
+ * פונקציה אסינכרונית המתחברת למאגר משרד הרישוי הממשלתי במטרה לשאוב פרטים מדויקים (צבע, מודל, שנה ולוגו) אודות רכב צד ג' על סמך מספר הרישוי שלו.
+ * @returns {Promise<void>}
+ * @throws {Error} - זורק שגיאה במקרה שהקריאה למאגר החיצוני נכשלת.
+ */
 window.fetchInvolvedCarDetails = async function () {
     const plate = document.getElementById('accInvolvedPlate').value.trim();
     const btnSearch = document.getElementById('btnFetchInvolved');
@@ -504,6 +545,9 @@ window.fetchInvolvedCarDetails = async function () {
     }
 }
 
+/**
+ * אוספת את כלל נתוני טופס דיווח התאונה (כולל רכבים מעורבים, תמונות/מסמכים ועלויות), מוודאת תקינות ומוסיפה (או עורכת) את התאונה במאגר המקומי ולאחר מכן מרעננת את התצוגה והאחסון.
+ */
 window.saveAccident = function () {
     const idField = document.getElementById('accidentId').value;
     const title = document.getElementById('accTitle').value.trim();
@@ -529,7 +573,6 @@ window.saveAccident = function () {
             return;
         }
 
-        // Check if there was an active un-added search that the user meant to add
         if (plate && !detailsContainer.classList.contains('d-none') && currentFetchedInvolvedCar) {
             if (!currentInvolvedVehicles.find(v => v.plate === currentFetchedInvolvedCar.plate)) {
                 currentInvolvedVehicles.push(currentFetchedInvolvedCar);
@@ -553,7 +596,6 @@ window.saveAccident = function () {
         involvedVehiclesToSave = [...currentInvolvedVehicles];
     }
 
-    // Convert date string YYYY-MM-DD to DD/MM/YYYY
     const dParts = dateInput.split('-');
     const formattedDate = `${dParts[2]}/${dParts[1]}/${dParts[0]}`;
 
@@ -575,25 +617,29 @@ window.saveAccident = function () {
     if (!currentCar.accidents) currentCar.accidents = [];
 
     if (idField) {
-        // Edit mode
+
         const index = currentCar.accidents.findIndex(a => a.id == idField);
         if (index !== -1) {
             currentCar.accidents[index] = newAccident;
         }
     } else {
-        // Add mode
+
         currentCar.accidents.push(newAccident);
     }
 
     saveToLocalStorage();
     loadAccidents();
-    // Also re-load overview to potentially include cost in future logic
+
     if (typeof loadOverview === 'function') loadOverview();
 
     const addModal = bootstrap.Modal.getInstance(document.getElementById('addAccidentModal'));
     if (addModal) addModal.hide();
 }
 
+/**
+ * מוחק רישום תאונה לצמיתות מהמאגר של הרכב לאחר קבלת אישור מפורש מהמשתמש.
+ * @param {number|string} id - מזהה (ID) התאונה הייחודי.
+ */
 window.deleteAccident = function (id) {
     if (confirm("האם למחוק דיווח זה? הנתונים לא ניתנים לשחזור.")) {
         currentCar.accidents = currentCar.accidents.filter(a => a.id !== id);
@@ -603,6 +649,10 @@ window.deleteAccident = function (id) {
     }
 }
 
+/**
+ * פותח את המודאל לעריכת תאונה קיימת, ומאכלס אוטומטית את כל השדות הקיימים (תמונות, עלויות, טקסט ורכבים מעורבים) בנתוני המקור לצורך ביצוע שינויים.
+ * @param {number|string} id - מזהה (ID) התאונה לעריכה.
+ */
 window.editAccident = function (id) {
     const acc = currentCar.accidents.find(a => a.id === id);
     if (!acc) return;
@@ -621,7 +671,6 @@ window.editAccident = function (id) {
     const accDateInput = document.getElementById('accDate');
     if(accDateInput) accDateInput.max = new Date().toISOString().split('T')[0];
 
-    // date from DD/MM/YYYY to YYYY-MM-DD
     if (acc.date) {
         const parts = acc.date.split('/');
         if (parts.length === 3) {
@@ -629,7 +678,6 @@ window.editAccident = function (id) {
         }
     }
 
-    // Arrays initialization backwards compatibility
     if (acc.images && acc.images.length > 0) {
         currentBase64AccidentImages = [...acc.images];
     } else if (acc.image) {
@@ -638,7 +686,6 @@ window.editAccident = function (id) {
         clearAccidentImage();
     }
 
-    // Render images preview
     renderAccidentImagesPreview();
 
     if (acc.involvedVehicles && acc.involvedVehicles.length > 0) {
@@ -661,6 +708,10 @@ window.editAccident = function (id) {
     new bootstrap.Modal(document.getElementById('addAccidentModal')).show();
 }
 
+/**
+ * משנה את הסטטוס של תאונה מסוימת ממצב פתוח ('unresolved') למצב סגור/טופל ('resolved') ולהפך, ומרענן את ממשק המשתמש והמדדים (KPI).
+ * @param {number|string} id - מזהה (ID) התאונה שאת הסטטוס שלה יש לשנות.
+ */
 window.toggleAccidentStatus = function (id) {
     const acc = currentCar.accidents.find(a => a.id === id);
     if (acc) {
@@ -673,6 +724,11 @@ window.toggleAccidentStatus = function (id) {
     }
 }
 
+/**
+ * מציג תמונה מוגדלת (תצוגה מקדימה מלאה) או קובץ המקושרים לאירוע התאונה בחלון מודאל רחב.
+ * @param {number|string} id - מזהה התאונה שאליה משויכת התמונה.
+ * @param {number} [imageIndex=0] - מיקום התמונה במערך התמונות המצורפות של התאונה.
+ */
 window.viewAccidentImage = function (id, imageIndex = 0) {
     const acc = currentCar.accidents.find(a => a.id == id);
     if (!acc) return;

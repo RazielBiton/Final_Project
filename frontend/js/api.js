@@ -1,3 +1,15 @@
+/**
+ * @fileoverview frontend/js/api.js
+ * @description קובץ זה אחראי על ממשק המשתמש במסך התוצאות לאחר חיפוש מספר רכב. הוא מתחבר ל-API של מאגרי המידע הממשלתיים (data.gov.il) כדי למשוך פרטי רכב מדויקים ותו נכה, ומטפל בשמירת הרכב החדש לתוך בסיס הנתונים (Azure SQL) ול-Session Storage המקומי.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * מאזין לאירוע טעינת ה-DOM. מפעיל סדרת פעולות: חילוץ מספר הרישוי מה-URL, ביצוע קריאות שרת מול מאגרי ממשלת ישראל לאחזור פרטי הרכב המלאים וסטטוס תו נכה, ולבסוף אכלוס הנתונים ישירות לתוך טופס התוצאות בממשק המשתמש.
+ * @param {Event} event - אירוע טעינת העמוד.
+ * @throws {Error} - זורק שגיאה ומציג התראה במידה ויש כשל בתקשורת מול המאגרים הממשלתיים.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. חילוץ מספר הרכב מה-URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -79,7 +91,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * פונקציה להצגת תאריך בפורמט DD/MM/YYYY ללא שינוי שנה
+ * מעבד ומפרמט מחרוזת תאריך גולמית (המתקבלת לרוב ממסד הנתונים) ומחזיר אותה בתבנית נוחה לקריאה (DD/MM/YYYY).
+ * @param {string} dateStr - מחרוזת תאריך גולמית (לדוגמה, ISO 8601 או פורמט דומה).
+ * @returns {string} - מחרוזת תאריך מעוצבת בפורמט יומי/חודשי/שנתי. מחזיר "אין נתונים" אם הקלט חסר.
  */
 function formatDateOnly(dateStr) {
     if (!dateStr) return "אין נתונים";
@@ -94,7 +108,10 @@ function formatDateOnly(dateStr) {
 }
 
 /**
- * פונקציה שמוסיפה שנה לתאריך המבחן האחרון ומעצבת לפורמט DD/MM/YYYY
+ * מחשב ומפרמט את תאריך הטסט הבא של הרכב על סמך תאריך הטסט האחרון שהתקבל מהמאגר הממשלתי.
+ * הפונקציה מוסיפה שנה שלמה לתאריך המקורי ומחזירה את התוצאה בפורמט סטנדרטי של DD/MM/YYYY.
+ * @param {string} dateStr - תאריך הטסט האחרון כפי שהתקבל ממשרד הרישוי.
+ * @returns {string} - תאריך היעד לביצוע הטסט הבא (בעוד שנה) בפורמט חזותי נוח.
  */
 function formatNextTestDate(dateStr) {
     if (!dateStr) return "אין נתונים";
@@ -112,7 +129,10 @@ function formatNextTestDate(dateStr) {
 }
 
 /**
- * פונקציית תרגום אוטומטית ושמירת הרכב ל-LocalStorage
+ * מטפל בתהליך שמירת הרכב החדש במערכת לאחר אימות מול הלקוח.
+ * הפונקציה אוספת את כלל הנתונים מהטופס (כולל קילומטראז', סוג דלק וכו'), מתרגמת את שם יצרן הרכב לאנגלית כדי לשייך לו לוגו דינמי, ושולחת בקשת POST לשרת כדי לשמור את הרכב במסד הנתונים.
+ * @returns {Promise<void>} - מבצע בקשת שרת ומעביר את המשתמש לדף הניהול בעת הצלחה.
+ * @throws {Error} - מציג התראה במידה ובקשת השמירה מול שרת ה-Backend (Azure SQL) נכשלה.
  */
 async function translateAndSave() {
     const addBtn = document.getElementById('addBtn');

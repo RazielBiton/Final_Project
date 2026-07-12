@@ -1,9 +1,16 @@
-// --- SELL & TRADE-IN DASHBOARD MODULE ---
+/**
+ * @fileoverview frontend/js/dashboard-sell.js
+ * @description מודול המוקדש לתהליך מכירת הרכב (Sell & Trade-In). המודול מאפשר להציג "שקיפות מלאה" לקונה על ידי יצירת מדבקת חלון (QR Code) חכמה, ובניית דוח PDF מהודר הכולל את היסטוריית הטיפולים, התאונות וגלריית תמונות, הכל תחת בחירה קפדנית של המשתמש מה לחשוף.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
 
+/**
+ * נטענת בעת פתיחת אזור המכירה (Sell & Trade-In) בלוח הבקרה. מושכת את הגדרות התצוגה המותאמות של המשתמש (כגון אילו מדדים לחשוף לקונה הפוטנציאלי) ומאכלסת את מתגי ה-UI ואת מלל המוכר בהתאם.
+ */
 window.loadSell = function () {
     if (!currentCar) return;
 
-    // Initialize default sell settings if missing
     if (!currentCar.sellSettings) {
         currentCar.sellSettings = {
             showTreatments: true,
@@ -15,7 +22,6 @@ window.loadSell = function () {
         };
     }
 
-    // Load state to UI toggles
     const s = currentCar.sellSettings;
     const tTreatments = document.getElementById('toggleTreatments');
     const tCosts = document.getElementById('toggleCosts');
@@ -34,6 +40,10 @@ window.loadSell = function () {
     window.renderGallery();
 };
 
+/**
+ * שומרת באופן אסינכרוני את בחירות המשתמש (מתגים לבקרת חשיפת היסטוריית טיפולים, תאונות, עלויות וטקסט אישי חופשי) אל תוך מאגר הנתונים המקומי לצורך הפקת דוח שקיפות מדויק.
+ * @returns {Promise<void>}
+ */
 window.saveSellSettings = async function () {
     if (!currentCar) return;
     if (!currentCar.sellSettings) currentCar.sellSettings = {};
@@ -52,17 +62,19 @@ window.saveSellSettings = async function () {
     currentCar.sellSettings.sellerComment = tComment ? tComment.value.trim() : "";
     if (tHand) currentCar.sellSettings.hand = tHand.value;
 
-    // SYNC TO DB
     if (window.saveToLocalStorage) {
         window.saveToLocalStorage();
     }
     console.log("Sell settings saved to DB: ", currentCar.sellSettings);
 };
 
+/**
+ * מחוללת קוד סריקה (QR Code) ייחודי המקושר לדף "דוח רכב ציבורי" (Public Report) המכיל את כלל היסטוריית הרכב המאושרת לחשיפה. הקוד מוצג במודאל וניתן להורדה כקובץ תמונה להדפסה (לצורך הדבקה על הרכב).
+ * דורשת מינימום 3 תמונות בגלריה להפקתה.
+ */
 window.generateStickerQR = function () {
     if (!currentCar) return;
 
-    // REQUIREMENT: Minimum 3 photos
     const photos = currentCar.gallery || [];
     if (photos.length < 3) {
         alert('יש להעלות לפחות 3 תמונות לגלריה כדי להפיק ברקוד סריקה (מדבקה).');
@@ -108,14 +120,16 @@ window.generateStickerQR = function () {
     };
     modalBody.appendChild(btn);
 
-    // Open the modal explicitly after successful generation
     const qrModalEl = document.getElementById('qrModal');
     if (qrModalEl) {
         const qrModal = bootstrap.Modal.getInstance(qrModalEl) || new bootstrap.Modal(qrModalEl);
         qrModal.show();
     }
 };
-/* --- PREMIUM PDF GENERATOR --- */
+
+/**
+ * פונקציית הליבה במודול זה: מפיקה, על בסיס נתוני הרכב וההגדרות שנשמרו, דוח רכב רשמי ומהודר בפורמט PDF ("דוח פרימיום"). הפונקציה בונה דינמית טבלאות HTML עבור טיפולים, פוליסות ביטוח, היסטוריית תאונות וצריכת דלק, ולאחר מכן ממירה אותם פיזית לקובץ PDF הניתן לשמירה וחלוקה לקונים עתידיים.
+ */
 window.generateFullPDFReport = function () {
     if (!currentCar) return;
 
@@ -130,10 +144,8 @@ window.generateFullPDFReport = function () {
     const s = currentCar.sellSettings || {};
     const fmt = window.formatDate ? window.formatDate.bind(window) : (d => d || '-');
 
-    // ─── Critical fix: wrap ₪ in Arial so html2canvas renders it correctly ───
     const NIS = '<span class="nis">&#8362;</span>'; // ₪ via HTML entity + Arial class
 
-    // ─── 1. Header ───
     document.getElementById('pdf-subtitle').innerHTML =
         `${currentCar.brandHeb || currentCar.brand || ''} ${currentCar.model || ''} &bull; מספר&nbsp;רישוי:&nbsp;${currentCar.licensePlate || ''}`;
 
@@ -150,7 +162,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // ─── 2. Seller Pitch ───
     const pitchContainer = document.getElementById('pdf-seller-pitch-container');
     if (pitchContainer) {
         const hasPitch = s.sellerComment && s.sellerComment.trim().length > 0;
@@ -162,7 +173,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // ─── 3. Specs ───
     document.getElementById('pdf-metric-year').innerText = currentCar.year || '-';
     document.getElementById('pdf-metric-km').innerText =
         currentCar.km ? parseInt(currentCar.km).toLocaleString('he-IL') + ' ק"מ' : '0 ק"מ';
@@ -176,10 +186,8 @@ window.generateFullPDFReport = function () {
     document.getElementById('pdf-spec-fuel').innerText = currentCar.fuelType || '-';
     document.getElementById('pdf-spec-hand').innerText = s.hand || currentCar.hand || '1';
 
-    // ─── 4. Dynamic Sections ───
     let html = '';
 
-    // A. Treatments
     if (s.showTreatments !== false) {
         const trs = (currentCar.treatments || [])
             .slice()
@@ -214,7 +222,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // B. Insurance
     if (s.showInsurance !== false) {
         const ins = currentCar.insurance || {};
         const hasIns = (ins.mandatory && ins.mandatory.company)
@@ -258,7 +265,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // C. Accidents
     if (s.showAccidents !== false) {
         const accs = currentCar.accidents || [];
         if (accs.length > 0) {
@@ -290,7 +296,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // D. Fuel Log
     if (s.showCosts !== false) {
         const fuels = currentCar.fuelLog || [];
         if (fuels.length > 0) {
@@ -331,7 +336,6 @@ window.generateFullPDFReport = function () {
         }
     }
 
-    // E. Gallery
     if (photos.length > 0) {
         html += `
         <div class="pdf-section pdf-gallery-section">
@@ -345,14 +349,12 @@ window.generateFullPDFReport = function () {
 
     document.getElementById('pdf-dynamic-content').innerHTML = html;
 
-    // ─── Footer ───
     const now = new Date();
     const dateStr = now.toLocaleDateString('he-IL');
     const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('pdf-footer-time').innerHTML =
         `הופק ב-<span class="ltr-text">EasyCare</span> | <span class="ltr-text">${dateStr} &bull; ${timeStr}</span>`;
 
-    // ─── Export ───
     const content = document.getElementById('pdf-content');
     const container = document.getElementById('pdf-export-container');
     container.style.display = 'block';
@@ -382,7 +384,6 @@ window.generateFullPDFReport = function () {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Wait for fonts to load BEFORE capturing — fixes the ₪ → ע bug
     document.fonts.ready.then(() => {
         setTimeout(() => {
             html2pdf().set(opt).from(content).save().then(() => {
@@ -398,6 +399,9 @@ window.generateFullPDFReport = function () {
     });
 };
 
+/**
+ * מרנדרת (Render) אל מסך המשתמש את מערך התמונות המקומי (Gallery) שהועלו עבור הרכב. מסדרת אותן בגריד ויזואלי גמיש המאפשר צפייה מקדימה והסרה פרטנית.
+ */
 window.renderGallery = function () {
     const grid = document.getElementById('sellGalleryGrid');
     if (!grid) return;
@@ -429,12 +433,16 @@ window.renderGallery = function () {
     });
 };
 
+/**
+ * מנהלת העלאת קבצי תמונה לגלריית הרכב (עד למקסימום של 10 תמונות). מבצעת קריאת FileReader אסינכרונית כדי להמיר את התמונות ל-Base64 ולשמור אותן במסד הנתונים לשם שילובן בקוד ה-QR או בדוח ה-PDF.
+ * @param {Event} event - אירוע העלאת הקבצים משדה ה-Input.
+ * @returns {Promise<void>}
+ */
 window.handleGalleryUpload = async function (event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
     if (!currentCar.gallery) currentCar.gallery = [];
 
-    // REQUIREMENT: Maximum 10 photos
     if (currentCar.gallery.length + files.length > 10) {
         alert(`ניתן להעלות עד 10 תמונות בלבד. כרגע קיימות ${currentCar.gallery.length} תמונות.`);
         return;
@@ -452,7 +460,6 @@ window.handleGalleryUpload = async function (event) {
             currentCar.gallery.push(res);
         }
 
-        // SYNC TO DB
         if (window.saveToLocalStorage) {
             window.saveToLocalStorage();
         }
@@ -465,11 +472,15 @@ window.handleGalleryUpload = async function (event) {
     }
 };
 
+/**
+ * מסירה תמונה מסוימת מתוך מערך תמונות הגלריה של הרכב, בהתבסס על מיקומה המדויק במערך (Index), ומעדכנת את תצוגת הגלריה ואת מאגר הנתונים בהתאם.
+ * @param {number} index - המיקום של התמונה במערך הגלריה המיועדת למחיקה.
+ * @returns {Promise<void>}
+ */
 window.deleteGalleryImage = async function (index) {
     if (confirm('האם אתה בטוח שברצונך למחוק תמונה זו? היא תרד גם מהדוח הרשמי.')) {
         currentCar.gallery.splice(index, 1);
 
-        // SYNC TO DB
         if (window.saveToLocalStorage) {
             window.saveToLocalStorage();
         }

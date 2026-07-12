@@ -1,6 +1,17 @@
-// --- CUSTOM EXPENSES & FINANCIAL ANALYTICS (Apple Premium Style) ---
+/**
+ * @fileoverview frontend/js/dashboard-expenses.js
+ * @description מודול הדשבורד הפיננסי המרכזי (הארנק הדיגיטלי). מאגד את כלל סוגי ההוצאות של הרכב לכדי גרפים ותרשימים (Chart.js), מייצר תובנות פיננסיות מבוססות חוקיות (AI Insights) ומאפשר ניהול והזנת הוצאות צד ג' שוטפות.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 let expensesChartInst = null;
 
+/**
+ * פונקציה אנליטית מבוססת לוגיקה חכמה לחישוב התפלגות ההוצאות ויצירת "תובנות פיננסיות" (AI Insights) למשתמש בזמן אמת. המערכת מזהה את ההוצאה החריגה ביותר ונותנת טיפ חיסכון בהתאם.
+ * @param {Object} totalsMap - אובייקט המכיל את סיכומי ההוצאות חולקים לקטגוריות (דלק, ביטוח, תאונות, וכו').
+ * @param {number} grandTotal - הסכום הכולל השנתי ששולם על הרכב.
+ */
 function calculateFinancialAIInsights(totalsMap, grandTotal) {
     const titleEl = document.getElementById('ai-insight-title');
     const textEl = document.getElementById('ai-insight-text');
@@ -12,7 +23,6 @@ function calculateFinancialAIInsights(totalsMap, grandTotal) {
         return;
     }
 
-    // Identify the biggest expense
     let maxKey = '';
     let maxVal = -1;
     for (const [key, val] of Object.entries(totalsMap)) {
@@ -23,8 +33,7 @@ function calculateFinancialAIInsights(totalsMap, grandTotal) {
     }
 
     const percentage = Math.round((maxVal / grandTotal) * 100);
-    
-    // Generate insight text
+
     let title = "";
     let text = "";
 
@@ -52,20 +61,21 @@ function calculateFinancialAIInsights(totalsMap, grandTotal) {
     textEl.textContent = text;
 }
 
+/**
+ * פונקציית הליבה לניהול דף "הארנק הדיגיטלי" (Expenses Dashboard). מחשבת את סך ההוצאות מכלל המקורות (טיפולים, ביטוח, דלק, תאונות שטופלו, דוחות ששולמו והוצאות מותאמות אישית), מרנדרת את תרשים הטבעת (Doughnut Chart) הייעודי של Chart.js, ומציגה את רשימת הטרנזאקציות האחרונות.
+ */
 function loadExpenses() {
-    // Top Plate rendering logic UI sync
+
     const plateEl = document.getElementById('walletVehiclePlate');
     if (plateEl) {
         plateEl.textContent = currentCar.licensePlate || currentCar.brand || 'No Plate';
     }
 
-    // Set max date for Add Expense modal to today
     const expenseDateEl = document.getElementById('expenseDate');
     if (expenseDateEl) {
         expenseDateEl.max = new Date().toISOString().split('T')[0];
     }
 
-    // 1. Calculate sums
     let totalTreatments = currentCar.treatments ? currentCar.treatments.reduce((sum, t) => sum + (Number(t.cost) || 0), 0) : 0;
 
     let totalInsurance = 0;
@@ -89,8 +99,7 @@ function loadExpenses() {
 
     let totalFuel = currentCar.fuelLog ? currentCar.fuelLog.reduce((sum, f) => sum + (Number(f.cost) || 0), 0) : 0;
     let totalCustom = currentCar.expenses ? currentCar.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) : 0;
-    
-    // Only count accidents that are handled (status is resolved or isHandled is true)
+
     let totalAccidents = currentCar.accidents ? currentCar.accidents
         .filter(a => a.isHandled || a.status === 'resolved')
         .reduce((sum, a) => sum + (Number(a.cost) || Number(a.repairCost) || 0), 0) : 0;
@@ -100,18 +109,15 @@ function loadExpenses() {
     const grandTotal = totalTreatments + totalInsurance + totalFuel + totalCustom + totalAccidents + totalReports;
     const avgMonthly = Math.round(grandTotal / 12);
 
-    // Update KPIs with counter animation effect
     const totalEl = document.getElementById('totalYearlyExpenses');
     if(totalEl) totalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal);
-    
-    // Update chart central text HTML (replaces the canvas plugin drawing)
+
     const centerChartTotalEl = document.getElementById('chartCenterTotal');
     if(centerChartTotalEl) centerChartTotalEl.textContent = new Intl.NumberFormat('he-IL').format(grandTotal) + ' ₪';
 
     const avgEl = document.getElementById('avgMonthlyExpense');
     if(avgEl) avgEl.textContent = '₪ ' + new Intl.NumberFormat('he-IL').format(avgMonthly);
 
-    // Calculate AI Insight
     calculateFinancialAIInsights({
         treatments: totalTreatments,
         insurance: totalInsurance,
@@ -121,7 +127,6 @@ function loadExpenses() {
         custom: totalCustom
     }, grandTotal);
 
-    // 2. Render Elegant Chart
     const canvas = document.getElementById('expensesDistributionChart');
     const colors = [
         '#3b82f6', // Apple Blue (טיפולים)
@@ -137,7 +142,6 @@ function loadExpenses() {
             expensesChartInst.destroy();
         }
 
-        // Render custom HTML legend
         const legendContainer = document.getElementById('custom-chart-legend');
         if (legendContainer) {
             let legendHTML = '';
@@ -218,7 +222,6 @@ function loadExpenses() {
         });
     }
 
-    // 3. Render Custom Expenses List Apple-Pay style
     const listContainer = document.getElementById('custom-expenses-list');
     if (!listContainer) return;
 
@@ -234,7 +237,6 @@ function loadExpenses() {
 
     const sortedExpenses = [...currentCar.expenses].sort((a, b) => (window.parseDate(b.date) || 0) - (window.parseDate(a.date) || 0));
 
-    // Limit to 15 items for performance unless 'showAll' is toggled
     const showAll = window.expensesShowAll === true;
     const itemsToRender = showAll ? sortedExpenses : sortedExpenses.slice(0, 15);
     const hasMore = sortedExpenses.length > 15 && !showAll;
@@ -293,13 +295,18 @@ function loadExpenses() {
     listContainer.innerHTML = html;
 }
 
-// Global modal triggers map over
+/**
+ * פותח את חלון המודאל (Modal) המיועד להוספת הוצאה כללית חדשה לרכב, ומאפס את כלל השדות הקודמים.
+ */
 window.openAddExpenseModal = function() {
     document.getElementById('add-expense-form').reset();
     toggleOtherExpenseInput();
     new bootstrap.Modal(document.getElementById('addExpenseModal')).show();
 }
 
+/**
+ * פונקציית תצוגה המציגה או מסתירה את שדה "פירוט אחר" בטופס הוספת ההוצאה, בהתאם לקטגוריה שהמשתמש בחר בתפריט הנגלל.
+ */
 window.toggleOtherExpenseInput = function() {
     const type = document.getElementById('expenseType').value;
     const otherDiv = document.getElementById('otherExpenseDiv');
@@ -310,6 +317,9 @@ window.toggleOtherExpenseInput = function() {
     }
 }
 
+/**
+ * אוספת את נתוני ההוצאה האישית שהוזנו בטופס, עורכת ולידציה בסיסית, מוסיפה (דוחפת) את הרשומה למערך ההוצאות, שומרת באחסון המקומי ומעדכנת את התצוגה (כולל תאריך הטסט במקרה ששולם טסט).
+ */
 window.saveCustomExpense = function() {
     const type = document.getElementById('expenseType').value;
     const amount = document.getElementById('expenseAmount').value;
@@ -352,6 +362,10 @@ window.saveCustomExpense = function() {
     if(typeof loadOverview === 'function') loadOverview(); 
 }
 
+/**
+ * מוחקת התראה / הוצאה אישית ספציפית מהארנק של הרכב, בכפוף לאישור המשתמש (Confirm).
+ * @param {string|number} id - מזהה ההוצאה הייחודי למחיקה.
+ */
 window.deleteCustomExpense = function(id) {
     if (confirm('האם אתה בטוח שברצונך למחוק הוצאה זו? היא תוסר סופית מהארנק שלך.')) {
         currentCar.expenses = currentCar.expenses.filter(e => String(e.id) !== String(id));

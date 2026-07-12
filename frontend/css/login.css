@@ -1,8 +1,20 @@
+/* =========================================================
+שם הקובץ: login.css
+תיאור: קובץ העיצוב המרכזי של מסך ההתחברות וההרשמה (Login/Signup). משתמש בטכניקת "Double Slider" (פאנלים מתחלפים עם אנימציית Overlay) בדסקטופ, ועובר למבנה טפסים רציף וקלאסי במסכי מובייל. כולל טיפול נרחב בפונטים (Clamp), מניעת Zoom בשדות קלט ב-iOS, ותמיכה מלאה בכיווניות עברית (RTL).
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+איפוס והגדרות בסיס (Global Reset & Base)
+========================================= */
 * {
     box-sizing: border-box;
 }
 
-/* כשהדף בטעינה או ביציאה - הוא יהיה שקוף */
+/* =========================================
+אנימציית טעינה (Loading Animation)
+========================================= */
+/* הסתרת התוכן (שקיפות מלאה) בעת טעינת העמוד או מעבר בין עמודים ליצירת אפקט הופעה חלקה */
 body.is-loading {
     opacity: 0;
 }
@@ -16,22 +28,22 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    /* Changed to column to allow footer below */
+    
     justify-content: center;
     align-items: center;
     padding: 20px 0;
-    /* Add padding to prevent sticking to edges */
+    
 }
 
 body.is-loading {
     opacity: 0;
     transform: scale(0.98);
-    /* כיווץ קטן של הדף בזמן המעבר */
+    
 }
 
-/* --- 2. Container Specific Styling --- */
-/* כל מה שנמצא בתוך ה-container מוגדר כאן באופן ספציפי */
-
+/* =========================================
+מעטפת מרכזית (Main Container)
+========================================= */
 .container {
     background-color: #fff;
     border-radius: 10px;
@@ -39,24 +51,29 @@ body.is-loading {
     position: relative;
     overflow: hidden;
 
-    /* --- הגדרות גודל חכמות --- */
+    
 
-    /* במובייל: תופס 95% מהמסך (משאיר שוליים קטנים) */
-    /* בדסקטופ: לא יעבור את ה-1000 פיקסלים */
+    
+    
+/* הגדרות גודל רספונסיביות - במובייל תופס את מרבית המסך, בדסקטופ מוגבל לרוחב מקסימלי לשמירת פרופורציה */
     width: 95%;
     max-width: 1000px;
 
-    /* גובה מינימלי גמיש: */
-    /* במובייל: יתאים את עצמו לתוכן או ל-60% מגובה המסך */
-    /* בדסקטופ: ישמור על פרופורציה יפה */
+    
+    
+    
+/* גובה מינימלי חכם (Clamp) - משתנה בהתאם לגובה המסך כדי למנוע גלישה מוגזמת של תוכן */
     min-height: clamp(400px, 60vh, 700px);
 
-    /* מרכוז הקונטיינר אם הוא לא בתוך Flex */
+    
     margin: 20px auto;
 }
 
-/* התאמות ספציפיות למסכים רחבים (מחשב) */
+/* =========================================
+רספונסיביות מעטפת - דסקטופ (Container Desktop Layout)
+========================================= */
 @media screen and (min-width: 769px) {
+/* שינוי פריסת המעטפת (Flex) מדמוי עמודה במובייל למבנה אופקי במסכים רחבים */
     .container {
         width: 90% !important;
         max-width: 900px !important;
@@ -70,26 +87,35 @@ body.is-loading {
     }
 
     .form-container,
-    .overlay-container {
+    /* =========================================
+שכבת כיסוי עיצובית (Overlay Logic)
+========================================= */
+.overlay-container {
         flex: 1 1 50% !important;
     }
 
-    .container form {
+    /* =========================================
+טפסים ושדות (Forms & Inputs)
+========================================= */
+.container form {
         padding: 40px 50px !important;
     }
 }
 
-/* הגדרות כותרות רק בתוך הקונטיינר */
+/* =========================================
+טיפוגרפיה פנימית (Container Typography)
+========================================= */
 .container h1 {
     font-weight: bold;
     margin: 0;
-    /* מינימום 22px, גודל זורם 4% מהמסך, מקסימום 36px */
+    
+/* שינוי גודל פונט דינמי על פי רוחב המסך (Clamp) המאפשר זרימה טבעית ורציפה של הטקסט */
     font-size: clamp(1.4rem, 4vw, 2.2rem);
     line-height: 1.2;
 }
 
 .container p {
-    /* מינימום 14px, מקסימום 16px - שומר על קריאות */
+    
     font-size: clamp(14px, 1.5vw, 16px);
     font-weight: 300;
     line-height: 1.6;
@@ -99,59 +125,67 @@ body.is-loading {
 
 .container a {
     color: #333;
-    /* החלפתי את ה-vh בחישוב חכם יותר */
+    
     font-size: clamp(12px, 1vw, 14px);
     text-decoration: none;
     margin: 15px 0;
     transition: color 0.3s ease;
 }
 
+/* =========================================
+לוגו חברה (Company Logo)
+========================================= */
 .container .Logo_img {
-    /* הסבר על ה-clamp המעודכן: */
-    /* 120px: הגודל המינימלי המוחלט (מובייל קטן) */
-    /* 30vw: הגודל האידיאלי - תופס כמעט שליש מרוחב המסך */
-    /* 350px: הגודל המקסימלי (כדי שלא ייראה ענק בדסקטופ) */
+    
+    
+    
+    
+/* הגדרת גודל לוגו דינמית: מינימום מוגדר למובייל ומקסימום מוגדר לדסקטופ */
     width: clamp(120px, 30vw, 350px);
 
     height: auto;
     display: block;
 
-    /* שימוש ב-clamp גם למרווחים (Margins) */
-    /* במובייל יהיה רווח קטן (10px) ובדסקטופ רווח גדול יותר (30px) */
+    
+    
     margin: clamp(10px, 4vh, 30px) auto;
 
-    /* object-fit מוודא שהפרופורציות נשמרות */
+    
     object-fit: contain;
 
-    /* מניעת מריחה במסכים איכותיים (Retina) */
+    
     image-rendering: -webkit-optimize-contrast;
 }
 
-/* התאמה אופציונלית למסכים רחבים מאוד (Ultra-wide) */
+/* =========================================
+תצוגת מסכים רחבים (Ultra-wide Screens)
+========================================= */
 @media screen and (min-width: 1400px) {
     .container .Logo_img {
         max-width: 400px;
-        /* הגדלה קלה רק למסכים ענקיים */
+        
     }
 }
 
-/* הגדרות כפתורים רק בתוך הקונטיינר */
+/* =========================================
+כפתורי פעולה (Action Buttons)
+========================================= */
 .container button {
     border-radius: 20px;
     border: 1px solid hwb(215 18% 16%);
     background-color: #2d74d7;
     color: #FFFFFF;
     font-size: clamp(11px, 1vw, 13px);
-    /* פונט שלא נעלם במובייל */
+    
     font-weight: bold;
-    /* פדינג שמתכווץ מעט במובייל כדי שהכפתור לא יחרוג */
+    
     padding: clamp(10px, 1.5vh, 12px) clamp(25px, 4vw, 45px);
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: transform 80ms ease-in, background-color 0.3s ease;
     cursor: pointer;
 
-    /* מבטיח מרכוז טקסט מושלם */
+    
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -170,27 +204,30 @@ body.is-loading {
     border-color: #FFFFFF;
 }
 
-/* הגדרות טופס וקלט רק בתוך הקונטיינר */
 .container form {
     background-color: #FFFFFF;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    /* במובייל הפדינג קטן יותר כדי שיהיה מקום לאינפוטים */
+    
     padding: 0 clamp(15px, 5vw, 50px);
     height: 100%;
     text-align: center;
 }
 
+/* עיצוב והגדרות בסיס לשדות הקלט השונים במסך */
 .container input {
+    /* עיצוב והגדרות בסיס לשדות הקלט השונים במסך */
+    /* הגדרת כיוון כתיבה מימין לשמאל (RTL) והצמדת טקסט הקלט לימין בהתאם לשפה העברית */
     direction: rtl;
-    /* קובע את כיוון הכתיבה מימין לשמאל */
+    
     text-align: right;
-    /* מוודא שהטקסט מוצמד לימין */
+    
     background-color: #eee;
     border: none;
-    /* אינפוטים צריכים להיות לפחות 16px במובייל כדי למנוע "זום" אוטומטי של האייפון */
+    
+/* גודל פונט מינימלי של 16 פיקסלים למניעת אפקט הזום (Zoom-in) האוטומטי בדפדפני מובייל בעת לחיצה על השדה */
     font-size: clamp(16px, 1vw, 18px);
     padding: clamp(10px, 1.2vh, 15px);
     margin: 8px 0;
@@ -199,8 +236,9 @@ body.is-loading {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* --- 3. Panels & Overlay Logic --- */
-
+/* =========================================
+פאנלים קדמיים - אזורי ההתחברות (Form Panels)
+========================================= */
 .form-container {
     position: absolute;
     top: 0;
@@ -232,6 +270,9 @@ body.is-loading {
     animation: show 0.6s;
 }
 
+/* =========================================
+אנימציית החלפה (Switch Animation)
+========================================= */
 @keyframes show {
 
     0%,
@@ -310,6 +351,9 @@ body.is-loading {
     transform: translateX(20%);
 }
 
+/* =========================================
+התחברות חברתית (Social Login)
+========================================= */
 .social-container {
     margin: 20px 0;
     width: 100%;
@@ -352,11 +396,14 @@ body.is-loading {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* --- 4. Mobile Adjustments --- */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive Fixes)
+========================================= */
 @media screen and (max-width: 768px) {
+/* ביטול המרכוז האנכי במובייל במטרה למנוע גלישת התוכן מחוץ לגבולות המסך העליונים בחלונות קטנים */
     body {
         justify-content: flex-start;
-        /* Start from top on mobile */
+        
         padding: 20px 10px;
         background: #4778d2 !important;
     }
@@ -372,6 +419,7 @@ body.is-loading {
         border-radius: 15px;
     }
 
+/* המרת מבנה הפאנלים לתצוגה טורית ומלאה ללא אנימציית שכבת הכיסוי המורכבת של הדסקטופ */
     .form-container {
         width: 100% !important;
         flex: none !important;
@@ -436,6 +484,7 @@ body.is-loading {
         transform: none !important;
     }
 
+/* מנגנון הסתרה והצגה פשוט (Display None) המייתר את אנימציות ההחלקה במובייל לטובת ביצועים מהירים */
     .container.right-panel-active .sign-in-container {
         display: none;
     }
@@ -455,7 +504,9 @@ body.is-loading {
     }
 }
 
-/* ── Footer overrides for login page (desktop only) ── */
+/* =========================================
+דריסת פוטר לעמוד התחברות (Footer Overrides for Login)
+========================================= */
 @media (min-width: 769px) {
     .global-footer {
         position: fixed !important;
@@ -492,7 +543,8 @@ body.is-loading {
         color: #ffffff !important;
     }
     
-    /* הוספת רווח בתחתית כדי שהתוכן לא יוסתר מאחורי הפוטר המקובע */
+    
+/* הוספת ריווח תחתון (Padding) כדי שהתוכן המרכזי לא יוסתר מאחורי הפוטר המקובע בתחתית (Fixed Footer) */
     body {
         padding-bottom: 80px !important;
     }

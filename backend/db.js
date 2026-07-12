@@ -1,11 +1,20 @@
+/**
+ * @fileoverview backend/db.js
+ * @description מודול החיבור ושכבת הבסיס למסד הנתונים (Database Access Layer). אחראי על יצירה, החזקה ואופטימיזציה של ה-Connection Pool מול שרתי Azure SQL, תוך מתן דגש על עמידות בפני ניתוקים ואבטחת פעילות תקינה תחת עומסי נתונים גדולים (Heavy I/O).
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 const sql = require('mssql');
 require('dotenv').config();
 
 const connectionString = process.env.AZURE_SQL_CONNECTION_STRING;
 
-
-
-// Robust connection string parser to inject advanced tuning for Heavy I/O workloads (Base64)
+/**
+ * מקבלת את מחרוזת ההתקשרות (Connection String) של Azure SQL, מפרקת אותה למרכיביה (שרת, מסד נתונים, משתמש וסיסמה) ובונה אובייקט הגדרות מתקדם לספריית mssql. הפונקציה מזריקה הגדרות Connection Pool מורחבות וטיימאאוטים כבדים שנועדו למנוע קריסות (Timeouts) בעת עומס I/O בעבודה מול רשומות Base64 ענקיות (תמונות, קבלות, מסמכי PDF).
+ * @param {string} str - מחרוזת ההתקשרות המקורית מתוך משתני הסביבה (.env).
+ * @returns {Object} - אובייקט הגדרות (Config Object) המותאם לספריית mssql.
+ */
 const parseAzureConnectionString = (str) => {
     const config = { 
         server: '', database: '', user: '', password: '', 
@@ -28,11 +37,16 @@ const parseAzureConnectionString = (str) => {
 
 if (!connectionString) {
     console.error("❌ AZURE_SQL_CONNECTION_STRING is missing in .env");
-    // Prevent immediate crash by providing a dummy string that will fail safely later
+
 }
 
 let pool = null;
 
+/**
+ * פונקציה אסינכרונית (Singleton Pattern) לניהול אגן התקשרויות (Connection Pool) אל מסד הנתונים בענן (Azure SQL). מוודאת שלא נוצרת יותר מבריכה אחת לכל חיי השרת, ובמקרה של קריסה מחזירה שגיאה ומאפסת את הבריכה כדי שהבקשה הבאה תנסה להתחבר מחדש.
+ * @returns {Promise<sql.ConnectionPool>} - הבטחה (Promise) המחזירה את הבריכה הפעילה לשימוש השאילתות.
+ * @throws {Error} זורקת שגיאה אם חסרה מחרוזת ההתקשרות ב-.env או אם החיבור למסד הנתונים נכשל.
+ */
 const getPool = async () => {
     if (!connectionString) {
         throw new Error("Missing AZURE_SQL_CONNECTION_STRING. Check your .env file.");
@@ -53,14 +67,12 @@ const getPool = async () => {
     }
 };
 
-// Create a proxy/getter object to maintain backward compatibility with server.js 'await poolPromise'
 const poolPromise = {
     then: function(resolve, reject) {
         return getPool().then(resolve).catch(reject);
     }
 };
 
-// Global safety net – prevents Azure timeouts / transient errors from killing the process
 process.on('unhandledRejection', (reason) => {
     console.error('⚠️  Unhandled Promise Rejection (server kept alive):', reason?.message || reason);
 });

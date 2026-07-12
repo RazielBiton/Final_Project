@@ -1,4 +1,9 @@
-// Unified Hebrew to English Brand Name Mapper for Logos
+/**
+ * @fileoverview frontend/js/brand-map.js
+ * @description קובץ הגדרות ומילון תרגום למותגי רכב. משמש להמרת שמות יצרני רכב מעברית (כפי שהם מופיעים במאגר משרד הרישוי) לאנגלית, במטרה לטעון בצורה אוטומטית ודינמית את לוגו הרכב המתאים בממשק המשתמש (Cards & Modals).
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
 const BRAND_MAP = {
     'מזדה': 'mazda',
     'הונדה': 'honda',
@@ -61,6 +66,12 @@ const BRAND_MAP = {
     'קופרה': 'cupra'
 };
 
+/**
+ * פונקציית עזר לתרגום שם יצרן הרכב מעברית לאנגלית על בסיס מילון מונחים קבוע מראש (BRAND_MAP).
+ * הפונקציה מנקה את הקלט, מחפשת התאמה מלאה, ואם לא נמצאה - מחפשת התאמה חלקית (למשל 'סוזוקי-יפן' תומר ל-'suzuki'). במידה ואין זיהוי כלל, מוחזר ערך ברירת מחדל לטעינת לוגו חלופי.
+ * @param {string} hebrewName - שם יצרן הרכב בעברית (לדוגמה: "טויוטה" או "יונדאי").
+ * @returns {string} - שם יצרן הרכב באנגלית המשמש כשם קובץ הלוגו (לדוגמה: "toyota"). מחזיר "default" במידה ואין התאמה.
+ */
 function getEnglishBrandName(hebrewName) {
     if (!hebrewName) return 'default';
     const cleanName = hebrewName.trim();

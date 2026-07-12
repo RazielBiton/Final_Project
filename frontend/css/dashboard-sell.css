@@ -1,6 +1,12 @@
-/* --- SELL DASHBOARD: ULTRA PREMIUM APPLE/GOOGLE DESIGN --- */
+/* =========================================================
+שם הקובץ: dashboard-sell.css
+תיאור: קובץ עיצוב ייעודי למסך התארגנות למכירת הרכב. מתאפיין בעיצוב מתקדם (Apple/Google Design), כולל עיצוב למתגים מותאמים אישית (iOS Switches) התומכים בכיווניות עברית, ועיצוב כרטיסי מחוללי מודעות המכירה וה-QR.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
-/* Settings/Toggle Panel */
+/* =========================================
+פאנל הגדרות מכירה (Settings/Toggle Panel)
+========================================= */
 .sell-settings-card {
     background: #ffffff;
     border-radius: 24px;
@@ -9,7 +15,9 @@
     border: 1px solid #f1f5f9;
 }
 
-/* iOS Style Switch/Toggle */
+/* =========================================
+מתגים בסגנון מערכת הפעלה (iOS Style Switch/Toggle)
+========================================= */
 .form-switch.ios-switch {
     padding-left: 0;
     display: flex;
@@ -20,6 +28,7 @@
     cursor: pointer;
 }
 
+/* עיצוב המבנה העגול של המתג ודחיפתו לשמאל (RTL) עקב הגדרות כיווניות עברית */
 .form-switch.ios-switch .form-check-input {
     width: 46px;
     height: 26px;
@@ -29,13 +38,14 @@
     position: relative;
     cursor: pointer;
     margin: 0;
-    margin-right: auto; /* Push to left in RTL */
+    margin-right: auto; 
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
+/* צבע מתג פעיל - ירוק בסגנון אפל (Apple Green) */
 .form-switch.ios-switch .form-check-input:checked {
-    background-color: #10b981; /* Apple Green */
+    background-color: #10b981; 
     box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.1);
 }
 
@@ -58,6 +68,7 @@
     background-color: white;
 }
 
+/* הגדרות אנימציה ויישור של העיגול הפנימי במתג כאשר השפה מוגדרת מימין לשמאל (RTL) */
 [dir="rtl"] .form-switch.ios-switch .form-check-input::after {
     left: auto;
     right: 2px;
@@ -67,7 +78,9 @@
     transform: translateX(-20px);
 }
 
-/* Sell Feature Rows */
+/* =========================================
+שורות מאפייני המכירה (Sell Feature Rows)
+========================================= */
 .sell-feature-row {
     padding: 16px;
     border-radius: 16px;
@@ -81,7 +94,9 @@
     border-color: #e2e8f0;
 }
 
-/* Generator Action Card Modernization */
+/* =========================================
+כרטיסי מחולל - מודעת רכב ו-QR (Generator Action Card)
+========================================= */
 .generator-card {
     background: linear-gradient(145deg, #ffffff, #f8fafc);
     border-radius: 20px;
@@ -122,7 +137,9 @@
     color: #3b82f6;
 }
 
-/* Personal Description Field */
+/* =========================================
+שדה תיאור חופשי (Personal Description Field)
+========================================= */
 .seller-comment-textarea {
     background: #f8fafc;
     border: 1px solid #cbd5e1;

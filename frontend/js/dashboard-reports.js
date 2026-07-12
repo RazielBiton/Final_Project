@@ -1,3 +1,10 @@
+/**
+ * @fileoverview frontend/js/dashboard-reports.js
+ * @description מודול המנהל את מערך דוחות התנועה והקנסות של הרכב. אחראי על ניטור נקודות חובה, סימון קנסות לתשלום, ניהול תאריכי תפוגה לדוחות ותצוגת תובנות בטיחות המותאמות אישית להיסטוריית הנהיגה של המשתמש.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 const offenseIcons = {
     'parking': 'fa-parking',
     'speeding': 'fa-tachometer-alt',
@@ -12,6 +19,9 @@ const offenseTitles = {
     'other': 'עבירת תנועה'
 };
 
+/**
+ * פונקציית הליבה לטעינת רשימת הדוחות (קנסות) ועבירות התנועה. מבצעת מיון כרונולוגי, חישוב מועדי פקיעת תשלום, התאמת סמלילים ויזואליים (Icons) לפי סוג עבירה, והצגה דינמית של מצב הדו"ח (שולם/פתוח/איחור).
+ */
 window.loadReports = function () {
     if (!window.currentCar) {
         const stored = localStorage.getItem('currentCar');
@@ -30,7 +40,6 @@ window.loadReports = function () {
     sortedReports.forEach(report => {
         const isPaid = report.status === 'paid';
 
-        // Robust date parsing
         const dateStr = window.formatDate(report.date);
         const dueDateStr = window.formatDate(report.dueDate);
 
@@ -157,6 +166,9 @@ window.loadReports = function () {
     }, 150);
 }
 
+/**
+ * מעדכנת את תצוגת הסכומים והנקודות המצטברות, משנה את הסטטוס (נקי/מעקב/אזהרה/קריטי) ומציגה התראות חירום במידה ונצבר מספר נקודות שמחייב קורס נהיגה מונעת או מוביל לשלילת רישיון (שיטת הניקוד הישראלית).
+ */
 window.updateVisibilityAndTotals = function () {
     const emptyState = document.getElementById('reports-empty-state');
     const populatedState = document.getElementById('reports-populated-state');
@@ -233,6 +245,9 @@ window.updateVisibilityAndTotals = function () {
     }
 }
 
+/**
+ * מייצרת "תובנות בטיחות" (Safety Insights) מותאמות אישית למשתמש על בסיס היסטוריית דוחות התנועה שלו. הפונקציה מזהה דפוסים (לדוגמה: נטייה לקנסות מהירות) וממליצה על פתרונות מונעים באופן רנדומלי וחכם.
+ */
 window.generateSafetyInsights = function () {
     const textEl = document.getElementById('safety-insight-text');
     if (!textEl) return;
@@ -260,11 +275,18 @@ window.generateSafetyInsights = function () {
     textEl.textContent = randomTip;
 }
 
+/**
+ * מסתירה או מציגה את השדה להזנת "סוג עבירה מותאם אישית" (Custom Type) במידה והמשתמש בחר באופציה "אחר" בתפריט.
+ * @param {string} val - הערך הנבחר מהרשימה הנגללת של סוג הדוח.
+ */
 window.toggleCustomType = function (val) {
     const container = document.getElementById('custom-type-container');
     if (container) container.style.display = (val === 'other' ? 'block' : 'none');
 }
 
+/**
+ * מאפסת ופותחת את חלון המודאל המיועד להוספת דוח תנועה חדש, דואגת לניקוי שדות טפסים ותמונות קודמות למניעת כפילויות מידע.
+ */
 window.openAddReportModal = function () {
     const form = document.getElementById('add-report-form');
     if (form) form.reset();
@@ -289,6 +311,10 @@ window.openAddReportModal = function () {
     modal.show();
 }
 
+/**
+ * קולטת ושומרת באחסון המקומי את פרטי דוח התנועה (סכום, נקודות, תאריכים ותמונות/PDF). מבצעת ולידציות של עריכה לעומת הוספה חדשה, ומחשבת אוטומטית תאריך יעד תשלום לתזכורות (+90 יום).
+ * @param {Event} e - אירוע השליחה של הטופס (Submit Event).
+ */
 window.saveReport = function (e) {
     e.preventDefault();
     const id = document.getElementById('reportIdField').value;
@@ -322,7 +348,7 @@ window.saveReport = function (e) {
     if (id) {
         const idx = currentCar.reports.findIndex(r => String(r.id) === String(id));
         if (idx > -1) {
-            // Preserve status if editing an unpaid report but it might have been changed elsewhere
+
             reportData.status = currentCar.reports[idx].status || 'unpaid';
             currentCar.reports[idx] = reportData;
         }
@@ -338,6 +364,10 @@ window.saveReport = function (e) {
     loadReports();
 }
 
+/**
+ * פותחת את מודאל ההזנה ומאכלסת אותו באופן אוטומטי בפרטי הדוח הקיים המיועד לעריכה. מטפלת גם בשחזור תמונות קודמות ושדות מותאמים אישית.
+ * @param {string|number} id - מזהה דוח התנועה שברצוננו לערוך.
+ */
 window.editReport = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (!report) return;
@@ -378,6 +408,10 @@ window.editReport = function (id) {
     modal.show();
 }
 
+/**
+ * מסירה לצמיתות דוח תנועה ספציפי מהמאגר המקומי של הרכב, לאחר אישור וידוא (Confirm) מהמשתמש.
+ * @param {string|number} id - מזהה דוח התנועה למחיקה.
+ */
 window.deleteReport = function (id) {
     if (confirm('האם אתה בטוח שברצונך למחוק דוח זה?')) {
         currentCar.reports = currentCar.reports.filter(r => String(r.id) !== String(id));
@@ -386,6 +420,10 @@ window.deleteReport = function (id) {
     }
 }
 
+/**
+ * משנה את סטטוס דוח התנועה ל"שולם" (Paid) ומעדכנת את הנתונים, מה שמקטין את ההתחייבויות הכספיות הפתוחות.
+ * @param {string|number} id - מזהה הדוח ששולם.
+ */
 window.markAsPaid = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
@@ -395,6 +433,10 @@ window.markAsPaid = function (id) {
     }
 }
 
+/**
+ * מחזירה דוח תנועה שכבר סומן כ"שולם" בחזרה לסטטוס פתוח לתשלום (Unpaid).
+ * @param {string|number} id - מזהה הדוח שיש לבטל לו את תשלום.
+ */
 window.markAsUnpaid = function (id) {
     const report = currentCar.reports.find(r => String(r.id) === String(id));
     if (report) {
@@ -404,6 +446,10 @@ window.markAsUnpaid = function (id) {
     }
 }
 
+/**
+ * מפעילה סינון ויזואלי ברשימת הדוחות בממשק המשתמש לפי סטטוס תשלום (הכל, פתוחים, שולמו), תוך כדי עדכון הטקסט בכפתור הסינון עצמו.
+ * @param {string} status - סוג הסינון ('all', 'unpaid', 'paid').
+ */
 window.filterReports = function (status) {
     const container = document.getElementById('reports-list-container');
     const items = container.querySelectorAll('.report-item');
@@ -419,10 +465,12 @@ window.filterReports = function (status) {
     });
 }
 
-// Handle image uploads via button
 let currentBase64ReportImage = null;
 let currentReportImageType = null;
 
+/**
+ * מאזין לאירועי העלאת קבצים (דוחות מצולמים או מסמכי PDF). מבצע דחיסת תמונות קלה (Compress) לייעול האחסון המקומי, והופך את הקובץ ל-Base64 כדי לרנדר תצוגה מקדימה במקום.
+ */
 document.addEventListener('change', function (e) {
     if (e.target && e.target.id === 'reportImageInput') {
         const file = e.target.files[0];
@@ -446,6 +494,9 @@ document.addEventListener('change', function (e) {
     }
 });
 
+/**
+ * בונה חזותית את התצוגה המקדימה לקובץ הדוח שהועלה, מתאימה אייקון עבור מסמכי PDF ותמונה ממוזערת עבור קבצי תמונה, ומספקת כפתור נוח להסרתם מהטופס.
+ */
 window.renderReportImagePreview = function () {
     const placeholder = document.getElementById('reportUploadPlaceholder');
     const previewContainer = document.getElementById('reportPreviewContainer');
@@ -478,6 +529,9 @@ window.renderReportImagePreview = function () {
     }
 }
 
+/**
+ * מסירה את קובץ הדו"ח (התמונה או ה-PDF) מהזיכרון הזמני בטופס העריכה או ההוספה לפני שמירתו למאגר, ומאפסת את שדה ההזנה.
+ */
 window.removeReportImage = function () {
     currentBase64ReportImage = null;
     currentReportImageType = null;
@@ -486,20 +540,28 @@ window.removeReportImage = function () {
     renderReportImagePreview();
 }
 
-// Ensure the form reset clears the upload too
+/**
+ * מאזין לסגירת מודאל ההזנה במטרה להבטיח שקבצים זמניים שעלו יימחקו מהזיכרון אם המשתמש ביטל פעולה (Cancel).
+ */
 document.addEventListener('hidden.bs.modal', function (e) {
     if (e.target.id === 'addReportModal') {
         removeReportImage();
     }
 });
 
-// INITIALIZE FORM SUBMISSION VIA DELEGATION (Crucial for dynamic loading)
+/**
+ * מאזין לאירוע השליחה של הטופס במודאל העיקרי לניהול דוחות, מונע ריענון דף ומעביר את האחריות למנוע השמירה הייעודי.
+ */
 document.addEventListener('submit', function (e) {
     if (e.target && e.target.id === 'add-report-form') {
         window.saveReport(e);
     }
 });
 
+/**
+ * פותח תצוגה מקדימה רחבה (מודאל נפרד) לתמונה או מסמך של הדו"ח, במקרה והמשתמש לא משתמש בפונקציית התצוגה האוניברסלית.
+ * @param {string} src - מקור התמונה/מסמך להצגה.
+ */
 window.openReportImage = function (src) {
     const preview = document.getElementById('reportImageModalPreview');
     if (preview) {
@@ -509,7 +571,9 @@ window.openReportImage = function (src) {
     }
 };
 
-// Attach autocomplete to report location exactly like treatments
+/**
+ * מפעיל (אוטומטית בזמן טעינה) את מנגנון ההשלמה האוטומטית לכתובות בישראל עבור שדה "מיקום העבירה", כדי לאפשר הזנת נתונים אחידה ומדויקת יותר.
+ */
 (function initReportLocationAutocomplete() {
     const tryAttach = () => {
         if (typeof window.attachAddressAutocomplete === 'function') {
@@ -521,6 +585,6 @@ window.openReportImage = function (src) {
     } else {
         tryAttach();
     }
-    // Also try on modal open (inputs may be lazy)
+
     document.addEventListener('show.bs.modal', () => setTimeout(tryAttach, 100));
 })();

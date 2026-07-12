@@ -1,9 +1,16 @@
 /**
- * --- AFTER LOGIN PREMIUM CONTROLLER ---
- * Fleet overview, personalized UX, and luxury interactions.
+ * @fileoverview frontend/js/after_login.js
+ * @description קובץ זה מנהל את מסך צי הרכבים לאחר ההתחברות (Fleet Overview). הוא מטפל בשליפת נתוני הרכבים של המשתמש מהשרת, חישוב ציון האמינות, תצוגת הכרטיסיות (Cards) ואינטראקציות של עריכה ומחיקת רכבים.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
  */
 
 /* ── HELPER UTILS ───────────────────────────────────────────────────────────── */
+/**
+ * פונקציית עזר הבודקת האם תאריך נתון נמצא בעתיד ביחס להיום. משמשת בעיקר לבדיקת תוקף של ביטוחים או טסטים.
+ * @param {string} dateStr - מחרוזת המייצגת תאריך.
+ * @returns {boolean} - מחזיר אמת (true) אם התאריך בעתיד, אחרת שקר (false).
+ */
 function isDateFuture(dateStr) {
     if (!dateStr) return false;
     const d = new Date(dateStr);
@@ -11,8 +18,10 @@ function isDateFuture(dateStr) {
 }
 
 /**
- * Enhanced Reliability Calculation for Fleet View (Strict Logic)
- * Must match dashboard-overview.js logic 1:1
+ * חישוב ציון האמינות של הרכב (Reliability Score) על סמך היסטוריית טיפולים, תוקף ביטוחים, תדלוקים, טסט ומד אוץ.
+ * הציון משוקלל לאחוזים (0-100) ומוצג למשתמש כאינדיקציה לרמת התחזוקה של הרכב.
+ * @param {Object} car - אובייקט הרכב המכיל את כלל הנתונים (טיפולים, ביטוח, תדלוקים וכו').
+ * @returns {number} - ציון האמינות מחושב כמספר שלם בין 0 ל-100.
  */
 window.calculateReliability = function (car) {
     let score = 0;
@@ -58,6 +67,10 @@ window.calculateReliability = function (car) {
 };
 
 /* ── DOM READY ─────────────────────────────────────────────────────────────── */
+/**
+ * מאזין לאירוע טעינת ה-DOM. מפעיל את פונקציות האתחול המרכזיות בעת טעינת העמוד: ברכת שלום אישית, טעינת פרופיל משתמש, ושליפת צי הרכבים.
+ * @param {Event} event - אירוע טעינת העמוד.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
     initHeroGreeting();
     loadUserProfile();
@@ -66,6 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /* ── CORE LOGIC ────────────────────────────────────────────────────────────── */
 
+/**
+ * שליפת רשימת הרכבים של המשתמש מהשרת והצגתם ככרטיסיות ויזואליות במסך.
+ * הפונקציה מפרמטת את הנתונים, שומרת עותק מקומי (Session Storage), ומזריקה אלמנטי HTML דינמיים עבור כל רכב.
+ * @returns {Promise<void>} - אינו מחזיר ערך מפורש, אך מעדכן את ממשק המשתמש אסינכרונית.
+ * @throws {Error} - זורק שגיאה אם השליפה מהשרת נכשלה.
+ */
 async function fetchAndRenderFleet() {
     const row = document.getElementById('vehicleRow');
     const addWrapper = document.getElementById('addCardWrapper');
@@ -171,6 +190,10 @@ async function fetchAndRenderFleet() {
     }
 }
 
+/**
+ * אתחול הודעת הברכה האישית בראש העמוד (Hero Greeting).
+ * הפונקציה מחשבת את השעה ביום ומציגה ברכה תואמת (בוקר טוב, צהריים טובים וכו') יחד עם שמו הפרטי של המשתמש.
+ */
 function initHeroGreeting() {
     const greetingEl = document.getElementById('heroGreeting');
     if (!greetingEl) return;
@@ -190,6 +213,10 @@ function initHeroGreeting() {
 
 /* ── INTERACTIONS ───────────────────────────────────────────────────────────── */
 
+/**
+ * סינון חיפוש ברשימת הרכבים המוצגת.
+ * עובר על כרטיסיות הרכבים ומציג או מסתיר אותן בהתאם לטקסט שהוזן בשדה החיפוש (לפי יצרן, מודל או מספר רישוי).
+ */
 function filterFleet() {
     const query = document.getElementById('fleetSearch').value.toLowerCase();
     const items = document.querySelectorAll('.fleet-item');
@@ -199,6 +226,12 @@ function filterFleet() {
     });
 }
 
+/**
+ * פתיחה וסגירה של תפריט הפעולות (Kebab Menu) בכרטיסיית רכב ספציפית.
+ * סוגר תפריטים פתוחים אחרים לפני פתיחת התפריט הנוכחי.
+ * @param {Event} e - אירוע הלחיצה (Click Event).
+ * @param {HTMLElement} btn - כפתור התפריט עליו המשתמש לחץ.
+ */
 function toggleCardActions(e, btn) {
     e.stopPropagation();
     const dropdown = btn.nextElementSibling;
@@ -212,10 +245,19 @@ function toggleCardActions(e, btn) {
 }
 
 // Click outside to close dropdowns
+/**
+ * מאזין לאירוע לחיצה (Click) על חלון הדפדפן כדי לסגור תפריטי פעולות פתוחים אם המשתמש לחץ מחוץ להם.
+ * @param {Event} event - אירוע הלחיצה.
+ */
 window.addEventListener('click', () => {
     document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
 });
 
+/**
+ * הוספת אפקט הטיה תלת-ממדי (3D Tilt Effect) לכרטיסיות הרכב בעת מעבר עכבר (Hover).
+ * משפר את חווית המשתמש (UX) ומקנה מראה יוקרתי (Premium Feel).
+ * @param {HTMLElement} el - אלמנט ה-HTML של כרטיסיית הרכב שעליו יוחל האפקט.
+ */
 function addTiltEffect(el) {
     const card = el.querySelector('.premium-card');
     el.addEventListener('mousemove', (e) => {
@@ -236,6 +278,13 @@ function addTiltEffect(el) {
 
 /* ── VEHICLE CRUD ────────────────────────────────────────────────────────────── */
 
+/**
+ * מחיקת רכב ספציפי ממאגר הנתונים של המשתמש בשרת.
+ * לאחר אישור מהמשתמש, שולח בקשת מחיקה ל-API ומרענן את העמוד בעת הצלחה.
+ * @param {number} id - מזהה (ID) הרכב למחיקה.
+ * @returns {Promise<void>} - אינו מחזיר ערך מפורש, אך מבצע בקשת רשת אסינכרונית.
+ * @throws {Error} - מדפיס שגיאה לקונסול במידה ובקשת המחיקה נכשלת.
+ */
 async function deleteCar(id) {
     if (!confirm('האם אתה בטוח שברצונך למחוק את הרכב מהצי?')) return;
     const userId = sessionStorage.getItem('userId');
@@ -251,6 +300,11 @@ async function deleteCar(id) {
 }
 
 let currentEditingCarId = null;
+/**
+ * פתיחת מודאל (Modal) עריכת פרטי רכב עבור רכב קיים.
+ * שולף את נתוני הרכב מהאחסון המקומי ומאכלס את שדות הטופס להמשך עריכה.
+ * @param {number} id - מזהה (ID) הרכב לעריכה.
+ */
 function editCar(id) {
     const cars = JSON.parse(sessionStorage.getItem('userCars')) || [];
     const car = cars.find(c => c.id === id);
@@ -265,6 +319,12 @@ function editCar(id) {
     modal.show();
 }
 
+/**
+ * שמירת פרטי הרכב המעודכנים (כגון שם יצרן, דגם ולוגו) מול השרת.
+ * כולל תהליך העלאת תמונת לוגו מקומית (Base64) או השמה אוטומטית של לוגו באמצעות תרגום שם היצרן לאנגלית.
+ * @returns {Promise<void>} - מעדכן אסינכרונית את הרכב ומרענן את העמוד בהצלחה.
+ * @throws {Error} - מציג הודעת שגיאה בממשק המשתמש במידה והשמירה נכשלה.
+ */
 async function saveVehicleDetails() {
     const btn = document.getElementById('btnSaveVehicleDetails');
     const normalText = btn.querySelector('.normal-text');
@@ -352,6 +412,11 @@ async function saveVehicleDetails() {
     }
 }
 
+/**
+ * מאזין טעינת עמוד שמטרתו לאתחל את כפתור השמירה במודאל עריכת הרכב.
+ * מקשר בין לחיצה על כפתור השמירה להפעלת הפונקציה saveVehicleDetails.
+ * @param {Event} event - אירוע טעינת העמוד.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSaveVehicleDetails');
     if (btnSave) {
@@ -360,6 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── PROFILE SYNC ───────────────────────────────────────────────────────────── */
+/**
+ * טעינת פרטי הפרופיל של המשתמש המחובר (שם ותמונת אווטאר) לתפריט הצד (Sidebar).
+ * שואב נתונים מה-Session Storage ומשתמש בשירות חיצוני ליצירת אווטאר ברירת מחדל אם אין תמונה.
+ */
 function loadUserProfile() {
     const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
     const nameEl = document.getElementById('sidebarUserName');

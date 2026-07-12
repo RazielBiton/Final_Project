@@ -1,4 +1,13 @@
-// --- MODULE: TREATMENTS & INVOICES ---
+/**
+ * @fileoverview frontend/js/dashboard-treatments.js
+ * @description מודול המנהל את מערך היסטוריית הטיפולים ותחזוקת הרכב. מודול זה מכיל לוגיקה ענפה המשלבת העלאת קבלות וחשבוניות (כולל דחיסה ומניעת עומס אחסון), לצד יכולות בחירת מוסך חכמות המבוססות על שירותי מיקום, Google Places API ומפות интеראקטיביות (Map Picker).
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * נטענת בעת פתיחת מסך הטיפולים והתחזוקה. מושכת ממאגר הנתונים את היסטוריית הטיפולים, מסדרת אותם בטבלה, מסמנת טיפולים ללא קבלות/חשבוניות, ומחשבת באופן רוחבי את כמות הטיפולים הכוללת והעלות הכספית המצטברת.
+ */
 window.loadTreatments = function () {
     if (!window.currentCar) {
         const stored = localStorage.getItem('currentCar');
@@ -10,17 +19,14 @@ window.loadTreatments = function () {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // Apply max date restrictions to the Date Pickers
     const today = new Date().toISOString().split('T')[0];
     const tDateElem = document.getElementById('tDate');
     const editTDateElem = document.getElementById('editTDate');
     if (tDateElem) tDateElem.setAttribute('max', today);
     if (editTDateElem) editTDateElem.setAttribute('max', today);
 
-    // Ensure array exists
     if (!currentCar.treatments) currentCar.treatments = [];
 
-    // Stats
     const statTreatments = document.getElementById('stat-total-treatments');
     if (statTreatments) statTreatments.textContent = currentCar.treatments.length;
 
@@ -31,7 +37,6 @@ window.loadTreatments = function () {
     currentCar.treatments.forEach(t => {
         const tr = document.createElement('tr');
 
-        // Highlight row if invoice is missing
         if (!t.invoice) {
             tr.style.backgroundColor = '#fdeaea'; // light red background
         }
@@ -65,6 +70,9 @@ window.loadTreatments = function () {
 
 }
 
+/**
+ * קולטת מהטופס את נתוני הטיפול החדש (תאריך, סוג, מוסך, ק"מ, עלות ומסמך מצורף), מבצעת בדיקות תקינות לשדות חובה, ושומרת אותם לתוך מאגר הנתונים. מעדכנת בנוסף את מד הקילומטראז' המרכזי של הרכב אם הטיפול עדכני יותר.
+ */
 window.saveTreatment = function () {
     const tName = document.getElementById('tName').value;
     const tDate = document.getElementById('tDate').value;
@@ -77,7 +85,6 @@ window.saveTreatment = function () {
         return;
     }
 
-    // Function to finish saving after (optional) file read
     const finishSave = (base64Invoice) => {
         const newTreatment = {
             id: Date.now(),
@@ -93,12 +100,11 @@ window.saveTreatment = function () {
             currentCar.treatments = [];
         }
 
-        // Auto-update global mileage if the treatment km is higher
         const parsedKm = parseInt(tKm);
         const currentKm = parseInt(currentCar.km) || 0;
         if (parsedKm > currentKm) {
             currentCar.km = parsedKm;
-            // Instantly update the Header visual if it exists
+
             const headerKmElem = document.getElementById('vehicleKm');
             if (headerKmElem) headerKmElem.textContent = parsedKm.toLocaleString();
         }
@@ -108,7 +114,6 @@ window.saveTreatment = function () {
         loadTreatments();
         if (typeof loadOverview === 'function') loadOverview(); // Update expenses
 
-        // Modal & Reset
         const addModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addTreatmentModal'));
         if (addModal) addModal.hide();
         document.getElementById('addTreatmentForm').reset();
@@ -117,6 +122,10 @@ window.saveTreatment = function () {
     finishSave(currentBase64TreatmentInvoice || null);
 }
 
+/**
+ * מסירה רשומת טיפול ספציפית ממאגר הנתונים ומעדכנת את התצוגה ואת סך ההוצאות בהתאם. דורשת אישור משתמש (Confirm) בטרם ביצוע הפעולה.
+ * @param {number|string} id - מזהה הטיפול המיועד למחיקה.
+ */
 window.deleteTreatment = function (id) {
     if (confirm('האם למחוק טיפול זה?')) {
         currentCar.treatments = currentCar.treatments.filter(t => t.id !== id);
@@ -126,6 +135,10 @@ window.deleteTreatment = function (id) {
     }
 }
 
+/**
+ * שולפת את המסמך/חשבונית המקושרת לטיפול מסוים ומציגה אותו בתצוגה מקדימה רחבה (מודאל), תוך התאמה אוטומטית לסוג הקובץ (PDF או תמונה).
+ * @param {number|string} tId - מזהה הטיפול שמכיל את החשבונית.
+ */
 window.viewInvoice = function (tId) {
     const t = currentCar.treatments.find(x => x.id == tId);
     if (t && t.invoice) {
@@ -135,6 +148,10 @@ window.viewInvoice = function (tId) {
     }
 }
 
+/**
+ * פותחת חלון מודאל לעריכת טיפול קיים ומאכלסת את השדות בנתוניו המקוריים, כולל טיפול בתצוגת החשבונית או התמונה שהועלתה אליו בעבר.
+ * @param {number|string} tId - מזהה הטיפול שאותו רוצים לערוך.
+ */
 window.openEditTreatmentModal = function (tId) {
     const t = currentCar.treatments.find(x => x.id === tId);
     if (!t) return;
@@ -146,7 +163,6 @@ window.openEditTreatmentModal = function (tId) {
     document.getElementById('editTKm').value = t.km;
     document.getElementById('editTCost').value = t.cost;
 
-    // Clear invoice input so previous file label reflects 'unchanged' if no new file is added
     document.getElementById('editTInvoice').value = "";
     if (t.invoice) {
         currentBase64TreatmentInvoice = t.invoice;
@@ -160,6 +176,9 @@ window.openEditTreatmentModal = function (tId) {
     new bootstrap.Modal(document.getElementById('editTreatmentModal')).show();
 }
 
+/**
+ * שומרת את השינויים שבוצעו בחלון העריכה. מחליפה את פרטי הטיפול המקוריים בנתונים החדשים, מתמודדת עם המרה אסינכרונית ודחיסה של חשבונית חדשה אם הועלתה, ולבסוף מרעננת את התצוגות הרלוונטיות בממשק.
+ */
 window.updateTreatment = function () {
     const tId = parseInt(document.getElementById('editTId').value);
     const tName = document.getElementById('editTName').value;
@@ -214,9 +233,13 @@ window.updateTreatment = function () {
     }
 }
 
-// --- Shared precise location helper using watchPosition ---
 let _cachedUserLocation = null; // Cache last known precise location
 
+/**
+ * פונקציית שירות הפונה לרכיב ה-Geolocation של הדפדפן להשגת מיקום מדויק ככל האפשר של המשתמש. מפעילה האזנה (Watch) לזמן מוגבל כדי להגיע לרמת דיוק טובה מ-50 מטר (שימושי במיוחד בעת הזנת מוסך בזמן אמת).
+ * @param {Function} onSuccess - פונקציית Callback המופעלת ברגע שמתקבל מיקום מדויק.
+ * @param {Function} onError - פונקציית Callback המופעלת במקרה של שגיאה או דחיית הרשאות מיקום.
+ */
 function getPreciseLocation(onSuccess, onError) {
     if (!navigator.geolocation) {
         onError && onError(new Error('no geolocation'));
@@ -224,7 +247,7 @@ function getPreciseLocation(onSuccess, onError) {
     }
     let settled = false;
     let watchId = null;
-    // Timeout fallback after 15s
+
     const fallbackTimer = setTimeout(() => {
         if (!settled) {
             settled = true;
@@ -237,7 +260,7 @@ function getPreciseLocation(onSuccess, onError) {
         (pos) => {
             const accuracy = pos.coords.accuracy; // meters
             _cachedUserLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            // Accept if accuracy ≤ 50m, or after 5s accept whatever we have
+
             if (!settled && accuracy <= 50) {
                 settled = true;
                 clearTimeout(fallbackTimer);
@@ -255,7 +278,6 @@ function getPreciseLocation(onSuccess, onError) {
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
 
-    // Accept best reading after 5 seconds even if not ideal accuracy
     setTimeout(() => {
         if (!settled && _cachedUserLocation) {
             settled = true;
@@ -266,18 +288,29 @@ function getPreciseLocation(onSuccess, onError) {
     }, 5000);
 }
 
-// Extracts house number from address object, with fallback to display_name parsing
-// Nominatim sometimes puts the house number as the first segment of display_name (e.g. "2, השוהם, מגדל העמק...")
+/**
+ * כלי חילוץ מתקדם לשירות המפות של Nominatim. לעיתים שירות המפות מחזיר מספר בית מנותק או בלתי צפוי. פונקציה זו מחלצת את מספר הבית ומתאימה אותו לפורמט הכתובות המקובל בישראל (לדוגמה "14א").
+ * @param {Object} addr - אובייקט הכתובת המוחזר משירות הגיאוקודינג.
+ * @param {string} displayName - שם התצוגה המלא שהתקבל מהשירות.
+ * @returns {string} - מספר הבית המחולץ (או מחרוזת ריקה אם לא נמצא).
+ */
 function extractHouseNumber(addr, displayName) {
     if (addr && addr.house_number) return addr.house_number;
     if (displayName) {
         const firstPart = displayName.split(',')[0].trim();
-        // Match pure numbers or number+Hebrew letter (e.g. "2", "14א")
+
         if (/^\d+[א-ת]?$/.test(firstPart)) return firstPart;
     }
     return '';
 }
 
+/**
+ * פונה ל-API החינמי של Nominatim לצורך הפיכת נקודת ציון (רוחב ואורך) לכתובת רחוב קריאה בעברית (Reverse Geocoding). משתמשת בהיגיון מובנה לחילוץ עיר, רחוב ומספר בית.
+ * @param {number} lat - קו הרוחב (Latitude).
+ * @param {number} lon - קו האורך (Longitude).
+ * @returns {Promise<string|null>} - מחרוזת הכתובת בעברית, או Null אם נכשל.
+ * @throws {Error} זורקת שגיאה במקרה של כשל תקשורת.
+ */
 async function reverseGeocode(lat, lon) {
     const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=he`,
@@ -298,6 +331,10 @@ async function reverseGeocode(lat, lon) {
     return null;
 }
 
+/**
+ * פונקציית כפתור ה-"מצא מיקום נוכחי". מפעילה את מנגנון איתור המיקום, דוגמת נקודת ציון, ממירה אותה לכתובת פיזית (Reverse Geocode) ומזריקה את הכתובת ישירות לתוך שדה הזנת המוסך.
+ * @param {string} inputId - מזהה אלמנט שדה ההזנה (Input ID) שאליו יש להזין את הכתובת.
+ */
 window.fetchCurrentLocation = function(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -328,14 +365,18 @@ window.fetchCurrentLocation = function(inputId) {
     });
 };
 
-// ---- Garage Address Autocomplete (Nominatim) ----
 let _autocompleteDebounce = null;
 
+/**
+ * בונה ומגדירה (DOM Manipulation) את רשימת ההשלמה האוטומטית (Dropdown) מתחת לשדה הכתובת (מוסך) הנתון. משתמשת בעיצוב קבוע מראש ומטפלת באירועי סגירה (לחיצה בחוץ).
+ * @param {HTMLElement} inputEl - אלמנט שדה הקלט עליו מופעלת ההשלמה.
+ * @returns {HTMLElement} - אלמנט ה-Dropdown שנוצר.
+ */
 function buildAutocompleteDropdown(inputEl) {
-    // Create dropdown container once
+
     let dropdown = inputEl._acDropdown;
     if (!dropdown) {
-        // Wrap just the input in a relative-positioned div so top:100% works correctly
+
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position:relative; display:block;';
         inputEl.parentElement.insertBefore(wrapper, inputEl);
@@ -360,7 +401,6 @@ function buildAutocompleteDropdown(inputEl) {
         wrapper.appendChild(dropdown);
         inputEl._acDropdown = dropdown;
 
-        // Close on outside click
         document.addEventListener('click', (e) => {
             if (!wrapper.contains(e.target)) {
                 dropdown.style.display = 'none';
@@ -370,7 +410,12 @@ function buildAutocompleteDropdown(inputEl) {
     return dropdown;
 }
 
-// ---- Shared dropdown item renderer ----
+/**
+ * מרנדרת אלמנטים אל תוך תפריט ההשלמה האוטומטית על בסיס רשימת כתובות שהתקבלו. מספקת האזנה ללחיצת עכבר (Mouse Events) כדי לבחור את הכתובת הרצויה לתוך שדה הטקסט.
+ * @param {string[]} labels - מערך מחרוזות של כתובות מועמדות.
+ * @param {HTMLElement} dropdown - אלמנט התפריט הנגלל (הקונטיינר).
+ * @param {HTMLElement} inputEl - שדה הקלט אליו תועבר התוצאה הנבחרת.
+ */
 function showDropdownItems(labels, dropdown, inputEl) {
     dropdown.innerHTML = '';
     if (!labels || labels.length === 0) { dropdown.style.display = 'none'; return; }
@@ -390,9 +435,15 @@ function showDropdownItems(labels, dropdown, inputEl) {
     dropdown.style.display = 'block';
 }
 
-// ---- Nominatim suggestions with house-number support ----
+/**
+ * מנוע החיפוש המשני (Fallback) להשלמת כתובות, הפונה ל-Nominatim של OSM במידה ושירות גוגל אינו זמין. מבצע תרגומים למבנה החיפוש כדי להתמודד עם הפורמט הישראלי של "שם רחוב" ולאחריו "מספר בית".
+ * @param {string} query - מחרוזת החיפוש שהוזנה על ידי המשתמש.
+ * @param {HTMLElement} dropdown - תפריט התצוגה המקדימה לתוצאות.
+ * @param {HTMLElement} inputEl - שדה הטקסט.
+ * @returns {Promise<void>}
+ */
 async function fetchNominatimSuggestions(query, dropdown, inputEl) {
-    // Detect Israeli "street number" format: "השוהם 2" → try Nominatim with "2 השוהם" (western format)
+
     const numberMatch = query.match(/^(.+?)\s+(\d+[\u05d0-\u05ea]?)\s*$/);
     const urls = [];
     let userStreet = '';
@@ -400,10 +451,10 @@ async function fetchNominatimSuggestions(query, dropdown, inputEl) {
     if (numberMatch) {
         userStreet = numberMatch[1].trim();
         userNum = numberMatch[2].trim();
-        // Structured search: number before street (how Nominatim expects it)
+
         urls.push(`https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(userNum + ' ' + userStreet)}&countrycodes=il&addressdetails=1&limit=5&accept-language=he`);
     }
-    // Also do a regular free-text search
+
     urls.push(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=il&addressdetails=1&limit=5&accept-language=he`);
 
     const allLabels = [];
@@ -419,8 +470,6 @@ async function fetchNominatimSuggestions(query, dropdown, inputEl) {
                 const street = addr.road || addr.pedestrian || addr.footway || '';
                 const city = addr.city || addr.town || addr.village || addr.suburb || '';
 
-                // SMART FALLBACK: If user typed a house number, but Nominatim didn't return one,
-                // and the returned street matches the user's input -> Inject the number!
                 if (!houseNumber && userNum && street && street.includes(userStreet)) {
                     houseNumber = userNum;
                 }
@@ -439,6 +488,10 @@ async function fetchNominatimSuggestions(query, dropdown, inputEl) {
     showDropdownItems(allLabels, dropdown, inputEl);
 }
 
+/**
+ * עוטפת שדה קלט נתון במנגנון ההשלמה האוטומטית (Debounced). מעבירה תחילה את הבקשות אל Google Places API (לרמת דיוק מרבית הכוללת מספרי בתים בישראל), ואם השירות אינו זמין פונה למנועי גיבוי (Nominatim).
+ * @param {HTMLElement} inputEl - שדה הקלט לכתובת המוסך.
+ */
 function attachGarageAutocomplete(inputEl) {
     if (!inputEl || inputEl._acAttached) return;
     inputEl._acAttached = true;
@@ -450,7 +503,7 @@ function attachGarageAutocomplete(inputEl) {
         clearTimeout(_autocompleteDebounce);
         _autocompleteDebounce = setTimeout(async () => {
             try {
-                // Prefer Google Places AutocompleteService — returns full addresses WITH house numbers
+
                 if (typeof google !== 'undefined' && google.maps && google.maps.places && google.maps.places.AutocompleteService) {
                     const service = new google.maps.places.AutocompleteService();
                     service.getPlacePredictions(
@@ -470,13 +523,13 @@ function attachGarageAutocomplete(inputEl) {
                                 );
                                 showDropdownItems(labels, dropdown, inputEl);
                             } else {
-                                // Google returned nothing → Nominatim fallback
+
                                 fetchNominatimSuggestions(query, dropdown, inputEl);
                             }
                         }
                     );
                 } else {
-                    // Google not loaded yet → Nominatim
+
                     await fetchNominatimSuggestions(query, dropdown, inputEl);
                 }
             } catch(e) {
@@ -494,9 +547,11 @@ function attachGarageAutocomplete(inputEl) {
     });
 }
 
-// Attach autocomplete to both garage inputs
+/**
+ * מפעילה אוטומטית בעת טעינת הדף את מנגנון ההשלמה למוסכים ולכתובות, וכן אחראית על טעינה ראשונית ואסינכרונית של קוד הסקריפט (SDK) הרשמי של Google Maps.
+ */
 (function initGarageAutocomplete() {
-    // Attach on DOM ready (inputs might be inside modals)
+
     const tryAttach = () => {
         attachGarageAutocomplete(document.getElementById('tGarage'));
         attachGarageAutocomplete(document.getElementById('editTGarage'));
@@ -506,10 +561,9 @@ function attachGarageAutocomplete(inputEl) {
     } else {
         tryAttach();
     }
-    // Also try on modal open (inputs may be lazy)
+
     document.addEventListener('show.bs.modal', () => setTimeout(tryAttach, 100));
 
-    // Load Google Maps for the map picker (geocoding only)
     fetch('/api/config/maps')
         .then(res => res.json())
         .then(data => {
@@ -524,27 +578,28 @@ function attachGarageAutocomplete(inputEl) {
         .catch(err => console.error('Could not load Maps Config', err));
 })();
 
-// Expose autocomplete globally for other modules (like reports)
 window.attachAddressAutocomplete = attachGarageAutocomplete;
 
-// --- Map Picker Logic ---
 let mapPickerInstance = null;
 let mapPickerMarker = null;
 let mapGeocoder = null;
 let currentTargetInputId = '';
 let currentSelectedAddress = '';
 
+/**
+ * פותחת את ממשק "בחירה ממפה" (Map Picker Modal). טוענת את Google Maps (אם זמין), ממקמת סמן על מפת ישראל ומאפשרת למשתמש לגרור אותו (Drag) לצורך בחירה מדויקת של מיקום המוסך או מרכז השירות.
+ * @param {string} inputId - מזהה השדה שאליו תועתק הכתובת לאחר אישור המפה.
+ */
 window.openMapPicker = function(inputId) {
     currentTargetInputId = inputId;
     
     const modalEl = document.getElementById('mapPickerModal');
     if (!modalEl) return;
 
-    // Default to Tel Aviv until we get precise location
     const defaultLat = 32.0853, defaultLng = 34.7818;
 
     function initMapAtPos(lat, lng) {
-        // Check Google Maps loaded
+
         if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
             alert('שירות המפות עדיין בטעינה, אנא נסה שנית בעוד מספר שניות.');
             return;
@@ -583,7 +638,7 @@ window.openMapPicker = function(inputId) {
 
                 updateAddressFromLatLng({ lat, lng });
             } else {
-                // Move existing map to current location
+
                 const pos = { lat, lng };
                 mapPickerInstance.setCenter(pos);
                 mapPickerMarker.setPosition(pos);
@@ -593,15 +648,13 @@ window.openMapPicker = function(inputId) {
         });
     }
 
-    // Try to get precise user location before opening map
     const addressEl = document.getElementById('mapSelectedAddress');
     if (addressEl) addressEl.textContent = 'מאתר מיקום נוכחי...';
 
-    // Use cached location if recent, otherwise fetch
     if (_cachedUserLocation) {
         initMapAtPos(_cachedUserLocation.lat, _cachedUserLocation.lng);
     } else if (navigator.geolocation) {
-        // Try quick location (up to 4 seconds), fallback to Tel Aviv
+
         let done = false;
         const timer = setTimeout(() => {
             if (!done) { done = true; initMapAtPos(defaultLat, defaultLng); }
@@ -624,14 +677,22 @@ window.openMapPicker = function(inputId) {
     }
 };
 
+/**
+ * מקבלת ממודול ה-Geocoder של גוגל את רשימת התוצאות, שולפת את הכתובת הספציפית ביותר (ברמת רחוב ומספר) ומנקה ממנה סיומות לא נחוצות כגון ", ישראל".
+ * @param {Array} results - מערך התוצאות מ-Google Geocoder.
+ * @returns {string|null} - הכתובת הנקייה.
+ */
 function extractCleanAddress(results) {
     if (!results || results.length === 0) return null;
-    // Google Geocoder always sorts results from most specific to least specific.
-    // results[0] is exactly what's on the map pin (including business name + house number if it exists).
-    // We just remove the country name.
+
     return results[0].formatted_address.replace(/, ישראל$/i, '').replace(/, Israel$/i, '').trim();
 }
 
+/**
+ * ממירה קואורדינטות שהתקבלו מלחיצה או גרירת הסמן על המפה לכדי כתובת עברית מדויקת. מנסה תחילה להשתמש ב-Google Geocoder, ואם נכשל עוברת לגיבוי מבוסס Nominatim. מציגה את התוצאה למשתמש בזמן אמת.
+ * @param {Object} latLng - אובייקט נקודת ציון (מכיל lat ו-lng).
+ * @returns {Promise<void>}
+ */
 async function updateAddressFromLatLng(latLng) {
     const addressEl = document.getElementById('mapSelectedAddress');
     if (!addressEl) return;
@@ -641,7 +702,6 @@ async function updateAddressFromLatLng(latLng) {
     const lat = typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat;
     const lng = typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng;
 
-    // Try Google Geocoder first
     if (mapGeocoder || (typeof google !== 'undefined' && google.maps)) {
         if (!mapGeocoder) mapGeocoder = new google.maps.Geocoder();
         
@@ -658,7 +718,7 @@ async function updateAddressFromLatLng(latLng) {
                 });
             }).then(async (success) => {
                 if (!success) {
-                    // Fallback to Nominatim
+
                     await fetchAddressFromNominatim(lat, lng, addressEl);
                 }
             });
@@ -667,11 +727,17 @@ async function updateAddressFromLatLng(latLng) {
             console.error('Google Geocoder error:', e);
         }
     }
-    
-    // Fallback: use Nominatim if Google not available
+
     await fetchAddressFromNominatim(lat, lng, addressEl);
 }
 
+/**
+ * מנוע הגיבוי הרשמי לתרגום קואורדינטות לכתובת, המשמש בעת קריסה או חסימה של מנוע המפות של גוגל. מזין את הכתובת המחושבת אל שדה התצוגה המקדימה במודאל המפה.
+ * @param {number} lat - קו רוחב.
+ * @param {number} lng - קו אורך.
+ * @param {HTMLElement} addressEl - אלמנט הטקסט אליו מוזרקת הכתובת ב-DOM.
+ * @returns {Promise<void>}
+ */
 async function fetchAddressFromNominatim(lat, lng, addressEl) {
     try {
         const res = await fetch(
@@ -699,6 +765,9 @@ async function fetchAddressFromNominatim(lat, lng, addressEl) {
     if (addressEl) addressEl.textContent = currentSelectedAddress;
 }
 
+/**
+ * מאשרת את המיקום שנבחר על גבי המפה האינטראקטיבית. מעתיקה את הכתובת המסונתזת בחזרה אל שדה המוסך המקורי בטופס הטיפול וסוגרת את המודאל.
+ */
 window.confirmMapSelection = function() {
     if (currentTargetInputId && currentSelectedAddress) {
         const input = document.getElementById(currentTargetInputId);
@@ -713,10 +782,12 @@ window.confirmMapSelection = function() {
     }
 };
 
-// --- INVOICE UPLOAD UI LOGIC ---
 let currentBase64TreatmentInvoice = null;
 let currentTreatmentInvoiceType = null;
 
+/**
+ * מאזין טעינה גלובלי (DOM Ready) המחבר מאזיני אירועים להעלאת קבצי חשבוניות. אם הקובץ הוא תמונה, מפעיל מנגנון דחיסה יעודי למניעת פיצוץ הזיכרון באחסון המקומי של הדפדפן.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const tInvoiceInput = document.getElementById('tInvoice');
     if (tInvoiceInput) {
@@ -765,6 +836,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * מעדכנת דינמית את ממשק המשתמש כך שיציג צלמית ממוזערת של קבלת הטיפול שזה עתה הועלתה, לצד כפתורי אפשרויות לצפייה מוגדלת או להסרת המסמך מחלון יצירת הטיפול.
+ */
 window.renderTreatmentInvoicePreview = function() {
     const placeholder = document.getElementById('tInvoicePlaceholder');
     const previewContainer = document.getElementById('tInvoicePreviewContainer');
@@ -797,6 +871,9 @@ window.renderTreatmentInvoicePreview = function() {
     }
 }
 
+/**
+ * מעדכנת דינמית את ממשק המשתמש (בדיוק כמו renderTreatmentInvoicePreview) אך באזור עריכת הטיפול הקיים במקום באזור היצירה.
+ */
 window.renderEditTreatmentInvoicePreview = function() {
     const placeholder = document.getElementById('editTInvoicePlaceholder');
     const previewContainer = document.getElementById('editTInvoicePreviewContainer');
@@ -829,6 +906,9 @@ window.renderEditTreatmentInvoicePreview = function() {
     }
 }
 
+/**
+ * מסירה מהזיכרון הזמני קובץ חשבונית שצורף בטעות לחלון הזנת טיפול חדש טרם השמירה, ומאפסת את אלמנט ה-Input כדי לאפשר העלאה חוזרת נקייה.
+ */
 window.removeTreatmentInvoice = function() {
     currentBase64TreatmentInvoice = null;
     currentTreatmentInvoiceType = null;
@@ -837,6 +917,9 @@ window.removeTreatmentInvoice = function() {
     renderTreatmentInvoicePreview();
 }
 
+/**
+ * מסירה חשבונית (קיימת או חדשה) מתוך חלון עריכת הטיפול ומרעננת את התצוגה, המחיקה הסופית מתרחשת רק כאשר המשתמש שומר את השינויים.
+ */
 window.removeEditTreatmentInvoice = function() {
     currentBase64TreatmentInvoice = null;
     currentTreatmentInvoiceType = null;
@@ -845,7 +928,6 @@ window.removeEditTreatmentInvoice = function() {
     if (typeof renderEditTreatmentInvoicePreview === 'function') renderEditTreatmentInvoicePreview();
 }
 
-// Ensure the form reset clears the invoice upload too
 const originalAddTreatmentModalListener = document.getElementById('addTreatmentModal');
 if (originalAddTreatmentModalListener) {
     originalAddTreatmentModalListener.addEventListener('hidden.bs.modal', function () {

@@ -1,13 +1,19 @@
-/* --- ALERTS MODULE PREMIUM APPLE STYLES --- */
+/* =========================================================
+שם הקובץ: dashboard-alerts.css
+תיאור: קובץ עיצוב המוקדש למסך ההתרעות במערכת. מספק את המראה המתקדם (Premium Apple Styles) ללוח ההתרעות, כולל ציר הזמן החכם (Timeline), אינדיקציות צבע דופקות למצבי חירום, אזור הצעות ה-AI וכפתורי הסינון העליונים.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
-/* Timeline Container */
+/* =========================================
+קונטיינר ציר הזמן (Timeline Container)
+========================================= */
 .premium-timeline {
     position: relative;
     padding: 20px 0;
     margin: 20px 0;
 }
 
-/* Vertical Line */
+/* קו אנכי מחבר בין האירועים (Vertical Line) */
 .premium-timeline::before {
     content: '';
     position: absolute;
@@ -19,7 +25,9 @@
     z-index: 1;
 }
 
-/* Timeline Item Container */
+/* =========================================
+פריט ציר זמן (Timeline Item Container)
+========================================= */
 .timeline-item {
     position: relative;
     padding-left: 65px;
@@ -31,7 +39,7 @@
     margin-bottom: 0;
 }
 
-/* Timeline Node Dot */
+/* נקודת הציון בציר הזמן (Timeline Node Dot) */
 .timeline-node {
     position: absolute;
     left: 17px;
@@ -51,19 +59,24 @@
     transform: scale(1.1);
 }
 
-/* Priority Colors for Nodes */
+/* =========================================
+צבעי סטטוס ועדיפות (Priority Colors for Nodes)
+========================================= */
 .node-gray { background: #94a3b8; }
 .node-warning { background: #f59e0b; }
 .node-danger { background: #ef4444; animation: pulseDanger 2s infinite; }
 .node-success { background: #10b981; }
 
+/* אנימציית פעימה להתרעות קריטיות - אדום (Pulse Animation for Danger) */
 @keyframes pulseDanger {
     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* Timeline Content Card */
+/* =========================================
+כרטיסיית תוכן ההתרעה (Timeline Content Card)
+========================================= */
 .timeline-content-card {
     background: #ffffff;
     border-radius: 16px;
@@ -86,7 +99,10 @@
     background: #f8fafc;
 }
 
-/* Responsive Fixes for RTL layout */
+/* =========================================
+התאמות כיווניות עברית (RTL Adjustments)
+========================================= */
+/* תיקוני יישור וריווח עבור ציר הזמן כשהשפה היא מימין לשמאל (RTL) */
 [dir="rtl"] .premium-timeline::before {
     left: auto;
     right: 28px;
@@ -102,7 +118,9 @@
     right: 17px;
 }
 
-/* Smart Suggestion Chips */
+/* =========================================
+שבבי הצעות חכמות (Smart Suggestion Chips)
+========================================= */
 .smart-suggestion-chip {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid #e2e8f0;
@@ -128,19 +146,23 @@
     box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
 }
 
+/* מסלול הצעות נגלל הצידה (Horizontal Scroll Track) */
 .smart-suggestions-track {
     display: flex;
     gap: 10px;
     overflow-x: auto;
     padding: 5px 0 15px 0;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none; 
 }
 
+/* הסתרת פס הגלילה לקבלת מראה נקי יותר (Hide Scrollbar) */
 .smart-suggestions-track::-webkit-scrollbar {
-    display: none; /* Safari/Chrome */
+    display: none; 
 }
 
-/* Apple Segmented Control */
+/* =========================================
+כפתורי סינון (Apple Segmented Control / Tabs)
+========================================= */
 .apple-segmented-control {
     display: flex;
     background: #e2e8f0;
@@ -173,7 +195,9 @@
     color: #1e293b;
 }
 
-/* Glass Header */
+/* =========================================
+כותרת אזור ההתרעות (Premium Glass Header)
+========================================= */
 .alerts-premium-header {
     background: linear-gradient(135deg, #1e293b, #0f172a);
     color: white;
@@ -184,8 +208,9 @@
     margin-bottom: 25px;
 }
 
+/* רקע עם אייקון פעמון גדול ומוסתר חלקית (Watermark Icon) לתחושת עומק */
 .alerts-premium-header::after {
-    content: '\f0f3'; /* Bell icon */
+    content: '\f0f3'; 
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     position: absolute;
@@ -196,6 +221,9 @@
     transform: rotate(-15deg);
 }
 
+/* =========================================
+עיגולי מדדים מיוחדים (KPI Circles)
+========================================= */
 .kpi-circle {
     width: 60px;
     height: 60px;

@@ -1,10 +1,19 @@
-// --- MODULE: INSURANCE & OTHERS ---
+/**
+ * @fileoverview frontend/js/dashboard-insurance.js
+ * @description מודול המנהל את כלל פוליסות הביטוח של הרכב (חובה, מקיף, צד ג'). המודול מספק מעטפת מתקדמת לשמירת מסמכים, ניהול הרחבות (שירותי דרך, מיגון וסוכן), ופיצ'ר ייחודי לחילוץ נתונים מבוסס בינה מלאכותית (AI) ישירות מפוליסות סרוקות.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 const insTypeNames = {
     'mandatory': 'ביטוח חובה',
     'comprehensive': 'ביטוח מקיף',
     'thirdparty': 'ביטוח צד ג\''
 };
 
+/**
+ * פונקציית הליבה לטעינה והצגה של פוליסות הביטוח (חובה, מקיף, צד ג'). אחראית על רינדור (Rendering) של סטטוס כל ביטוח (פעיל, פג תוקף, חסר מסמך) וחישוב העלות הכוללת של הביטוחים.
+ */
 window.loadInsurance = function () {
     if (!window.currentCar) {
         const stored = localStorage.getItem('currentCar');
@@ -72,10 +81,8 @@ window.loadInsurance = function () {
             const delBtn = document.querySelector(`button[onclick="window.deleteInsuranceType('${type}')"]`);
             if (delBtn) delBtn.classList.remove('d-none');
 
-            // Build Extra Information HTML dynamically
             let extraHtml = '';
-            
-            // 1. Roadside
+
             if (insData.towingCompany || insData.towingPhone || insData.towing || insData.replacement || insData.glass) {
                 extraHtml += `<div style="margin-bottom:10px;"><strong style="color:#1e293b; font-size:0.85rem;"><i class="fas fa-truck-pickup text-primary me-1"></i> שירותי דרך וסיוע:</strong></div>`;
                 
@@ -89,15 +96,13 @@ window.loadInsurance = function () {
                 if (insData.replacement) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">חלופי:</strong> ${insData.replacement}</div>`;
                 if (insData.glass) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:10px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">שמשות:</strong> ${insData.glass}</div>`;
             }
-            
-            // 2. Agent
+
             if (insData.agentName || insData.agentPhone) {
                 extraHtml += `<div style="margin-bottom:10px;"><strong style="color:#1e293b; font-size:0.85rem;"><i class="fas fa-user-tie text-success me-1"></i> איש קשר:</strong></div>`;
                 if (insData.agentName) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">סוכן/מוקד:</strong> ${insData.agentName}</div>`;
                 if (insData.agentPhone) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:10px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">טלפון:</strong> <a href="tel:${insData.agentPhone}" style="color:#3b82f6; text-decoration:none;">${insData.agentPhone}</a></div>`;
             }
 
-            // 3. Limitations
             if (insData.driverLimit || insData.deductible || insData.protection) {
                 extraHtml += `<div style="margin-bottom:10px;"><strong style="color:#1e293b; font-size:0.85rem;"><i class="fas fa-exclamation-triangle text-warning me-1"></i> תנאים והגבלות:</strong></div>`;
                 if (insData.driverLimit) extraHtml += `<div style="font-size:0.85rem; color:#475569; margin-bottom:4px; padding-right:15px; border-right:2px solid #e2e8f0;"><strong style="color:#334155;">נהגים:</strong> ${insData.driverLimit}</div>`;
@@ -146,6 +151,10 @@ window.loadInsurance = function () {
     if (totalCostEl) totalCostEl.textContent = totalCost.toLocaleString() + ' ₪';
 }
 
+/**
+ * פותח את המודאל (Modal) לעריכה והוספה של פרטי ביטוח ספציפי, ומאכלס אוטומטית נתונים קודמים כולל שדות הרחבה (כגון שירותי גרירה, סוכן, ומיגון) בהתאם לסוג הביטוח.
+ * @param {string} type - סוג הביטוח הנבחר ('mandatory', 'comprehensive', 'thirdparty').
+ */
 window.openEditInsurance = function (type) {
     document.getElementById('insType').value = type;
     document.getElementById('editInsuranceModalTitle').textContent = 'עריכת ' + insTypeNames[type];
@@ -170,7 +179,6 @@ window.openEditInsurance = function (type) {
         renderInsuranceDocPreview();
     }
 
-    // Advanced fields Optional Block 1 (Roadside)
     document.getElementById('insTowingCompany').value = insData.towingCompany || insData.towing || '';
     document.getElementById('insTowingPhone').value = insData.towingPhone || '';
     document.getElementById('insReplacement').value = insData.replacement || '';
@@ -179,14 +187,12 @@ window.openEditInsurance = function (type) {
     document.getElementById('toggleRoadside').checked = !!hasRoad;
     document.getElementById('roadside-fields').classList.toggle('d-none', !hasRoad);
 
-    // Advanced fields Optional Block 2 (Agent)
     document.getElementById('insAgentName').value = insData.agentName || '';
     document.getElementById('insAgentPhone').value = insData.agentPhone || '';
     const hasAgent = (insData.agentName || insData.agentPhone);
     document.getElementById('toggleAgent').checked = !!hasAgent;
     document.getElementById('agent-fields').classList.toggle('d-none', !hasAgent);
 
-    // Advanced fields Optional Block 3 (Limitations)
     document.getElementById('insDriverLimit').value = insData.driverLimit || '';
     document.getElementById('insDeductible').value = insData.deductible || '';
     document.getElementById('insProtection').value = insData.protection || '';
@@ -194,14 +200,12 @@ window.openEditInsurance = function (type) {
     document.getElementById('toggleLimitations').checked = !!hasLimit;
     document.getElementById('limitation-fields').classList.toggle('d-none', !hasLimit);
 
-    // UI Logic: Show/Hide relevant extensions based on Israel insurance rules
     const roadsideCard = document.getElementById('ext-card-roadside');
     const agentCard = document.getElementById('ext-card-agent');
     const limitCard = document.getElementById('ext-card-limit');
     const wrapReplacement = document.getElementById('wrap-replacement');
     const wrapProtection = document.getElementById('wrap-protection');
 
-    // Reset default visible
     roadsideCard.classList.remove('d-none');
     agentCard.classList.remove('d-none');
     limitCard.classList.remove('d-none');
@@ -209,20 +213,23 @@ window.openEditInsurance = function (type) {
     wrapProtection.classList.remove('d-none');
 
     if (type === 'mandatory') {
-        // ביטוח חובה: רק מוקד ואנשי קשר רלוונטי
+
         roadsideCard.classList.add('d-none');
         limitCard.classList.add('d-none');
     } else if (type === 'thirdparty') {
-        // ביטוח צד ג': ללא רכב חלופי, ללא מיגון חובה (רלוונטי למקיף)
+
         wrapReplacement.classList.add('d-none');
         wrapProtection.classList.add('d-none');
     } else if (type === 'comprehensive') {
-        // ביטוח מקיף: הכל מופיע. אין צורך להסתיר דבר.
+
     }
 
     new bootstrap.Modal(document.getElementById('editInsuranceModal')).show();
 }
 
+/**
+ * אוספת את כלל המידע שהוזן בטופס הביטוח, מוודאת תקינות נתונים (תאריך ועוד), ומבצעת שמירה מלאה של הפוליסה אל תוך האחסון המקומי, כולל התמודדות עם מסמכים כבדים מדי שעלולים לחרוג מהזיכרון.
+ */
 window.saveInsurance = function () {
     const type = document.getElementById('insType').value;
     const company = document.getElementById('insCompany').value;
@@ -250,8 +257,7 @@ window.saveInsurance = function () {
         } else {
             currentCar.insurance[type].date = dateInput;
         }
-        
-        // Save Optionals 1
+
         if (document.getElementById('toggleRoadside').checked) {
             currentCar.insurance[type].towingCompany = document.getElementById('insTowingCompany').value;
             currentCar.insurance[type].towingPhone = document.getElementById('insTowingPhone').value;
@@ -265,8 +271,7 @@ window.saveInsurance = function () {
             currentCar.insurance[type].glass = '';
             currentCar.insurance[type].towing = '';
         }
-        
-        // Save Optionals 2
+
         if (document.getElementById('toggleAgent').checked) {
             currentCar.insurance[type].agentName = document.getElementById('insAgentName').value;
             currentCar.insurance[type].agentPhone = document.getElementById('insAgentPhone').value;
@@ -274,8 +279,7 @@ window.saveInsurance = function () {
             currentCar.insurance[type].agentName = '';
             currentCar.insurance[type].agentPhone = '';
         }
-        
-        // Save Optionals 3
+
         if (document.getElementById('toggleLimitations').checked) {
             currentCar.insurance[type].driverLimit = document.getElementById('insDriverLimit').value;
             currentCar.insurance[type].deductible = document.getElementById('insDeductible').value;
@@ -294,7 +298,7 @@ window.saveInsurance = function () {
             window.saveToLocalStorage();
         } catch (err) {
             console.error("Storage Error on Insurance File:", err);
-            // Revert just the file so the other data can save
+
             delete currentCar.insurance[type].file;
             alert('המסמך שצירפת שוקל יותר מדי וחורג מגבלות הזיכרון (2MB). הביטוח נשמר ללא תמונה.');
             window.saveToLocalStorage(); // Try saving again without the large file
@@ -311,6 +315,10 @@ window.saveInsurance = function () {
     finishSave(typeof currentBase64InsuranceDoc !== 'undefined' ? currentBase64InsuranceDoc : null);
 }
 
+/**
+ * מוחקת לחלוטין את כלל נתוני פוליסת הביטוח המסוימת מהמערכת ומאפסת את תצוגתה לאחר קבלת אישור מפורש (Confirm) מהמשתמש.
+ * @param {string} type - סוג הביטוח שיש למחוק ('mandatory', 'comprehensive', 'thirdparty').
+ */
 window.deleteInsuranceType = function (type) {
     if (confirm('האם אתה בטוח שברצונך למחוק ביטוח זה לחלוטין ולסלק את הנתונים שלו?')) {
         if (currentCar.insurance[type]) {
@@ -323,6 +331,12 @@ window.deleteInsuranceType = function (type) {
     }
 }
 
+/**
+ * פונקציה חכמה המפעילה סריקת מסמכים (AI Parsing). מעלה מסמך שסופק אל שרת ה-API ומחלצת ממנו באופן אסינכרוני נתונים (תאריך, עלות, חברה, פרטי גרירה ועוד) ישירות אל שדות הטופס.
+ * @param {HTMLInputElement} input - אלמנט הקלט (Input File) שהפעיל את הפעולה ומכיל את הקובץ שנבחר.
+ * @returns {Promise<void>}
+ * @throws {Error} זורק שגיאה במקרה של כשל תקשורת או שגיאת פענוח בשרת ה-AI.
+ */
 window.processAiDoc = async function(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -332,7 +346,7 @@ window.processAiDoc = async function(input) {
     const reader = new FileReader();
     reader.onload = async function (e) {
         let base64String = e.target.result;
-        // Strip data:url prefix
+
         base64String = base64String.split(',')[1];
         
         try {
@@ -352,12 +366,12 @@ window.processAiDoc = async function(input) {
                 if (d.company) document.getElementById('insCompany').value = d.company;
                 if (d.policyNum) document.getElementById('insPolicyNum').value = d.policyNum;
                 if (d.cost) {
-                    // Normalize: remove currency symbols and thousands separators, but keep the decimal point
+
                     let costVal = String(d.cost).replace(/[^\d.]/g, '');
                     document.getElementById('insCost').value = costVal;
                 }
                 if (d.date) {
-                    // AI returns DD/MM/YYYY — convert to YYYY-MM-DD for input type=date
+
                     let dateVal = d.date;
                     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateVal)) {
                         const parts = dateVal.split('/');
@@ -365,8 +379,7 @@ window.processAiDoc = async function(input) {
                     }
                     document.getElementById('insDate').value = dateVal;
                 }
-                
-                // Block 1
+
                 if (d.towing || d.replacement || d.glass) {
                     document.getElementById('toggleRoadside').checked = true;
                     document.getElementById('roadside-fields').classList.remove('d-none');
@@ -374,16 +387,14 @@ window.processAiDoc = async function(input) {
                     if (d.replacement) document.getElementById('insReplacement').value = d.replacement;
                     if (d.glass) document.getElementById('insGlass').value = d.glass;
                 }
-                
-                // Block 2
+
                 if (d.agentName || d.agentPhone) {
                     document.getElementById('toggleAgent').checked = true;
                     document.getElementById('agent-fields').classList.remove('d-none');
                     if (d.agentName) document.getElementById('insAgentName').value = d.agentName;
                     if (d.agentPhone) document.getElementById('insAgentPhone').value = d.agentPhone;
                 }
-                
-                // Block 3
+
                 if (d.driverLimit || d.deductible || d.protection) {
                     document.getElementById('toggleLimitations').checked = true;
                     document.getElementById('limitation-fields').classList.remove('d-none');
@@ -391,8 +402,7 @@ window.processAiDoc = async function(input) {
                     if (d.deductible) document.getElementById('insDeductible').value = d.deductible;
                     if (d.protection) document.getElementById('insProtection').value = d.protection;
                 }
-                
-                // Set the uploaded file into the actual form input
+
                 try {
                     const dt = new DataTransfer();
                     dt.items.add(file);
@@ -414,6 +424,10 @@ window.processAiDoc = async function(input) {
     reader.readAsDataURL(file);
 }
 
+/**
+ * פותחת חלון מודאל מקדים המציג את תמונת מסמך הביטוח או ה-PDF המקושר לאותו סוג ביטוח.
+ * @param {string} type - סוג הביטוח שמסמכו מוצג.
+ */
 window.viewInsuranceDoc = function (type) {
     const insData = currentCar.insurance[type];
     if (insData && insData.file) {
@@ -428,6 +442,9 @@ window.viewInsuranceDoc = function (type) {
     }
 }
 
+/**
+ * מציגה את מסמך הביטוח השמור במאגר, תוך שימוש במנגנון התצוגה הגלובלי או בפונקציית תצוגת הביטוח החלופית במידה ואין תמיכה אוניברסלית.
+ */
 window.viewCurrentInsuranceDoc = function () {
     const type = document.getElementById('insType').value;
     if (typeof window.showFilePreview === 'function') {
@@ -437,6 +454,9 @@ window.viewCurrentInsuranceDoc = function () {
     }
 }
 
+/**
+ * מסירה את קובץ המסמך הקיים ממבנה הביטוח, אך דורשת מהמשתמש לשמור את השינויים בסיום כדי להחיל במערכת הכללית.
+ */
 window.removeInsuranceDoc = function () {
     const type = document.getElementById('insType').value;
     if (confirm('האם להסיר את המסמך הקיים? השינוי יישמר רק לאחר שתלחץ על "שמור שינויים".')) {
@@ -448,10 +468,12 @@ window.removeInsuranceDoc = function () {
     }
 }
 
-// Global variable for dynamic insurance document upload
 let currentBase64InsuranceDoc = null;
 let currentInsuranceDocType = null;
 
+/**
+ * מאזין גלובלי לשינוי בשדה העלאת המסמכים (insDoc). כשהמשתמש מעלה קובץ, הקוד קורא אותו כ-Base64 ומכין אותו לתצוגה מקדימה בממשק טרם שמירה.
+ */
 document.addEventListener('change', function(e) {
     if (e.target && e.target.id === 'insDoc') {
         const file = e.target.files[0];
@@ -468,6 +490,9 @@ document.addEventListener('change', function(e) {
     }
 });
 
+/**
+ * מרנדרת (Render) ומציגה ויזואלית את תצוגת המסמך המקדימה בטופס הוספת/עריכת הביטוח. מחליפה את אייקון ברירת המחדל בתמונה מוקטנת או בסמל PDF רלוונטי.
+ */
 window.renderInsuranceDocPreview = function() {
     const placeholder = document.getElementById('insDocPlaceholder');
     const previewContainer = document.getElementById('insDocPreviewContainer');
@@ -500,6 +525,9 @@ window.renderInsuranceDocPreview = function() {
     }
 }
 
+/**
+ * מסירה את הקובץ שהועלה הרגע לחלון העריכה (Base64 דינמי) לפני שהפוליסה נשמרת בפועל, ומאפסת את התצוגה המקדימה בחזרה לשדה ריק.
+ */
 window.removeDynamicInsuranceDoc = function() {
     currentBase64InsuranceDoc = null;
     currentInsuranceDocType = null;
@@ -508,7 +536,9 @@ window.removeDynamicInsuranceDoc = function() {
     renderInsuranceDocPreview();
 }
 
-// Reset dynamic upload on modal close
+/**
+ * מאזין לאירוע סגירת חלון (Modal Hide) המבטיח שאם המשתמש סגר את חלון הוספת הביטוח ללא שמירה, שדה המסמך והתצוגה המקדימה הזמנית יתאפסו.
+ */
 document.addEventListener('hidden.bs.modal', function (e) {
     if (e.target.id === 'editInsuranceModal') {
         window.removeDynamicInsuranceDoc();

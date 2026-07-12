@@ -1,9 +1,19 @@
-/* Premium typography and reset */
+/* =========================================================
+שם הקובץ: search_results.css
+תיאור: קובץ עיצוב עבור עמוד תוצאות החיפוש במערכת המנהל (Dashboard). מטפל בתצוגת כרטיסיות רכבים, מערכת סינונים צבעונית ומורכבת (Vibrant Filter Box), כפתורי סינון חצי-שקופים, אנימציות טעינת שלד (Skeleton Loaders), והתאמות קריטיות רבות לממשק מובייל לעומת ממשק דסקטופ כולל ניהול תפריט הצד הרספונסיבי ב-RTL.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+טיפוגרפיה ואיפוס (Premium Typography & Reset)
+========================================= */
 body {
     font-family: 'Heebo', system-ui, -apple-system, sans-serif !important;
 }
 
-/* Sidebar overriding inside wrapper */
+/* =========================================
+פריסת עמוד ותפריט צד (Layout & Sidebar)
+========================================= */
 #wrapper {
     transition: all 0.3s ease;
 }
@@ -14,7 +24,8 @@ body {
     z-index: 1000;
 }
 .toggled #sidebar-wrapper {
-    margin-right: -250px; /* Hide on toggle (RTL) */
+/* הסתרת תפריט הצד על ידי משיכתו ימינה בהתאמה מלאה לממשק עברי (RTL) */
+    margin-right: -250px; 
 }
 @media (min-width: 992px) {
     .toggled #sidebar-wrapper {
@@ -24,14 +35,16 @@ body {
 @media (max-width: 991.98px) {
     #sidebar-wrapper {
         position: fixed;
-        right: -250px; /* Hide completely off-screen on the right */
+/* הסתרה מוחלטת של תפריט הצד מחוץ למסך במובייל למניעת גלילת רוחב מיותרת */
+        right: -250px; 
         height: 100%;
         margin-right: 0;
         box-shadow: -5px 0 15px rgba(0,0,0,0.1);
         z-index: 1050;
     }
     .toggled #sidebar-wrapper {
-        right: 0; /* Slide in */
+/* החלקת תפריט הצד פנימה במובייל בעת הפעלה (Toggle) */
+        right: 0; 
     }
 }
 .list-icon {
@@ -39,7 +52,9 @@ body {
     text-align: center;
 }
 
-/* Nav Additions */
+/* =========================================
+תוספות לניווט העליון (Nav Additions)
+========================================= */
 .blur-bg {
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(16px);
@@ -48,14 +63,17 @@ body {
     min-width: 140px;
 }
 
-/* Search Bar */
+/* =========================================
+שורת החיפוש (Search Bar)
+========================================= */
 .search-form {
     max-width: 500px;
 }
 .premium-search-input {
     border: 2px solid #e9ecef !important;
     background-color: #f8f9fa;
-    padding: 10px 45px 10px 15px !important; /* RTL padding */
+/* התאמת הריווח הפנימי (Padding) לממשק עברי (RTL) כך שסמל החיפוש לא יסתיר את טקסט המשתמש */
+    padding: 10px 45px 10px 15px !important; 
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 .premium-search-input:focus {
@@ -64,7 +82,9 @@ body {
     box-shadow: 0 4px 15px rgba(49, 130, 206, 0.15) !important;
 }
 
-/* Vibrant Filters Card */
+/* =========================================
+מעטפת סינונים (Vibrant Filters Card)
+========================================= */
 .vibrant-filter-box {
     background: linear-gradient(135deg, #1A4EBA 0%, #2980b9 50%, #4facfe 100%);
     color: white;
@@ -90,7 +110,9 @@ body {
     z-index: 1;
 }
 
-/* Glassy Scrollable Pills */
+/* =========================================
+גלילת סינונים פנימית (Glassy Scrollable Pills)
+========================================= */
 .glass-scrollable {
     max-height: 140px;
     overflow-y: auto;
@@ -107,6 +129,9 @@ body {
     border-radius: 10px;
 }
 
+/* =========================================
+כפתורי סינון (Filter Pills)
+========================================= */
 .filter-pill label {
     cursor: pointer;
     background: rgba(255, 255, 255, 0.15);
@@ -131,7 +156,9 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* BIG Logos and Vehicle Cards */
+/* =========================================
+כרטיסיות רכבים ותצוגה (Vehicle Cards & Logos)
+========================================= */
 .vehicle-card {
     background: #ffffff;
     border-radius: 20px;
@@ -154,7 +181,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid rgba(0, 0, 0, 0.08); /* Delicate separating border */
+/* קו גבול עדין המיועד להפרדת לוגו היצרן מהרקע הפנימי של הכרטיסייה למראה יוקרתי */
+    border: 1.5px solid rgba(0, 0, 0, 0.08); 
     padding: 12px;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.03), 0 4px 15px rgba(0,0,0,0.05);
     margin: 0 auto 20px;
@@ -171,7 +199,9 @@ body {
     background: #ffffff;
 }
 
-/* Plates and stats */
+/* =========================================
+תוויות נתונים ולוחיות רישוי (Plates and Stats)
+========================================= */
 .license-plate-badge {
     background: linear-gradient(180deg, #ffd900, #e6c300);
     color: #1a202c;
@@ -184,7 +214,8 @@ body {
     letter-spacing: 2px;
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.1);
     display: inline-block;
-    direction: ltr; /* strict LTR */
+/* הקפדה על כיוון משמאל-לימין (LTR) עבור לוחיות הרישוי בכדי לשמור על קריאות נכונה של המספרים והאותיות הלועזיות */
+    direction: ltr; 
 }
 .stat-pill {
     background: #f8fafc;
@@ -199,6 +230,9 @@ body {
     gap: 6px;
 }
 
+/* =========================================
+אנימציות הופעה (Animations)
+========================================= */
 .fade-in-up {
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
@@ -208,7 +242,9 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* UI Skeletal */
+/* =========================================
+טעינת שלד (UI Skeletal)
+========================================= */
 .skeleton-card {
     background: #fff;
     border-radius: 20px;
@@ -229,18 +265,22 @@ body {
 .hover-lift { transition: transform 0.2s; }
 .hover-lift:hover { transform: translateY(-2px); }
 
-/* ===== MOBILE ONLY ===== */
+/* =========================================
+התאמות מובייל ייעודיות (Mobile Only Fixes)
+========================================= */
 @media (max-width: 768px) {
 
-    /* --- Navbar --- */
-    /* Collapse search wrapper so it doesn't push items apart */
+    
+    
+/* צמצום מעטפת החיפוש במובייל כדי שלא תדחק באגרסיביות אלמנטים אחרים אל מחוץ לסרגל */
     .db-navbar .db-nav-content.flex-grow-1 {
         flex-grow: 0 !important;
         padding: 0 !important;
         min-width: 0 !important;
     }
 
-    /* The search input itself – show only the icon, same as dashboard */
+    
+/* הסתרת טקסט שדה החיפוש במצב סגור במובייל והשארת הסמל (Icon) בלבד לחסכון בשטח */
     #topSearchInput {
         width: 38px !important;
         padding: 0 !important;
@@ -258,17 +298,19 @@ body {
         color: #212529 !important;
     }
 
-    /* Hide DB stat fallback on mobile – JS removes d-none so we force it */
+    
+/* הסתרת נתוני הסטטיסטיקה של מסד הנתונים במובייל בשל חוסר מקום קריטי בשורת הניווט */
     #dbStatFallback {
         display: none !important;
     }
 
-    /* Hide page title on mobile to save space */
+    
+/* הסתרת כותרת העמוד במובייל לטובת חיסכון בשטח מסך יקר ערך */
     #pageTitle {
         display: none !important;
     }
 
-    /* --- Filter Box --- */
+    
     .vibrant-filter-box {
         padding: 1rem 1rem !important;
         border-radius: 16px !important;
@@ -279,7 +321,7 @@ body {
         font-size: 1.1rem !important;
     }
 
-    /* Results badge + clear button – smaller on mobile */
+    
     #resultsCountBadge {
         font-size: 0.8rem !important;
         padding: 0.4rem 0.9rem !important;
@@ -290,24 +332,24 @@ body {
         padding: 0.4rem 1rem !important;
     }
 
-    /* Filter columns header */
+    
     .vibrant-filter-box h6 {
         font-size: 0.85rem !important;
         margin-bottom: 0.5rem !important;
     }
 
-    /* Compact scrollable filter list */
+    
     .glass-scrollable {
         max-height: 80px;
     }
 
-    /* Filter pills – smaller on mobile */
+    
     .filter-pill label {
         font-size: 0.8rem !important;
         padding: 5px 12px !important;
     }
 
-    /* --- Results grid – already row-cols-1 but ensure cards look good --- */
+    
     .vehicle-card {
         padding: 1rem !important;
     }
@@ -322,7 +364,7 @@ body {
         font-size: 1rem !important;
     }
 
-    /* --- Body padding for fixed footer --- */
+    
     body {
         padding-bottom: 90px !important;
     }

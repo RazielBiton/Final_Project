@@ -1,7 +1,15 @@
-// --- CUSTOM ALERTS & PREMIUM HUB ---
+/**
+ * @fileoverview frontend/js/dashboard-alerts.js
+ * @description מודול ניהול ההתראות והתזכורות המותאמות אישית של המשתמש. מאפשר הוספת מטלות חד-פעמיות ומחזוריות, הצגת מדדי דחיפות, ושימוש בתבניות חכמות.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
 
 let currentAlertFilter = 'all';
 
+/**
+ * פונקציית הליבה לטעינת רשימת ההתראות והתזכורות במערכת (Custom Alerts). מחשבת מדדי KPI (התראות דחופות, שהושלמו, ועתידיות), ממיינת את הרשומות כרונולוגית ומייצרת את תצוגת ציר הזמן.
+ */
 function loadAlerts() {
     const timelineContainer = document.getElementById('alertsTimelineContainer');
     const summaryText = document.getElementById('alertsSummaryText');
@@ -11,7 +19,6 @@ function loadAlerts() {
 
     if (!timelineContainer) return;
 
-    // Standardize alerts structure & sorting
     if (!currentCar.customAlerts) currentCar.customAlerts = [];
     currentCar.customAlerts.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -24,7 +31,6 @@ function loadAlerts() {
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
 
-    // Calc KPIs globally first
     currentCar.customAlerts.forEach(alert => {
         if (alert.done) doneCount++;
         else {
@@ -43,7 +49,6 @@ function loadAlerts() {
 
     timelineContainer.innerHTML = '';
 
-    // Apply Filters
     let filteredAlerts = currentCar.customAlerts;
     if (currentAlertFilter === 'done') {
         filteredAlerts = currentCar.customAlerts.filter(a => a.done);
@@ -65,7 +70,6 @@ function loadAlerts() {
         return;
     }
 
-    // Render Timeline Items
     filteredAlerts.forEach(alert => {
         const ad = new Date(alert.date);
 
@@ -87,7 +91,6 @@ function loadAlerts() {
             statusHtml = `<span class="badge ms-2 rounded-pill px-3 py-2" style="background:#f1f5f9; color:#64748b; border: 1px solid #e2e8f0;">עתידי</span>`;
         }
 
-        // Convert priority text to coloring
         if (!alert.done && !isExpired && ad > nextWeek) {
             if (alert.priority === 'danger') nodeClass = 'node-danger';
             if (alert.priority === 'warning') nodeClass = 'node-warning';
@@ -137,7 +140,6 @@ function loadAlerts() {
         `;
     });
 
-    // Update Premium Summary Text
     let summaryStr = `נמצאו <strong>${urgentCount} פריטים בדחיפות גבוהה</strong> עבור ${currentCar.brand || 'רכב זה'}.`;
     if (urgentCount === 0 && upcomingCount === 0 && doneCount > 0) summaryStr = `כל המשימות הפתוחות הושלמו, יופי של ניהול רכב! 🌟`;
     else if (urgentCount === 0 && upcomingCount > 0) summaryStr = `ישנן ${upcomingCount} התראות שמתקרבות לשבוע הקרוב.`;
@@ -145,17 +147,19 @@ function loadAlerts() {
     if (summaryText) summaryText.innerHTML = summaryStr;
 }
 
-// GUI Filter Logic
+/**
+ * מסננת את רשימת ההתראות בהתאם לסוג שנבחר (הכל, קרובות או שהושלמו) ומעדכנת את תצוגת הכפתורים בממשק המשתמש בהתאם.
+ * @param {string} type - סוג הסינון המבוקש ('all', 'upcoming', 'done').
+ */
 window.filterAlerts = function (type) {
     currentAlertFilter = type;
 
-    // Update active UI classes for Segmented buttons
     try {
         const segContainer = document.getElementById('alertsSegmentFilter');
         if (segContainer) {
             const btns = segContainer.querySelectorAll('.segment-btn');
             btns.forEach(b => b.classList.remove('active'));
-            // simple match hack based on onclick function body string match
+
             btns.forEach(b => {
                 if (b.getAttribute('onclick').includes(type)) {
                     b.classList.add('active');
@@ -167,7 +171,13 @@ window.filterAlerts = function (type) {
     loadAlerts();
 }
 
-// AI Smart Suggestion Auto-Filler
+/**
+ * פונקציה חכמה המאכלסת אוטומטית (Auto-Filler) את חלון יצירת ההתראה החדשה עם פרטים מוגדרים מראש על סמך "הצעות חכמות" של המערכת.
+ * @param {string} title - כותרת ההתראה.
+ * @param {string} priority - רמת הדחיפות / צבע הסימון.
+ * @param {string} freq - תדירות (פעם אחת, שבועי, חודשי וכו').
+ * @param {number} inDays - בעוד כמה ימים יש להגדיר את תאריך היעד מהיום.
+ */
 window.smartAddAlert = function (title, priority, freq, inDays) {
     document.getElementById('add-alert-form').reset();
 
@@ -182,13 +192,18 @@ window.smartAddAlert = function (title, priority, freq, inDays) {
     new bootstrap.Modal(document.getElementById('addAlertModal')).show();
 }
 
-// Modal open overrides
+/**
+ * פותח את המודאל ליצירת התראה חדשה ומאפס את השדות, תוך הזנת תאריך של היום כברירת מחדל.
+ */
 window.openAddAlertModal = function () {
     document.getElementById('add-alert-form').reset();
     document.getElementById('alertDate').value = new Date().toISOString().split('T')[0]; // Default to today
     new bootstrap.Modal(document.getElementById('addAlertModal')).show();
 }
 
+/**
+ * אוספת את הנתונים מטופס יצירת ההתראה החדשה, מאמתת אותם, שומרת את הרשומה באחסון המקומי ומרעננת את תצוגת ציר הזמן.
+ */
 window.saveAlert = function () {
     const title = document.getElementById('alertTitle').value;
     const date = document.getElementById('alertDate').value;
@@ -215,11 +230,14 @@ window.saveAlert = function () {
 
     bootstrap.Modal.getInstance(document.getElementById('addAlertModal')).hide();
 
-    // Switch filter to 'upcoming' or 'all' automatically so user sees it right away
     if (currentAlertFilter === 'done') filterAlerts('upcoming');
     else loadAlerts();
 }
 
+/**
+ * מוחקת התראה מסוימת מהמערכת לצמיתות, בכפוף לאישור המשתמש (Confirm dialog).
+ * @param {string|number} id - מזהה ייחודי של ההתראה.
+ */
 window.deleteAlert = function (id) {
     if (confirm('מחיקת תזכורת: הפעולה תמחוק את האייטם לצמיתות. להמשיך?')) {
         currentCar.customAlerts = currentCar.customAlerts.filter(a => a.id !== id);
@@ -228,6 +246,10 @@ window.deleteAlert = function (id) {
     }
 }
 
+/**
+ * מסמנת התראה כמושלמת. במידה ומדובר בהתראה מחזורית (למשל: יומית, שבועית), הפונקציה מחשבת אוטומטית את תאריך היעד הבא ומשאירה את ההתראה פתוחה למועד החדש.
+ * @param {string|number} id - מזהה ייחודי של ההתראה להשלמה.
+ */
 window.markAlertAsDone = function (id) {
     const alert = currentCar.customAlerts.find(a => a.id === id);
     if (!alert) return;
@@ -249,7 +271,7 @@ window.markAlertAsDone = function (id) {
         const month = String(currentDate.getMonth() + 1).padStart(2, '0');
         const day = String(currentDate.getDate()).padStart(2, '0');
         alert.date = `${year}-${month}-${day}`;
-        // For recurring, doing it pushes date forward, keeps done=false
+
         window.alert(`התזכורת הועברה למועדה הבא במחזוריות: ${day}/${month}/${year}`);
     } else {
         alert.done = true;
@@ -259,6 +281,10 @@ window.markAlertAsDone = function (id) {
     loadAlerts();
 }
 
+/**
+ * פותח את חלון העריכה עבור התראה קיימת ומזין את הנתונים שלה אל תוך השדות.
+ * @param {string|number} id - מזהה ייחודי של ההתראה לעריכה.
+ */
 window.openEditAlertModal = function (id) {
     const alert = currentCar.customAlerts.find(a => a.id === id);
     if (!alert) return;
@@ -272,6 +298,9 @@ window.openEditAlertModal = function (id) {
     new bootstrap.Modal(document.getElementById('editAlertModal')).show();
 }
 
+/**
+ * שומרת את השינויים שבוצעו בחלון העריכה, מאמתת את התאריך והכותרת, ומעדכנת את מצב ה"בוצע" במידה ותאריך היעד נדחה לעתיד.
+ */
 window.updateAlert = function () {
     const id = document.getElementById('editAlertId').value;
     const title = document.getElementById('editAlertTitle').value;
@@ -291,8 +320,6 @@ window.updateAlert = function () {
         alertInst.priority = priority;
         alertInst.frequency = frequency;
 
-        // If it was past date but being modified to future, it might 'undone' naturally?
-        // Actually editing date doesn't un-done it unless we force it.
         if (alertInst.done && new Date(date) > new Date()) {
             alertInst.done = false; // logic reset if date pushed forward explicitly
         }

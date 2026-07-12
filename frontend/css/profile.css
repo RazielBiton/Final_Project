@@ -1,6 +1,14 @@
-/* profile.css */
+/* =========================================================
+שם הקובץ: profile.css
+תיאור: קובץ עיצוב עבור אזור פרופיל המשתמש והגדרות החשבון. הקובץ מתאפיין בפריסת עמוד מלאכותית (Sidebar + Main Content), שימוש מסיבי בתכונות עיצוב לוגיות (כגון margin-inline, inset-inline-start) המבטיחות תאימות מלאה ואוטומטית לעברית (RTL), ועיצוב מתגים (Toggles) ייחודי ללא צורך ב-JavaScript.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap');
 
+/* =========================================
+משתני עיצוב (CSS Variables)
+========================================= */
 :root {
     --bg-color: #f0f4f4;
     --primary-color: #2d74d7;
@@ -20,6 +28,9 @@
     --transition-speed: 0.3s;
 }
 
+/* =========================================
+איפוס והגדרות בסיס (Global Reset & Base)
+========================================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -33,21 +44,26 @@ body {
     line-height: 1.6;
 }
 
-/* Layout */
+/* =========================================
+פריסה ראשית (Layout)
+========================================= */
 .layout-container {
     display: flex;
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* =========================================
+תפריט צד (Sidebar)
+========================================= */
 .sidebar {
     width: 260px;
     background-color: var(--sidebar-bg);
     border-inline-end: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+/* הוספת ריווח תחתון מוגדל (80px) כדי למנוע חפיפה בין תפריט הצד לפוטר הגלובלי המקובע */
     padding: 2rem 1.5rem 80px 1.5rem;
-    /* Added bottom padding for footer clearance */
+    
     box-shadow: var(--shadow-soft);
     position: sticky;
     top: 0;
@@ -110,14 +126,17 @@ body {
     background-color: #fff0f1;
 }
 
-/* Main Content */
+/* =========================================
+תוכן מרכזי (Main Content)
+========================================= */
 .main-content {
     flex-grow: 1;
     padding-block: 2.5rem;
     padding-inline: 3rem;
     max-width: 1200px;
+/* מרכוז אוטומטי של אזור התוכן הראשי בהתאם לכיווניות הלוגית של השפה (RTL) */
     margin-inline: auto;
-    /* center content inside main area */
+    
 }
 
 .page-header {
@@ -136,7 +155,9 @@ body {
     margin-block-start: 0.3rem;
 }
 
-/* Grid System */
+/* =========================================
+מערכת גריד (Grid System)
+========================================= */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -144,7 +165,9 @@ body {
     align-items: start;
 }
 
-/* Cards */
+/* =========================================
+כרטיסיות (Cards)
+========================================= */
 .card {
     background-color: var(--card-bg);
     border-radius: var(--radius-lg);
@@ -182,7 +205,9 @@ body {
     flex-grow: 1;
 }
 
-/* Forms */
+/* =========================================
+טפסים (Forms)
+========================================= */
 .form-group {
     margin-block-end: 1.5rem;
 }
@@ -219,7 +244,9 @@ body {
     margin-block-start: 0.4rem;
 }
 
-/* Buttons */
+/* =========================================
+כפתורים (Buttons)
+========================================= */
 .btn {
     display: inline-block;
     padding-block: 0.85rem;
@@ -257,7 +284,9 @@ body {
     background-color: var(--danger-hover);
 }
 
-/* Toggles (Notification Preferences) */
+/* =========================================
+מתגים והעדפות (Toggles & Preferences)
+========================================= */
 .toggle-list {
     display: flex;
     flex-direction: column;
@@ -291,7 +320,9 @@ body {
     color: var(--text-main);
 }
 
-/* Custom RTL Logical CSS Toggle */
+/* =========================================
+עיצוב מתג לוגי לעברית (Custom RTL Logical Toggle)
+========================================= */
 .css-toggle {
     position: relative;
     display: inline-block;
@@ -320,8 +351,9 @@ body {
     content: "";
     height: 20px;
     width: 20px;
+/* עגינת העיגול הפנימי של המתג לתחילת האלמנט מבחינה לוגית (הצד הימני במערכת מבוססת עברית) */
     inset-inline-start: 4px;
-    /* docks to the logical right (start of RTL) */
+    
     bottom: 4px;
     background-color: white;
     transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -334,11 +366,14 @@ body {
 }
 
 .css-toggle input:checked+.toggle-slider:before {
-    /* Push it away from the start by 24px (52 - 4 - 20 - 4 = 24px) */
+    
+/* דחיפת העיגול הפנימי לצידו השני של המתג בעת הפעלה, תוך שימוש בתכונות לוגיות לשמירה על תאימות כיווניות */
     inset-inline-start: 28px;
 }
 
-/* Responsive */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive Fixes)
+========================================= */
 @media (max-width: 768px) {
     .layout-container {
         flex-direction: column;

@@ -1,4 +1,12 @@
-/* --- REPORTS COMPONENT STYLES --- */
+/* =========================================================
+שם הקובץ: dashboard-reports.css
+תיאור: קובץ עיצוב (CSS) של אזור הדוחות והמסמכים. מנהל את תצוגת הכרטיסיות, אזורי גרירת המסמכים (Upload Area), וכולל תיקוני תצוגה מורכבים במובייל עבור חלון הוספת הדוח.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+אייקונים (Icons)
+========================================= */
 .icon-lg-wrapper {
     width: 56px;
     height: 56px;
@@ -8,6 +16,9 @@
     border-radius: 50%;
 }
 
+/* =========================================
+אזור העלאת קבצים (Upload Area)
+========================================= */
 .upload-area {
     border: 2px dashed #ced4da;
     transition: background-color 0.2s;
@@ -18,6 +29,9 @@
     background-color: #e2e6ea !important;
 }
 
+/* =========================================
+כרטיסיות דוחות (Report Cards)
+========================================= */
 .report-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -27,7 +41,9 @@
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Custom Colors matching the white/blue/yellow theme */
+/* =========================================
+צבעים מותאמים אישית (Custom Colors)
+========================================= */
 .text-primary-custom {
     color: #0d6efd;
 }
@@ -36,7 +52,9 @@
     background-color: #0d6efd;
 }
 
-/* --- REPORTS COMPONENT STYLES --- */
+/* =========================================
+אייקונים (Icons)
+========================================= */
 .icon-lg-wrapper {
     width: 56px;
     height: 56px;
@@ -46,6 +64,9 @@
     border-radius: 50%;
 }
 
+/* =========================================
+אזור העלאת קבצים (Upload Area)
+========================================= */
 .upload-area {
     border: 2px dashed #ced4da;
     transition: background-color 0.2s;
@@ -56,6 +77,9 @@
     background-color: #e2e6ea !important;
 }
 
+/* =========================================
+כרטיסיות דוחות (Report Cards)
+========================================= */
 .report-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -65,7 +89,9 @@
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Custom Colors matching the white/blue/yellow theme */
+/* =========================================
+צבעים מותאמים אישית (Custom Colors)
+========================================= */
 .text-primary-custom {
     color: #0d6efd;
 }
@@ -74,6 +100,9 @@
     background-color: #0d6efd;
 }
 
+/* =========================================
+כפתורי אזהרה (Warning Buttons)
+========================================= */
 .btn-warning-custom {
     background-color: #ffc107;
     border-color: #ffc107;
@@ -86,7 +115,10 @@
     color: #fff;
 }
 
-/* Force sticky footer avoidance for reports modal */
+/* =========================================
+מודל הוספת דוח (Add Report Modal)
+========================================= */
+/* מניעת הסתרה של מודל הוספת הדוח על ידי הפוטר הקבוע למטה (Sticky Footer) */
 #addReportModal {
     padding-bottom: 80px !important;
 }
@@ -103,7 +135,10 @@
     overflow-y: auto !important;
 }
 
-/* Select dropdown fix for text overlapping arrow in RTL */
+/* =========================================
+תיקוני תיבת בחירה (Select Dropdown RTL Fix)
+========================================= */
+/* מניעת חפיפת טקסט על החץ של תיבת הבחירה בכיווניות עברית (RTL) */
 #addReportModal select, #reports-section select {
     padding-right: 40px !important;
     padding-left: 15px !important;
@@ -111,9 +146,9 @@
     white-space: nowrap !important;
 }
 
-/* --- Mobile Fixes for Reports Page --- */
 @media (max-width: 768px) {
-    /* Modal sticky footer & scrolling fix */
+    
+/* התאמת גובה ורוחב המודל וקביעת אזור נגלל פנימי במסכים צרים */
     #addReportModal .modal-dialog {
         width: 90% !important;
         margin: 5vh auto !important;

@@ -1,11 +1,17 @@
 /**
- * Auth Utilities for EasyCare
- * Handles global logout and session management
+ * @fileoverview frontend/js/auth_utils.js
+ * @description קובץ שירות גלובלי המכיל פונקציות עזר (Utilities) החוצות את המערכת. הוא מנהל בעיקר את תהליך ההתנתקות המלא של המשתמש (Logout) כולל ניקוי זיכרון וניתוק מ-Supabase, וכן מכיל פונקציה חכמה לדחיסת תמונות (Image Compression) לפני שליחתן לשרת כדי לחסוך ברוחב פס ומקום אחסון.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
  */
 
 /**
- * Universal Image Compression Utility
- * Resizes image to maxDimension and compresses with quality factor
+ * פונקציית שירות גלובלית לדחיסת תמונות המועלות על ידי המשתמש לפני השמירה בבסיס הנתונים.
+ * הפונקציה ממוזערת ומשנה את פרופורציות התמונה (Resize) כך שלא תעבור ממד מרבי מוגדר, ושומרת עליה בפורמט JPEG באיכות רצויה למניעת עומס על האחסון (Storage).
+ * @param {string} base64 - מחרוזת התמונה המקורית בקידוד Base64 כפי שהתקבלה מהטופס.
+ * @param {number} [maxDimension=1200] - הממד המקסימלי המותר (אורך או רוחב, הגדול מביניהם) בפיקסלים.
+ * @param {number} [quality=0.7] - איכות הדחיסה מ-0.0 (הכי נמוך) עד 1.0 (הכי גבוה).
+ * @param {Function} callback - פונקציית קריאה חוזרת (Callback) המקבלת את מחרוזת ה-Base64 של התמונה לאחר הדחיסה (או התמונה המקורית במקרה של שגיאה).
  */
 window.compressImage = function (base64, maxDimension = 1200, quality = 0.7, callback) {
     const img = new Image();
@@ -42,6 +48,12 @@ window.compressImage = function (base64, maxDimension = 1200, quality = 0.7, cal
     };
 };
 
+/**
+ * מנהל את תהליך ההתנתקות המלא של המשתמש מהמערכת (Logout).
+ * מבצע סדרת פעולות אבטחה וניקוי: ניתוק מול שירותי Supabase (אם קיים), מחיקת כלל המפתחות הרגישים מ-LocalStorage ו-SessionStorage, ולבסוף הפניה חזרה למסך ההתחברות הראשי (login.html).
+ * @param {Event} [e] - אירוע הלחיצה על כפתור ההתנתקות. משמש למניעת התנהגות ברירת המחדל של אלמנט ה-A.
+ * @returns {Promise<void>} - מבצע את הניתוק האסינכרוני מול השרת ומעביר דף.
+ */
 async function handleLogout(e) {
     if (e) e.preventDefault();
     
@@ -95,6 +107,11 @@ async function handleLogout(e) {
 }
 
 // Global initialization if needed
+/**
+ * מאזין לאירוע טעינת ה-DOM. 
+ * סורק את ה-HTML עבור כל אלמנט המכיל את התכונה `data-logout` ומוסיף לו באופן אוטומטי מאזין לחיצה המפעיל את פונקציית ההתנתקות (handleLogout).
+ * @param {Event} event - אירוע טעינת הדף.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     // We can also auto-attach to any element with data-logout
     document.querySelectorAll('[data-logout]').forEach(btn => {

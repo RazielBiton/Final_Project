@@ -1,4 +1,12 @@
-/* --- FUEL COMPONENT STYLES --- */
+/* =========================================================
+שם הקובץ: dashboard-fuel.css
+תיאור: קובץ עיצוב ספציפי למסך מעקב הדלק. מנהל את העיצוב של כרטיסיות הסטטיסטיקה, צבעי הגראדיינט הראשיים, רשימת היסטוריית התדלוקים, ומכיל התאמות ייעודיות לסידור כפתורי פעולות במסכי מובייל ולקיבוע הפוטר התחתון.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+כרטיסיות סטטיסטיקה ודלק (Fuel Stats Cards)
+========================================= */
 .fuel-stats-card {
     border-radius: 12px;
     box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .05);
@@ -10,6 +18,9 @@
     box-shadow: 0 .25rem 2rem 0 rgba(58, 59, 69, .1);
 }
 
+/* =========================================
+צבעי גראדיינט (Gradients)
+========================================= */
 .gradient-primary {
     background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
 }
@@ -18,10 +29,16 @@
     background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
 }
 
+/* =========================================
+טיפוגרפיה (Typography)
+========================================= */
 .text-sm {
     font-size: 0.875rem;
 }
 
+/* =========================================
+היסטוריית תדלוקים (Fuel History)
+========================================= */
 #fuelHistoryContainer {
     background: #fff;
     border-radius: 12px;
@@ -40,10 +57,14 @@
 
 .db-list-group-flush .db-list-item:last-child {
     border-bottom: none;
-}/* Custom Add Fuel Modal Header for RTL Close Button */
+}
+/* =========================================
+מודל הוספת תדלוק (Add Fuel Modal)
+========================================= */
 #addFuelModal .modal-header {
     position: relative;
 }
+/* התאמת מיקום כפתור הסגירה לשמאל (RTL) בתוך הכותרת של חלון המודל */
 #addFuelModal .btn-close {
     position: absolute;
     left: 1.5rem;
@@ -52,8 +73,11 @@
     margin: 0;
 }
 
-/* Mobile Actions Alignment */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive)
+========================================= */
 @media (max-width: 767px) {
+    /* סידור כפתורי הפעולות בשורה אחת וריווח מותאם במסכים קטנים */
     .fuel-actions-wrapper {
         margin-top: 1rem;
         display: flex !important;
@@ -71,17 +95,25 @@
         word-break: break-word;
     }
 }
+/* =========================================
+התאמות רספונסיביות - דסקטופ (Desktop Responsive)
+========================================= */
 @media (min-width: 768px) {
     .fuel-actions-wrapper {
         width: auto !important;
         gap: 1.5rem;
     }
 }
-/* Ensure footer stays at the bottom when Fuel page is short */
+
+/* =========================================
+תיקוני מבנה ופוטר מקובע (Layout & Sticky Footer Fixes)
+========================================= */
+/* הבטחת גובה מינימלי למסך כדי שהפוטר לא יקפוץ במעלה הדף כשהמסך ריק מתדלוקים */
 #fuel-section {
     min-height: calc(100vh - 80px);
 }
-/* Sticky Footer Fix */
+
+/* הגדרת פריסת עמוד גמישה (Flexbox) להצמדת הפוטר לתחתית העמוד באופן קבוע */
 body.dashboard-body {
     display: flex;
     flex-direction: column;

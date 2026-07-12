@@ -1,10 +1,18 @@
-// --- MODULE: OVERVIEW ---
+/**
+ * @fileoverview frontend/js/dashboard-overview.js
+ * @description מודול המסך הראשי (Overview) בלוח הבקרה. מרכז את כלל המדדים העסקיים, ההוצאות, נתוני האמינות וההתראות מכלל המודולים האחרים לכדי תמונת מצב אחידה אחת.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * פונקציית הליבה לטעינת מסך תמונת המצב (Overview). מאגדת ומחשבת את הנתונים מכלל המודולים במערכת (קילומטראז', הוצאות מכלל הסוגים, מועד טסט, מפרט טכני ורמות אמינות) ומזריקה אותם למדדי ה-KPI הראשיים בממשק המשתמש.
+ */
 window.loadOverview = function () {
-    // ── KPI: KM ──────────────────────────────────────────────────
+
     const kmEl = document.getElementById('kpi-km');
     if (kmEl) kmEl.textContent = (currentCar.km || 0).toLocaleString('he-IL');
 
-    // ── Expenses Calculation ──────────────────────────────────────
     const totalTreatments = (currentCar.treatments || []).reduce((acc, t) => acc + (parseFloat(t.cost) || 0), 0);
 
     let totalInsurance = 0;
@@ -60,18 +68,15 @@ window.loadOverview = function () {
     setPerc('perc-reports', totalReports);
     setEl('exp-total', totalExpense);
 
-    // ── KPI: Test Date ────────────────────────────────────────────
     const testEl = document.getElementById('kpi-test');
     if (testEl) testEl.textContent = window.formatDate(currentCar.testDate);
 
-    // ── KPI: Status ───────────────────────────────────────────────
     const statusEl = document.getElementById('kpi-status');
     if (statusEl) {
         const hasProblem = currentCar.year < 2010 || !currentCar.testDate;
         statusEl.textContent = hasProblem ? 'דרוש טיפול' : 'תקין';
     }
 
-    // ── Technical Specs ───────────────────────────────────────────
     const colorMap = { 'שחור': 'black', 'לבן': 'white', 'כסף': 'silver', 'אפור': 'gray', 'כחול': 'blue', 'אדום': 'red', 'ירוק': 'green', 'צהוב': 'yellow', 'חום': 'brown', 'זהב': 'gold', 'כתום': 'orange', 'תכלת': 'lightblue', 'בז\'': 'beige', 'בורדו': 'maroon' };
     const carColorText = currentCar.color || '--';
     const colorEl = document.getElementById('info-color');
@@ -102,7 +107,6 @@ window.loadOverview = function () {
         fuelIcon.style.display = 'block';
     }
 
-
     setTextEl('info-tire-f', currentCar.tireFront);
     setTextEl('info-tire-r', currentCar.tireRear);
     setTextEl('info-volume', currentCar.engineVolume);
@@ -130,22 +134,19 @@ window.loadOverview = function () {
         }
     }
 
-    // ── Expense Chart ─────────────────────────────────────────────
     if (typeof initExpensesChart === 'function') {
         initExpensesChart(totalTreatments, totalInsurance, totalFuel, totalAccidents, totalReports, totalCustom);
     }
 
-    // ── Health Score (Reliability) ────────────────────────────────
     const reliability = calculateReliability(currentCar);
     updateReliabilityUI(reliability);
 
-    // ── Alerts from customAlerts ──────────────────────────────────
     renderOverviewAlerts();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Alert Cards in Overview – pulled from currentCar.customAlerts
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * שואבת, מסננת ומרנדרת את כלל ההתראות הפעילות (שטרם בוצעו) של הרכב למסך הראשי. מחשבת את רמות הדחיפות (קריטי, חשוב, רגיל) ומתאימה את צבעי התצוגה, המדבקות (Badges) והסמלילים באופן דינמי לפי מועד התפוגה של כל התראה.
+ */
 function renderOverviewAlerts() {
     const alertsList = document.getElementById('alertsList');
     if (!alertsList) return;
@@ -156,7 +157,6 @@ function renderOverviewAlerts() {
 
     const freqLabels = { daily: 'יומי', weekly: 'שבועי', monthly: 'חודשי', yearly: 'שנתי', once: 'חד פעמי' };
 
-    // Sort by date ascending
     const sorted = [...customAlerts].sort((a, b) => new Date(a.date) - new Date(b.date));
 
     if (sorted.length === 0) {
@@ -173,7 +173,6 @@ function renderOverviewAlerts() {
         const diffDays = Math.ceil((ad - today) / (1000 * 60 * 60 * 24));
         const urgency = alert.urgency || 'normal';
 
-        // Color tokens by urgency
         let dotColor, bgColor, textColor, urgencyLabel;
         if (urgency === 'critical' || alert.priority === 'danger') {
             dotColor = '#e53935'; bgColor = '#fff5f5'; textColor = '#991b1b'; urgencyLabel = 'קריטי';
@@ -183,7 +182,6 @@ function renderOverviewAlerts() {
             dotColor = '#3b82f6'; bgColor = '#eff6ff'; textColor = '#1e40af'; urgencyLabel = 'רגיל';
         }
 
-        // Time badge
         let timeBadge;
         if (diffDays < 0) {
             timeBadge = `<span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 9px;font-size:0.72rem;font-weight:700;">פג לפני ${Math.abs(diffDays)} ימים</span>`;
@@ -230,14 +228,15 @@ function renderOverviewAlerts() {
     }).join('');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reliability / Health Score
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * אלגוריתם שקלול מורכב (Health Score) הבוחן את רמת אמינות התיעוד ורמת התחזוקה של הרכב. מנקד את הרכב (עד 100) על סמך 5 פרמטרים מרכזיים: טיפולים מתועדים (30%), ביטוחים מקיפים וחובה (20%), תיעוד דלקים עקבי (20%), תוקף טסט (15%) והזנת קילומטראז' (15%).
+ * @param {Object} car - אובייקט הרכב הנוכחי על כלל נתוניו.
+ * @returns {Object} מחזיר אובייקט המכיל את הציון הכולל (score) רשימה מפורטת של הקריטריונים ומשקלם (criteria).
+ */
 window.calculateReliability = function (car) {
     let score = 0;
     const criteria = [];
 
-    // 1. Treatments with invoice (30%)
     const treatmentsWithInvoice = (car.treatments || []).filter(t => t.invoice).length;
     const treatmentDone = treatmentsWithInvoice >= 5;
     const treatmentPartial = Math.min(treatmentsWithInvoice / 5, 1);
@@ -249,7 +248,6 @@ window.calculateReliability = function (car) {
         weight: 30
     });
 
-    // 2. Insurance (20%)
     const insObj = car.insurance || {};
     const hasMandatory = insObj.mandatory?.date && isDateFuture(insObj.mandatory.date) && insObj.mandatory.file;
     const hasCompOrThird = (insObj.comprehensive?.date && isDateFuture(insObj.comprehensive.date) && insObj.comprehensive.file)
@@ -270,7 +268,6 @@ window.calculateReliability = function (car) {
         weight: 10
     });
 
-    // 3. Fuel Logs (20%)
     const fuelCount = (car.fuelLog || []).length;
     const fuelDone = fuelCount >= 5;
     score += Math.min(fuelCount / 5, 1) * 20;
@@ -281,7 +278,6 @@ window.calculateReliability = function (car) {
         weight: 20
     });
 
-    // 4. Valid Test (15%)
     const testDone = !!(car.testDate && isDateFuture(car.testDate));
     if (testDone) score += 15;
     criteria.push({
@@ -291,7 +287,6 @@ window.calculateReliability = function (car) {
         weight: 15
     });
 
-    // 5. Mileage (15%)
     const kmDone = !!(car.km && car.km > 0);
     if (kmDone) score += 15;
     criteria.push({
@@ -304,6 +299,10 @@ window.calculateReliability = function (car) {
     return { score: Math.round(score), criteria };
 };
 
+/**
+ * מקבלת את תוצאות אלגוריתם האמינות ומרנדרת אותן אל ממשק המשתמש (UI). מעדכנת את צבע מד ההתקדמות (ירוק, כתום, אדום), הציון המספרי, ומרכיבה את רשימת הצ'קליסט (Checklist) המפרטת למשתמש במה הוא עמד ובמה עליו להשתפר.
+ * @param {Object} data - אובייקט תוצאת החישוב המכיל ציון ומערך קריטריונים (כפי שמוחזר מ-calculateReliability).
+ */
 window.updateReliabilityUI = function (data) {
     const { score, criteria } = data;
 
@@ -312,7 +311,6 @@ window.updateReliabilityUI = function (data) {
     const barEl = document.getElementById('reliability-bar');
     const checklistEl = document.getElementById('reliability-checklist');
 
-    // Score label & color
     let color, barGradient, label;
     if (score >= 80) {
         color = '#16a34a'; barGradient = 'linear-gradient(90deg,#16a34a,#4ade80)'; label = 'מצוינת';
@@ -326,7 +324,6 @@ window.updateReliabilityUI = function (data) {
     if (scoreEl) { scoreEl.textContent = score + '%'; scoreEl.style.color = '#64748b'; }
     if (barEl) { barEl.style.width = score + '%'; barEl.style.background = barGradient; }
 
-    // Checklist
     if (checklistEl && criteria) {
         checklistEl.innerHTML = criteria.map(c => `
             <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;background:${c.done ? '#f0fdf4' : '#fff9f0'};border:1px solid ${c.done ? '#d1fae5' : '#fde68a'};">

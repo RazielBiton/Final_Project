@@ -1,7 +1,16 @@
-// --- MODULE: FUEL TRACKING ---
+/**
+ * @fileoverview frontend/js/dashboard-fuel.js
+ * @description מודול המנהל את מערך צריכת האנרגיה של הרכב. המודול משלב חישובים דינמיים של דלק מול חשמל (קוט"ש/ליטרים), קבלת מחירים עדכניים (Live Prices) ממקורות חיצוניים באמצעות מנגנון שמירה במטמון (Cache), וממשק חכם לעריכה ושמירת תדלוקים/טעינות.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 let fetchedEnergyPrices = false;
 window.livePrices = { fuel95: '7.95', fuel98: '9.50', diesel: '7.70', elecKwh: '0.62' };
 
+/**
+ * פונקציית הליבה לטעינת מסך צריכת האנרגיה. מרנדרת את ההיסטוריה של תדלוקים וטעינות חשמל על בסיס סוג מנוע הרכב. אחראית על חישוב מדדים כלליים (כמות צריכות ועלות כוללת), הזרקת טיפים רנדומליים לחיסכון באנרגיה והצגת מחירים עדכניים.
+ */
 window.loadFuel = function () {
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
 
@@ -11,7 +20,6 @@ window.loadFuel = function () {
 
     if (!listContainer) return;
 
-    // 1. Calculate and update KPI Cards
     const records = currentCar.fuelLog || [];
     const totalRefuels = records.length;
     const totalCost = records.reduce((sum, f) => sum + (Number(f.cost) || 0), 0);
@@ -22,11 +30,10 @@ window.loadFuel = function () {
     if (!window.fetchedEnergyPrices) {
         window.fetchIsraelEnergyPrices();
     } else {
-        // Already fetched - update UI now that DOM is ready
+
         updateFuelPriceUI();
     }
-    
-    // Dynamic fuel tips
+
     const fuelTips = [
         "תחזוקה נכונה של לחץ אוויר בצמיגים (לפחות פעם בשבועיים) יכולה לחסוך עד 3% מצריכת הדלק השנתית שלך.",
         "הימנעות מהאצות פתאומיות ובלימות חדות יכולה לשפר את צריכת הדלק בעד 20% בנסיעות עירוניות.",
@@ -40,15 +47,12 @@ window.loadFuel = function () {
         window.fuelTipSet = true;
     }
 
-    // Always update price UI after a small tick (ensures DOM is ready)
     setTimeout(() => updateFuelPriceUI(), 50);
 
-    // 2. Determine Vehicle Type Details
     const ft = currentCar.fuelType || "";
     const isEV = ft === "חשמל";
     const isHybrid = ft.includes("חשמל/בנזין") || ft.includes("בנזין/חשמל");
 
-    // Update Add Button Text dynamically
     if (addBtn) {
         if (isEV) {
             addBtn.innerHTML = `<i class="fas fa-charging-station me-2"></i> הוסף טעינה`;
@@ -71,7 +75,6 @@ window.loadFuel = function () {
         else evMessage.classList.add('d-none');
     }
 
-    // 3. Render List
     if (records.length === 0) {
         listContainer.innerHTML = `
             <div class="text-center py-5 text-muted">
@@ -83,7 +86,6 @@ window.loadFuel = function () {
         return;
     }
 
-    // Sort descending by date
     const sortedFuel = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let html = '';
@@ -91,7 +93,6 @@ window.loadFuel = function () {
         const isElectricity = f.energyType === 'electricity';
         const isDiesel = f.energyType === 'diesel';
 
-        // Define display attributes based on energy type
         const amountText = f.amount ? (isElectricity ? `${f.amount} קוט״ש` : `${f.amount} ליטר`) : 'כמות לא צוינה';
         const titleText = isElectricity ? 'טעינת חשמל' : (isDiesel ? 'תדלוק סולר' : 'תדלוק בנזין');
         const iconClass = isElectricity ? 'fa-bolt' : (isDiesel ? 'fa-truck-monster' : 'fa-gas-pump');
@@ -99,7 +100,6 @@ window.loadFuel = function () {
 
         const dateFormatted = window.formatDate(f.date);
 
-        // Calculate price per unit for display
         let pricePerUnit = f.pricePerUnit || null;
         if (!pricePerUnit && f.amount && f.cost && Number(f.amount) > 0) {
             pricePerUnit = (Number(f.cost) / Number(f.amount)).toFixed(2);
@@ -151,6 +151,9 @@ window.loadFuel = function () {
     listContainer.innerHTML = html;
 };
 
+/**
+ * מעדכנת ומחליפה את תוויות ופלייס הולדרים (Placeholders) של שדות הטופס להוספת אנרגיה בהתאם ללחיצת המשתמש (קוט"ש וחשמל לעומת ליטרים של דלק/סולר). כמו כן טוענת מחיר מומלץ על בסיס נתוני האונליין.
+ */
 window.toggleEnergyFields = function () {
     const isElectricSelected = document.getElementById('energyElectric').checked;
     const amountLabel = document.getElementById('fAmountLabel');
@@ -176,6 +179,9 @@ window.toggleEnergyFields = function () {
     calculateTotalFuelCost();
 };
 
+/**
+ * פונקציית עזר המחשבת בזמן אמת בטופס את העלות הכוללת להזנה, בהתאם למחיר ליחידה ולכמות היחידות (קוט"ש/ליטרים) שהוזנה.
+ */
 window.calculateTotalFuelCost = function () {
     const amount = parseFloat(document.getElementById('fAmount').value);
     const price = parseFloat(document.getElementById('fPricePerUnit').value);
@@ -186,6 +192,9 @@ window.calculateTotalFuelCost = function () {
     }
 };
 
+/**
+ * פונקציית עזר לחישוב הפוך בטופס - מסיקה אוטומטית את המחיר ליחידה בהינתן כמות ועלות כוללת, או את הכמות בהינתן מחיר יחידה ועלות. מאפשרת גמישות בהזנת משתמש.
+ */
 window.calculatePricePerUnit = function () {
     const amountStr = document.getElementById('fAmount').value;
     const cost = parseFloat(document.getElementById('fCost').value);
@@ -200,6 +209,9 @@ window.calculatePricePerUnit = function () {
     }
 };
 
+/**
+ * פותח את המודאל (Modal) להוספת רישום אנרגיה (תדלוק או טעינה). מכין את הממשק ומסמן את האפשרות המתאימה מראש בהתאם לסוג הדלק של הרכב הנוכחי. 
+ */
 window.openAddFuelModal = function () {
     const form = document.getElementById('add-fuel-form');
     if (form) form.reset();
@@ -255,6 +267,10 @@ window.openAddFuelModal = function () {
     }
 };
 
+/**
+ * פותח את המודאל לעריכת רישום תדלוק/טעינה קיים מתוך ההיסטוריה, ומאכלס את כל השדות מחדש על בסיס המזהה.
+ * @param {string|number} id - מזהה רשומת התדלוק/הטעינה הייחודי.
+ */
 window.editFuel = function (id) {
     const record = currentCar.fuelLog.find(f => String(f.id) === String(id));
     if (!record) return;
@@ -309,6 +325,9 @@ window.editFuel = function (id) {
     }
 };
 
+/**
+ * שומר (או מעדכן עריכה של) רישום אנרגיה באחסון המקומי, כולל ולידציות של מחיר ותאריך. בסיום מרענן את התצוגה המקומית וסוגר את חלון המודאל.
+ */
 window.saveFuel = function () {
     const editId = document.getElementById('editFuelId').value;
     const cost = document.getElementById('fCost').value;
@@ -325,7 +344,6 @@ window.saveFuel = function () {
 
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
 
-    // Calculate price per unit for storage
     const pricePerUnitVal = document.getElementById('fPricePerUnit').value;
     const pricePerUnit = pricePerUnitVal ? Number(parseFloat(pricePerUnitVal).toFixed(4)) : (
         (amount && Number(amount) > 0 && cost) ? Number((Number(cost) / Number(amount)).toFixed(4)) : null
@@ -368,6 +386,10 @@ window.saveFuel = function () {
     if (typeof loadExpenses === 'function') loadExpenses();
 };
 
+/**
+ * מסיר רשומה ספציפית מהיסטוריית הזנות האנרגיה בכפוף לאישור המשתמש (Confirm dialog).
+ * @param {string|number} id - מזהה ייחודי של רישום התדלוק למחיקה.
+ */
 window.deleteFuel = function (id) {
     if (confirm('האם אתה בטוח שברצונך למחוק תיעוד תדלוק זה?')) {
         currentCar.fuelLog = currentCar.fuelLog.filter(f => String(f.id) !== String(id));
@@ -378,6 +400,11 @@ window.deleteFuel = function (id) {
     }
 };
 
+/**
+ * מבצע פנייה לשרת (AI API) על מנת להביא את מחירי הדלק והחשמל המעודכנים (live prices) למשק הישראלי, עם מנגנון שמירה במטמון (Cache) כדי לא להעמיס על קריאות שרת בכל טעינה (תוקף ל-12 שעות).
+ * @returns {Promise<void>}
+ * @throws {Error} זורק שגיאה במקרה שהשרת לא זמין (אז משתמש במחירי גיבוי קשיחים - Fallback).
+ */
 window.fetchIsraelEnergyPrices = async function () {
     const CACHE_KEY = 'fuel_prices_cache';
     const CACHE_DURATION = 1000 * 60 * 60 * 12; // 12 hours
@@ -394,7 +421,7 @@ window.fetchIsraelEnergyPrices = async function () {
                 updateFuelPriceUI();
                 return;
             } else if (!isValid) {
-                // Corrupt/N/A cache - clear it and re-fetch
+
                 console.warn("Cached fuel prices contain N/A - clearing cache and re-fetching.");
                 localStorage.removeItem(CACHE_KEY);
             }
@@ -428,6 +455,9 @@ window.fetchIsraelEnergyPrices = async function () {
     }
 };
 
+/**
+ * פונקציה חזותית לעדכון שורת המחירים (Marquee / תגיוות) במסך בהתאם למחירים המקומיים השמורים אצל המשתמש (livePrices).
+ */
 function updateFuelPriceUI() {
     if (document.getElementById('price-fuel-95')) document.getElementById('price-fuel-95').textContent = window.livePrices.fuel95;
     if (document.getElementById('price-fuel-98')) document.getElementById('price-fuel-98').textContent = window.livePrices.fuel98;

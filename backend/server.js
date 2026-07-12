@@ -1,3 +1,10 @@
+/**
+ * @fileoverview backend/server.js
+ * @description קובץ הליבה של צד השרת (Express.js Server). משמש כנקודת הכניסה לאפליקציה (Entry Point), אחראי על ניהול צינורות המידע (API Routes), יצירת ממשק התקשרות מאובטח (CORS/Middleware), אימות והרשמה של משתמשים דרך Supabase/Azure SQL, וכן מכיל מערכות אינטגרציה מול Google Gemini AI לצורכי פענוח פוליסות ביטוח מורכבות וניהול צ'אט (מוסכניק וירטואלי).
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -15,19 +22,21 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Serve static files from frontend/
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const GEMINI_MODEL = "gemini-2.5-flash";
 
-
-// Initialize DB Connection
 const { sql, poolPromise } = require('./db');
 
-// Authentication middleware - expects 'userid' header
+/**
+ * מידלוור (Middleware) למערכת. בדרך כלל משמש לאימות (Authentication) וחילוץ ה-UserID מתוך ה-Headers של הלקוח.
+ * @param {express.Request} req - בקשת הלקוח, בה יוזרק מזהה המשתמש לאחר האימות.
+ * @param {express.Response} res - תשובת השרת.
+ * @param {express.NextFunction} next - קריאה להעברת הבקשה ל-Route הבא.
+ */
 app.use((req, res, next) => {
-    // Skip auth for login, register, auth-related (OTP), and static files
+
     if (req.path === '/api/login' || req.path === '/api/register' || req.path.startsWith('/api/auth/') || !req.path.startsWith('/api')) {
         return next();
     }
@@ -35,26 +44,30 @@ app.use((req, res, next) => {
     if (userId) {
         req.userId = parseInt(userId);
     } else {
-        // Fallback for development (e.g., from old api.js logic)
+
         req.userId = 1;
     }
     next();
 });
 
-// ========================
-// PUBLIC CONFIG ROUTES
-// ========================
-
-// Google Maps API key (public, needed before auth)
+/**
+ * מספק לממשק הלקוח (Client) את מפתח ה-API הציבורי של מפות גוגל (Google Maps) מתוך משתני הסביבה המוגנים של השרת, ללא צורך בהזדהות.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {void} - מבצע פעולה אסינכרונית או החזרת JSON.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/config/maps', (req, res) => {
     res.json({ key: process.env.GOOGLE_MAPS_API_KEY || '' });
 });
 
-// ========================
-// API ROUTES FOR AUTH
-// ========================
-
-// Register User
+/**
+ * מבצעת הרשמה של משתמש חדש במערכת על ידי בדיקת כפילות מול מסד הנתונים (Azure SQL) ויצירת רשומה תחת הטבלה Users.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/register', async (req, res) => {
     try {
         const { email, password, firstName, lastName } = req.body;
@@ -65,14 +78,13 @@ app.post('/api/register', async (req, res) => {
         const pool = await poolPromise;
         const normalizedEmail = email.trim().toLowerCase();
 
-        // Basic check if exists
         const check = await pool.request().input('Email', sql.NVarChar, normalizedEmail).query('SELECT Id FROM Users WHERE LOWER(TRIM(Email)) = @Email');
         if (check.recordset.length > 0) {
             return res.status(400).json({ error: 'User already exists' });
         }
 
         const fullName = `${firstName.trim()} ${lastName.trim()}`;
-        // In production, encrypt password. For MVP, keeping plain or simple.
+
         await pool.request()
             .input('Email', sql.NVarChar, normalizedEmail)
             .input('PasswordHash', sql.NVarChar, password)
@@ -86,7 +98,13 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login User
+/**
+ * מאמתת (Authentication) את פרטי ההתחברות של המשתמש (אימייל וסיסמה) אל מול מסד הנתונים, ומחזירה את מזהה המשתמש הבלעדי במידה ונמצאה התאמה.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -113,7 +131,13 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Social Login (Google / Apple)
+/**
+ * מנהלת תהליך התחברות דרך ספקים חברתיים (Google/Apple). במידה והמשתמש לא קיים, היא מקימה עבורו חשבון חדש באופן אוטומטי. מזהה כפילויות לפי כתובת הדוא"ל ומקשרת לחשבון הקיים או העשיר ביותר מבחינת היסטוריה.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/auth/social-login', async (req, res) => {
     try {
         const { email, fullName, provider, providerId } = req.body;
@@ -124,8 +148,6 @@ app.post('/api/auth/social-login', async (req, res) => {
         const pool = await poolPromise;
         const normalizedEmail = email.trim().toLowerCase();
 
-        // Check if user exists (robust check against casing and spaces)
-        // We fetch all potential matches to handle existing duplicates from previous versions
         const result = await pool.request()
             .input('Email', sql.NVarChar, normalizedEmail)
             .query(`
@@ -137,11 +159,9 @@ app.post('/api/auth/social-login', async (req, res) => {
             `);
 
         if (result.recordset.length > 0) {
-            // Pick the best match (the one with cars, or the oldest one)
+
             const user = result.recordset[0];
-            
-            // Link provider if not linked yet, or if it was a local account
-            // We use the ID specifically to ensure we link the right one of the duplicates
+
             await pool.request()
                 .input('Id', sql.Int, user.Id)
                 .input('AuthProvider', sql.NVarChar, provider)
@@ -150,7 +170,7 @@ app.post('/api/auth/social-login', async (req, res) => {
 
             return res.json({ success: true, userId: user.Id, fullName: user.FullName });
         } else {
-            // User does not exist, create new user
+
             const newFullName = fullName || normalizedEmail.split('@')[0];
             const insertResult = await pool.request()
                 .input('Email', sql.NVarChar, normalizedEmail)
@@ -172,7 +192,13 @@ app.post('/api/auth/social-login', async (req, res) => {
     }
 });
 
-// Expose public Supabase config to frontend
+/**
+ * חשיפת נתוני ההתחברות לשירות Supabase לטובת מודולים ב-Frontend (כגון טפסי יצירת קשר ושירותי OTP).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {void} - מבצע פעולה אסינכרונית או החזרת JSON.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/config/supabase', (req, res) => {
     res.json({
         url: supabaseUrl,
@@ -180,13 +206,26 @@ app.get('/api/config/supabase', (req, res) => {
     });
 });
 
+/**
+ * מספק לממשק הלקוח (Client) את מפתח ה-API הציבורי של מפות גוגל (Google Maps) מתוך משתני הסביבה המוגנים של השרת, ללא צורך בהזדהות.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {void} - מבצע פעולה אסינכרונית או החזרת JSON.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/config/maps', (req, res) => {
     res.json({
         key: process.env.GOOGLE_MAPS_API_KEY || ''
     });
 });
 
-// Forgot Password - Send OTP
+/**
+ * שולחת למשתמש קוד חד-פעמי (OTP) לכתובת האימייל לצורך אימות או שחזור סיסמה דרך שירותי Supabase Auth.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/auth/send-otp', async (req, res) => {
     try {
         const { email } = req.body;
@@ -202,7 +241,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
             return res.status(404).json({ error: 'משתמש עם אימייל זה לא נמצא במערכת.' });
         }
 
-        // Send OTP via Supabase
         const { data, error } = await supabase.auth.signInWithOtp({
             email: email,
             options: { shouldCreateUser: true }
@@ -221,14 +259,20 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 });
 
-// Forgot Password - Verify OTP & Reset
+/**
+ * מאמתת את קוד ה-OTP מול Supabase. במידה והקוד תקין, הפונקציה מנצלת את האישור כדי לדרוס את הסיסמה הישנה של המשתמש במסד הנתונים של Azure SQL בסיסמה חדשה.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/auth/verify-otp', async (req, res) => {
     try {
         const { email, token, newPassword } = req.body;
         if (!email || !token || !newPassword) return res.status(400).json({ error: 'Missing parameters' });
 
         const normalizedEmail = email.trim().toLowerCase();
-        // Verify OTP via Supabase
+
         const { data, error } = await supabase.auth.verifyOtp({
             email: normalizedEmail,
             token,
@@ -240,7 +284,6 @@ app.post('/api/auth/verify-otp', async (req, res) => {
             return res.status(400).json({ error: 'קוד OTP שגוי או פג תוקף: ' + error.message });
         }
 
-        // OTP Valid! Update password in Azure SQL database
         const pool = await poolPromise;
         await pool.request()
             .input('Email', sql.NVarChar, normalizedEmail)
@@ -254,7 +297,13 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
 });
 
-// Verify OTP Only (no password change) — used by Profile page
+/**
+ * מאמתת בלבד את קוד ה-OTP (ללא שינוי סיסמה בפועל) ומשמשת כשלב וידוא אבטחה בעת עדכון פרטי חשבון רגישים (כגון אימייל חלופי).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/auth/verify-otp-only', async (req, res) => {
     try {
         const { email, token } = req.body;
@@ -279,14 +328,20 @@ app.post('/api/auth/verify-otp-only', async (req, res) => {
     }
 });
 
-// Reset password directly — used by Profile page
+/**
+ * מאפשרת שינוי סיסמה מתוך פרופיל המשתמש, באמצעות דרישת הזנת הסיסמה הנוכחית לשם וידוא והחלפתה בחדשה במסד הנתונים.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/auth/reset-password-direct', async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing parameters' });
 
         const pool = await poolPromise;
-        // 1. Verify current password
+
         const user = await pool.request()
             .input('Id', sql.Int, req.userId)
             .query('SELECT PasswordHash FROM Users WHERE Id = @Id');
@@ -298,7 +353,6 @@ app.post('/api/auth/reset-password-direct', async (req, res) => {
             return res.status(401).json({ error: 'הסיסמה הנוכחית שהזנת אינה נכונה.' });
         }
 
-        // 2. Update to new password
         await pool.request()
             .input('Id', sql.Int, req.userId)
             .input('PasswordHash', sql.NVarChar, newPassword)
@@ -311,7 +365,13 @@ app.post('/api/auth/reset-password-direct', async (req, res) => {
     }
 });
 
-// Get Logged-in User Info
+/**
+ * שולפת את פרטי הפרופיל הבסיסיים (אימייל, שם, טלפון, ותמונת פרופיל) של המשתמש הנוכחי על סמך מזהה ה-userId המועבר ב-Headers.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/user/me', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -329,6 +389,13 @@ app.get('/api/user/me', async (req, res) => {
     }
 });
 
+/**
+ * מעדכנת את פרטי הפרופיל של המשתמש המחובר, לרבות הזרקת תמונת פרופיל בפורמט Base64 אל תוך בסיס הנתונים.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/user/update', async (req, res) => {
     try {
         const { fullName, email, phone, avatar } = req.body;
@@ -354,11 +421,13 @@ app.post('/api/user/update', async (req, res) => {
     }
 });
 
-// ========================
-// API ROUTES FOR VEHICLES
-// ========================
-
-// Get all vehicles for the logged-in user with comprehensive data
+/**
+ * מושכת את רשימת כלל כלי הרכב המשויכים למשתמש המחובר (IsDeleted = 0). בנוסף, שולפת באופן מעמיק את כלל ההיסטוריה (טיפולים, ביטוחים, תאונות) לכל רכב במטרה לספק לוח בקרה הוליסטי.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/vehicles', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -368,7 +437,6 @@ app.get('/api/vehicles', async (req, res) => {
 
         const vehicles = result.recordset;
 
-        // Fetch related data for each vehicle to enable accurate reliability scoring on the main dashboard
         const comprehensiveVehicles = await Promise.all(vehicles.map(async (car) => {
             const vehicleId = car.Id;
 
@@ -414,7 +482,13 @@ app.get('/api/vehicles', async (req, res) => {
     }
 });
 
-// Get all vehicles globally (for Global Search)
+/**
+ * מספקת באופן גלובלי את פרטיהם הבסיסיים של כל רכבי המשתמש לצורכי מנגנוני השלמה אוטומטית (Autocomplete) במסכי החיפוש הכלליים.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/vehicles/all', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -427,7 +501,13 @@ app.get('/api/vehicles/all', async (req, res) => {
     }
 });
 
-// Add a new vehicle
+/**
+ * רושמת ומוסיפה כלי רכב חדש לתיק המשתמש (CREATE). מבצעת ולידציות של לוחית הרישוי בכדי למנוע שיוך כפול בבסיס הנתונים, ומחזירה את המזהה החדש שנוצר.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/vehicles', async (req, res) => {
     try {
         const car = req.body;
@@ -470,8 +550,7 @@ app.post('/api/vehicles', async (req, res) => {
         res.json({ success: true, vehicleId: result.recordset[0].Id });
     } catch (err) {
         console.error('Failed to add vehicle:', err);
-        
-        // Handle Duplicate License Plate
+
         if (err.number === 2627 || (err.originalError && err.originalError.info && err.originalError.info.number === 2627)) {
             try {
                 const pool = await poolPromise;
@@ -500,7 +579,13 @@ app.post('/api/vehicles', async (req, res) => {
     }
 });
 
-// Edit an existing vehicle (basic info)
+/**
+ * מעדכנת רשומת רכב קיימת (UPDATE) על סמך זיהוי ב-Params, תומכת בעדכון חלקי של פרטים טכניים, קילומטראז׳ ולוגו במאגר.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.put('/api/vehicles/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -560,7 +645,13 @@ app.put('/api/vehicles/:id', async (req, res) => {
     }
 });
 
-// Delete a vehicle
+/**
+ * מסירה רכב ספציפי מהמערכת (Soft או Hard Delete בהתאם למנגנון) תוך וידוא כי מזהה המשתמש מבקש המחיקה הוא אכן בעל הרכב.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.delete('/api/vehicles/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -578,10 +669,13 @@ app.delete('/api/vehicles/:id', async (req, res) => {
     }
 });
 
-// ========================
-// API ROUTES FOR FINES
-// ========================
-
+/**
+ * קוראת ושולפת את מערך הדוחות והקנסות הרשומים על מזהה רכב ספציפי מתוך מסד הנתונים של הקנסות.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/fines/:vehicleId', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -594,6 +688,13 @@ app.get('/api/fines/:vehicleId', async (req, res) => {
     }
 });
 
+/**
+ * קולטת ומכניסה דוח/קנס תנועה חדש לטבלת Fines המשויכת לרכב ספציפי, ושומרת את תצלומו.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/fines', async (req, res) => {
     try {
         const { vehicleId, offenseType, date, lastPaymentDate, location, amount, points, documentBase64, isHandled } = req.body;
@@ -619,10 +720,13 @@ app.post('/api/fines', async (req, res) => {
     }
 });
 
-// ========================
-// API ROUTES FOR GALLERY
-// ========================
-
+/**
+ * מושכת את כלל התמונות שהועלו במערך Base64 לגלריית הרכב (לצורכי דוחות ופומביות) על סמך מזהה הרכב המבוקש.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/gallery/:vehicleId', async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -635,6 +739,13 @@ app.get('/api/gallery/:vehicleId', async (req, res) => {
     }
 });
 
+/**
+ * מכניסה תמונה חדשה לטבלת הגלריה הפרטית של רכב נבחר במערכת על מנת להציגה בדוח הפרימיום.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/gallery', async (req, res) => {
     try {
         const { vehicleId, imageBase64 } = req.body;
@@ -653,9 +764,13 @@ app.post('/api/gallery', async (req, res) => {
     }
 });
 
-// ========================
-// API ROUTES FOR TREATMENTS
-// ========================
+/**
+ * שולפת מהמאגר המרכזי את רשימת הטיפולים, התיקונים והתחזוקה המשויכים למזהה רכב ספציפי במסד הנתונים.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/treatments/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -664,6 +779,13 @@ app.get('/api/treatments/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * מקבלת נתוני טיפול חדש מהלקוח (כולל קילומטראז׳ ועלות) ורושמת אותם היסטורית למאגר הטיפולים של הרכב הנתון.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/treatments', async (req, res) => {
     try {
         const { vehicleId, date, type, description, cost, garageName, odometer, documentBase64 } = req.body;
@@ -678,9 +800,13 @@ app.post('/api/treatments', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// API ROUTES FOR FUELLOGS
-// ========================
+/**
+ * מוציאה את היסטוריית התדלוקים ו/או טעינות החשמל של הרכב הנידון מתוך טבלת FuelLogs לאנליזה מצד הממשק.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/fuellogs/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -689,6 +815,13 @@ app.get('/api/fuellogs/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * מעבדת ורושמת אירוע תדלוק או טעינה חשמלית חדש. מתעדת כמות ליטרים, עלויות מדויקות וקילומטראז׳ עבור ניטור חכם.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/fuellogs', async (req, res) => {
     try {
         const { vehicleId, date, time, liters, pricePerLiter, totalCost, odometer, documentBase64, fuelType } = req.body;
@@ -704,9 +837,13 @@ app.post('/api/fuellogs', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// API ROUTES FOR EXPENSES
-// ========================
+/**
+ * מאתרת מחזירה את תדפיס ההוצאות החופשיות (ניקויון, אביזרים, אגרות) המשויכות למזהה הרכב הנדרש.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/expenses/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -715,6 +852,13 @@ app.get('/api/expenses/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * שומרת רשומת הוצאה ספציפית ומקטלגת אותה בטבלת Expenses מול מזהה הרכב.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/expenses', async (req, res) => {
     try {
         const { vehicleId, date, category, amount, description, documentBase64 } = req.body;
@@ -728,9 +872,13 @@ app.post('/api/expenses', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// API ROUTES FOR ACCIDENTS
-// ========================
+/**
+ * שולפת את התיק הביטוחי/תאונות המצטבר (Accidents Table) תחת מספר הרכב הייעודי מהשרת.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/accidents/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -739,6 +887,13 @@ app.get('/api/accidents/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * מוסיפה דיווח על נזק או תאונה (כולל מעורבות צד ג׳ ופרטי מיקום) להיסטוריית הרכב, במטרה לשקפו בזמן מכירה.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/accidents', async (req, res) => {
     try {
         const { vehicleId, title, date, description, damageDetails, estimatedCost, cost, documentBase64, thirdPartyInvolved, isHandled, location } = req.body;
@@ -754,9 +909,13 @@ app.post('/api/accidents', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// API ROUTES FOR ALERTS
-// ========================
+/**
+ * קוראת את מערך ההתראות המותאמות אישית והתזכורות האקטיביות הרשומות עבור רכב נבחר במערכת.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/alerts/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -765,6 +924,13 @@ app.get('/api/alerts/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * מייצרת רשומת התראה או תזכורת פנימית ומוסיפה אותה לטבלת Alerts (כולל סיווג דחיפות).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/alerts', async (req, res) => {
     try {
         const { vehicleId, title, description, date, urgency, frequency, isActive } = req.body;
@@ -778,9 +944,13 @@ app.post('/api/alerts', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// API ROUTES FOR INSURANCE
-// ========================
+/**
+ * שולפת פוליסות ורישיונות ביטוח רכב השמורים תחת המזהה, לרבות מזהה תוקף ותנאי השתתפות עצמית.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/insurance/:vehicleId', async (req, res) => {
     try {
         const result = await (await poolPromise).request()
@@ -789,6 +959,13 @@ app.get('/api/insurance/:vehicleId', async (req, res) => {
         res.json(result.recordset);
     } catch (err) { res.status(500).json({ error: 'Database error' }); }
 });
+/**
+ * טוענת אל בסיס הנתונים פוליסת ביטוח חדשה למערכת (מקיף/חובה/צד ג׳), הכוללת כיסויים דוגמת שמשות, גרירה ותוספות.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/insurance', async (req, res) => {
     try {
         const { vehicleId, companyName, policyNumber, expiryDate, type, cost, documentBase64,
@@ -810,9 +987,13 @@ app.post('/api/insurance', async (req, res) => {
     } catch (err) { console.error(err); res.status(500).json({ error: 'Database error' }); }
 });
 
-// ========================
-// MASS SYNC ENPOINT (FRONTEND FALLBACK)
-// ========================
+/**
+ * נקודת קצה אינטנסיבית (Mass Sync - GET). מבצעת גיבוי ושליפה מסיבית מקושרת של כלל נתוני הרכב (טיפולים, ביטוחים, הוצאות, גלריה וכו׳) מטבלאות המסד חזרה לכדי JSON שטוח בפורמט שהצד-לקוח מצפה לקבל כמענה לסנכרון.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/vehicles/sync/:id', async (req, res) => {
     try {
         const vehicleId = parseInt(req.params.id);
@@ -833,7 +1014,6 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
         car.reports = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM Fines WHERE VehicleId=@Vid')).recordset;
         car.gallery = (await pool.request().input('Vid', sql.Int, vehicleId).query('SELECT * FROM VehicleGallery WHERE VehicleId=@Vid')).recordset;
 
-        // Transform DB schema back to Frontend schema
         const frontendCar = {
             id: car.Id,
             brandHeb: car.BrandHeb,
@@ -900,7 +1080,6 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
                 images: (() => { try { const p = JSON.parse(a.DocumentBase64); return Array.isArray(p) ? p : (a.DocumentBase64 ? [a.DocumentBase64] : []); } catch(e) { return a.DocumentBase64 ? [a.DocumentBase64] : []; } })()
             })),
 
-            // Alerts: stored in DB but used as 'customAlerts' in frontend
             customAlerts: (car.alerts || []).map(a => ({
                 id: String(a.Id),
                 title: a.Title || '',
@@ -980,19 +1159,24 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
             })
         };
 
-
         res.json(frontendCar);
     } catch (err) { console.error(err); res.status(500).json({ error: 'Database error' }); }
 });
 
+/**
+ * ליבת תהליך הסנכרון והשמירה (Mass Sync - POST). מנוהלת דרך Transaction על מסד הנתונים כדי למנוע קריסה חלקית (Data Corruption). מרוקנת באופן בטוח טבלאות ילד (טיפולים, דלק, ביטוח וכו׳) ומחליפה אותם במידע העדכני ביותר שהתקבל, תוך בדיקת שייכות (Tenant Isolation) קפדנית.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/vehicles/sync/:id', async (req, res) => {
     let transaction;
     try {
         const vehicleId = parseInt(req.params.id);
         const car = req.body;
         const pool = await poolPromise;
-        
-        // 0. Verify ownership (Tenant Isolation)
+
         const checkOwnership = await pool.request()
             .input('Id', sql.Int, vehicleId)
             .input('UserId', sql.Int, req.userId)
@@ -1002,21 +1186,16 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             return res.status(403).json({ error: 'Access denied or vehicle deleted' });
         }
 
-        // Helper to convert DD/MM/YYYY or YYYY-MM-DD to SQL valid format
         const parseDateForSql = (d) => {
             if (!d) return null;
             if (typeof d === 'string' && d.includes('/')) return d.split('/').reverse().join('-');
             return d;
         };
 
-        // ─── TRANSACTIONAL SYNC ──────────────────────────────────────
-        // Using a transaction so if ANY insert fails, nothing is committed
-        // and the old data remains intact. 
         transaction = new sql.Transaction(pool);
         await transaction.begin();
         const req2 = () => new sql.Request(transaction);
 
-        // 1. Update Vehicle basic fields (always)
         await req2()
             .input('Id', sql.Int, vehicleId)
             .input('Km', sql.Int, car.km || 0)
@@ -1024,9 +1203,6 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             .input('ReliabilityScore', sql.Int, car.reliabilityScore || 100)
             .input('SellSettings', sql.NVarChar(sql.MAX), car.sellSettings ? JSON.stringify(car.sellSettings) : null)
             .query('UPDATE Vehicles SET Km=@Km, Status=@Status, ReliabilityScore=@ReliabilityScore, SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id');
-
-        // 2. SAFE SYNC: Only replace a collection if the frontend sent it (not undefined)
-        //    This prevents wiping DB data when a partial car object arrives.
 
         if (Array.isArray(car.treatments)) {
             await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Treatments WHERE VehicleId = @Vid');
@@ -1076,7 +1252,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Accidents WHERE VehicleId = @Vid');
             for (const a of car.accidents) {
                 const repairCostVal = parseFloat(a.repairCost || a.cost || a.estimatedCost) || 0;
-                // Store involvedVehicles as JSON in DamageDetails if present
+
                 const dmgDetails = a.damageDetails || 
                     (a.involvedVehicles && a.involvedVehicles.length > 0 ? JSON.stringify(a.involvedVehicles) : '') || '';
                 await req2()
@@ -1113,7 +1289,6 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             }
         }
 
-        // Alerts: Frontend stores them as 'customAlerts'
         const alertsArray = car.customAlerts || car.alerts;
         if (Array.isArray(alertsArray)) {
             await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Alerts WHERE VehicleId = @Vid');
@@ -1130,7 +1305,6 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             }
         }
 
-        // Insurance: object with keys mandatory/comprehensive/thirdparty
         if (car.insurance && typeof car.insurance === 'object') {
             await req2().input('Vid', sql.Int, vehicleId).query('DELETE FROM Insurance WHERE VehicleId = @Vid');
             const insMap = { 'mandatory': 'חובה', 'comprehensive': 'מקיף', 'thirdparty': 'צד ג' };
@@ -1173,12 +1347,11 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
             }
         }
 
-        // ─── COMMIT TRANSACTION ─────────────────────────────────────
         await transaction.commit();
         res.json({ success: true });
 
     } catch (err) {
-        // ─── ROLLBACK ON ANY ERROR ──────────────────────────────────
+
         if (transaction) {
             try { await transaction.rollback(); } catch(rbErr) { console.error('Rollback failed:', rbErr); }
         }
@@ -1192,7 +1365,13 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
     }
 });
 
-
+/**
+ * מפעילה את מנוע הבינה המלאכותית (Gemini-2.5-Flash) לשם תפעול הצ׳אט הווירטואלי (מוסכניק וירטואלי). מוודאת הזרקת קונטקסט ההיסטוריה המלא ומפעילה Timeout למניעת תקיעת השרת בקריאות ארוכות.
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
@@ -1226,10 +1405,7 @@ app.post('/api/chat', async (req, res) => {
                 }
             });
         }
-        
-        // Fix for SDK hanging on chat.sendMessage:
-        // sendMessage ALWAYS appends a 'user' message. If the history ends with 'user',
-        // the API will receive two 'user' messages sequentially, which causes a silent timeout/hang.
+
         if (historyFormatted[historyFormatted.length - 1].role === 'user') {
             historyFormatted.push({
                 role: "model",
@@ -1242,8 +1418,7 @@ app.post('/api/chat', async (req, res) => {
         });
 
         console.log(`[Chat API] Sending message to Gemini: "${userMessage}"`);
-        
-        // Use Promise.race to guarantee we never hang indefinitely on the server
+
         const result = await Promise.race([
             chat.sendMessage(userMessage),
             new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini API Timeout after 45 seconds")), 45000))
@@ -1260,10 +1435,13 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// ========================
-// API ROUTES FOR CONTACT FORM
-// ========================
-
+/**
+ * מקשרת בין טופס יצירת הקשר באתר לבין Supabase Edge Function האחראית לשליחת מיילים, עוקפת הגבלות SMTP ישירות משרת ההרצה (Render).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
@@ -1272,7 +1450,6 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Call Supabase Edge Function directly instead of using Nodemailer (bypasses Render SMTP block)
         const response = await fetch(`${supabaseUrl}/functions/v1/contact-us`, {
             method: 'POST',
             headers: {
@@ -1295,13 +1472,18 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-// --- AI INSURANCE PARSING ---
+/**
+ * אחראית על פענוח מסמכי PDF ותמונות של פוליסות ביטוח. משתמשת במנוע ה-AI על מנת לחלץ את שדות הביטוח (פרמיות, תאריכים, סוכנים וכד׳) בפורמט JSON בלבד (OCR חכם).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.post('/api/ai/parse-insurance', async (req, res) => {
     try {
         const { mimeType, base64Data, insuranceType } = req.body;
         const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
-        // Build a type-specific prompt for better extraction accuracy
         let typeContext = '';
         if (insuranceType === 'mandatory') {
             typeContext = `זהו ביטוח חובה (RCA) ישראלי. שים לב: החברה המנפיקה עשויה להיות "קרנית", ישיר, מנורה, הפניקס, כלל וכד'. 
@@ -1350,9 +1532,9 @@ ${typeContext}
         ]);
 
         let text = result.response.text().trim();
-        // Clean JSON formatting
+
         text = text.replace(/```json|```/g, '').trim();
-        // Find the JSON object if there's extra text
+
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('No valid JSON in response');
 
@@ -1364,16 +1546,21 @@ ${typeContext}
     }
 });
 
-// --- ENERGY PRICE CACHING ---
 const CACHE_FILE = path.join(__dirname, 'fuel_cache.json');
 const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
 let isFetchingAI = false;
 
+/**
+ * פונה למנוע Gemini לחילוץ מחירי הדלק והחשמל הרשמיים העדכניים בישראל. שומרת את הנתון כמטמון (Cache) קובץ כדי לחסוך קריאות API ונופלת להגדרות גיבוי במקרה חריגת מכסה (Quota).
+ * @param {express.Request} req - אובייקט הבקשה, כולל את כל הפרמטרים (Params) וגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
 app.get('/api/current-fuel-ai', async (req, res) => {
     let cache = { fuel95: "8.05", fuel98: "9.80", diesel: "7.70", elecKwh: "0.6186", lastFetch: 0 };
 
-    // 1. Try to load from file
     if (fs.existsSync(CACHE_FILE)) {
         try {
             const data = fs.readFileSync(CACHE_FILE, 'utf8');
@@ -1382,17 +1569,15 @@ app.get('/api/current-fuel-ai', async (req, res) => {
     }
 
     const now = Date.now();
-    // 2. If valid cache exists, return it
+
     if (now - cache.lastFetch < CACHE_DURATION && cache.lastFetch !== 0) {
         return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, diesel: cache.diesel, elecKwh: cache.elecKwh });
     }
 
-    // 3. If already fetching, return current cache to avoid concurrency issues
     if (isFetchingAI) {
         return res.json({ fuel95: cache.fuel95, fuel98: cache.fuel98, diesel: cache.diesel, elecKwh: cache.elecKwh });
     }
 
-    // 4. Fetch fresh data from Gemini
     isFetchingAI = true;
     const FALLBACK_PRICES = { fuel95: "8.05", fuel98: "9.80", diesel: "7.70", elecKwh: "0.6186" };
     try {
@@ -1402,13 +1587,11 @@ app.get('/api/current-fuel-ai', async (req, res) => {
         const result = await model.generateContent(prompt);
         const rawText = (await result.response).text().trim().replace(/\`\`\`json|\`\`\`/g, '').trim();
 
-        // Extract JSON object from response
         const jsonMatch = rawText.match(/\{[\s\S]*?\}/);
         if (!jsonMatch) throw new Error('No valid JSON found in Gemini response');
 
         const newPrices = JSON.parse(jsonMatch[0]);
 
-        // Validate each value - reject N/A or non-numeric, use fallback
         const validated = {
             fuel95: (newPrices.fuel95 && String(newPrices.fuel95) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel95))) ? String(newPrices.fuel95) : FALLBACK_PRICES.fuel95,
             fuel98: (newPrices.fuel98 && String(newPrices.fuel98) !== 'N/A' && !isNaN(parseFloat(newPrices.fuel98))) ? String(newPrices.fuel98) : FALLBACK_PRICES.fuel98,
@@ -1426,7 +1609,7 @@ app.get('/api/current-fuel-ai', async (req, res) => {
         } else {
             console.error("Gemini Energy Price Error:", error.message);
         }
-        // On error, return cached values if valid, otherwise use hardcoded fallback
+
         const safeResponse = {
             fuel95: (cache.fuel95 && cache.fuel95 !== 'N/A' && !isNaN(parseFloat(cache.fuel95))) ? cache.fuel95 : FALLBACK_PRICES.fuel95,
             fuel98: (cache.fuel98 && cache.fuel98 !== 'N/A' && !isNaN(parseFloat(cache.fuel98))) ? cache.fuel98 : FALLBACK_PRICES.fuel98,
@@ -1443,8 +1626,7 @@ const server = app.listen(PORT, async () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
     console.log(`📂 Working Directory: ${process.cwd()}`);
     console.log(`📦 Node Version: ${process.version}`);
-    
-    // Eagerly connect to the database on startup so the connection log appears
+
     try {
         await poolPromise;
     } catch (err) {

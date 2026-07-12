@@ -1,3 +1,14 @@
+/**
+ * @fileoverview frontend/js/chatbot.js
+ * @description מודול עוזר בינה מלאכותית (AI Chatbot) המספק חוויית שיחה מתקדמת מבוססת RAG. הקובץ מנהל את האינטראקציות בממשק, גרירת חלון הצ'אט, חילוץ מדויק של נתוני הרכב (Context) לשליחה למודל, והצגת היסטוריית השיחה.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
+/**
+ * מאזין לאירוע טעינת ה-DOM ומתחיל את האתחול של רכיב הצ'אט, חילוץ היסטוריית שיחות והגדרת אירועי גרירה.
+ * @param {Event} event - אירוע הטעינה.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const chatWidgetBtn = document.getElementById('chatWidgetBtn');
     const chatWidgetWindow = document.getElementById('chatWidgetWindow');
@@ -9,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
 
     // Fetch user details
+    /**
+     * פונקציה אסינכרונית לשליפת פרטי המשתמש המחובר מהשרת.
+     * הנתונים משמשים להעשרת הקונטקסט שמועבר לבינה המלאכותית על מנת לספק יחס אישי.
+     * @returns {Promise<void>}
+     * @throws {Error} מדפיס שגיאה לקונסול במידה והשליפה מהשרת נכשלה.
+     */
     async function fetchUserData() {
         const userId = sessionStorage.getItem('userId') || '1';
         try {
@@ -29,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDraggingWindow = false;
     let windowOffsetX, windowOffsetY;
 
+    /**
+     * מאזין לאירוע תחילת לחיצה (Mousedown) על כותרת הצ'אט לצורך הפעלת מנגנון גרירת החלון.
+     * @param {MouseEvent} e - אירוע העכבר.
+     */
     chatHeader.addEventListener('mousedown', (e) => {
         isDraggingWindow = true;
 
@@ -70,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let btnOffsetX, btnOffsetY;
     let clickTimeout;
 
+    /**
+     * מאזין לאירוע תחילת לחיצה (Mousedown) על כפתור הצ'אט המרחף לצורך הפעלת מנגנון גרירת הכפתור ברחבי המסך.
+     * @param {MouseEvent} e - אירוע העכבר.
+     */
     chatWidgetBtn.addEventListener('mousedown', (e) => {
         isDraggingBtn = true;
         clickTimeout = false;
@@ -153,6 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Toggle Chat Window
+    /**
+     * מאזין לאירוע לחיצה (Click) על כפתור הצ'אט המרחף, שאחראי על פתיחת חלון השיחה במיקום הנכון על המסך.
+     * @param {MouseEvent} e - אירוע הלחיצה.
+     */
     chatWidgetBtn.addEventListener('click', (e) => {
         if (clickTimeout) return;
 
@@ -175,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { document.getElementById('userInput').focus(); }, 100);
     });
 
+    /**
+     * פונקציה להסתרת חלון השיחה והצגה מחודשת של הכפתור המרחף.
+     */
     function hideChat() {
         chatWidgetWindow.style.display = 'none';
         chatWidgetBtn.style.display = 'flex';
@@ -203,6 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Context Extractor for AI
+    /**
+     * פונקציה קריטית (RAG Extractor) השואבת את כלל הנתונים של הרכב הנוכחי (טיפולים, קנסות, ביטוח, הוצאות) ומעבדת אותם למחרוזת קונטקסט חכמה.
+     * מוחקת קבצים כבדים (כמו תמונות ב-Base64) כדי לחסוך באסימונים (Tokens) בעת שליחה למודל.
+     * @returns {string} - מחרוזת קונטקסט עשירה בעברית שתשלח למודל ה-AI.
+     */
     function getCarContextForAI() {
         try {
             let ctx = '';
@@ -299,6 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendBtn');
     const typingIndicator = document.getElementById('typing');
 
+    /**
+     * מוסיפה בועת הודעה חזותית לחלון השיחה (למשתמש או לבינה המלאכותית), מעצבת טקסט עם תמיכה בהדגשות (Markdown בסיסי) ושומרת בהיסטוריית השיחה.
+     * @param {string} text - תוכן ההודעה להצגה.
+     * @param {string} sender - זהות השולח ('user' או 'ai').
+     * @param {boolean} [saveToHistory=true] - האם לשמור את ההודעה באחסון המקומי.
+     */
     function addMessage(text, sender, saveToHistory = true) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `chat-message ${sender === 'user' ? 'user-msg' : 'ai-msg'}`;
@@ -320,6 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render existing history
+    /**
+     * אחראית על רינדור (Render) מחדש של היסטוריית השיחות השמורות באחסון המקומי אל תוך הממשק בעת טעינת העמוד.
+     */
     function renderHistory() {
         chatBox.innerHTML = '';
         chatHistory.forEach(msg => {
@@ -334,11 +380,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Quick Actions
+    /**
+     * פונקציה הפועלת בעת לחיצה על "פעולה מהירה" (Quick Action) ומזינה אוטומטית את הטקסט לשורת החיפוש ושולחת אותו.
+     * @param {string} text - טקסט הפעולה להפעלה מהירה.
+     */
     window.sendQuickAction = function(text) {
         userInput.value = text;
         sendMessage();
     };
 
+    /**
+     * גוללת את תפריט הפעולות המהירות (קרוסלה) ימינה או שמאלה.
+     * @param {number} dir - כיוון הגלילה (חיובי או שלילי).
+     */
     window.scrollQuickActions = function(dir) {
         const container = document.getElementById('quickActions');
         if (container) {
@@ -346,6 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    /**
+     * הפונקציה המרכזית לשליחת הודעת המשתמש לשרת.
+     * אוספת את טקסט המשתמש, מצרפת אליו את הקונטקסט (נתוני הרכב) ואת עשר ההודעות האחרונות ושולחת בקשת POST לשרת ה-API של המודל.
+     * מציגה חיווי "מקליד" ומוסיפה את תשובת הבינה המלאכותית בסיום.
+     * @returns {Promise<void>}
+     * @throws {Error} מצליבה במקרה של ניתוק מהשרת ומציגה הודעת אי-זמינות.
+     */
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;

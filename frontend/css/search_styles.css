@@ -1,9 +1,12 @@
-/* ═══════════════════════════════════════════════════════
-   SEARCH & RESULTS INTERNAL COMPONENTS — EasyCare
-   Layout and Sidebar are inherited from after_login_styles.css
-═══════════════════════════════════════════════════════ */
+/* =========================================================
+שם הקובץ: search_styles.css
+תיאור: קובץ עיצוב פנימי עבור אזורי חיפוש הרכבים ותצוגת תוצאות החיפוש. הקובץ מתבסס על פריסת תפריט צד (Sidebar) מקבצי הבסיס, ומוסיף עיצובי Glassmorphism מורכבים (רקעי זכוכית מעורפלים), שדות קלט מוגדלים ללוחיות רישוי עם כיווניות מחמירה (LTR), כרטיסיות נתונים ואנימציות הופעה רכות.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
-/* ── SEARCH PAGE HERO ──────────────────────────────────── */
+/* =========================================
+אזור חיפוש ראשי (Search Hero & Glass Box)
+========================================= */
 .search-hero {
     text-align: center;
     padding: 4rem 2rem 3rem;
@@ -12,7 +15,9 @@
 .search-hero h1 { font-size: 3rem; font-weight: 800; color: #1d1d1f; letter-spacing: -1.5px; margin-bottom: 0.5rem; }
 .search-hero p { font-size: 1.2rem; color: #86868b; margin-bottom: 2.5rem; }
 
-/* ── BIG SEARCH BOX ────────────────────────────────────── */
+/* =========================================
+תיבת החיפוש המרכזית (Main Search Box)
+========================================= */
 .search-glass-box {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -40,6 +45,7 @@
     background: rgba(0,0,0,0.03);
     border: 1.5px solid transparent; border-radius: 16px;
     font-size: 1.3rem; font-weight: 600; text-align: center;
+/* הקפדה שכיווניות הטקסט בשדה לוחית הרישוי תהיה תמיד משמאל לימין למניעת שיבוש המספרים */
     letter-spacing: 4px; direction: ltr;
     outline: none; transition: all 0.3s;
     color: #1d1d1f;
@@ -67,7 +73,9 @@
 
 .search-hint { font-size: 0.8rem; color: #c7c7cc; margin-top: 1rem; text-align: center; }
 
-/* ── RECENT SEARCHES ───────────────────────────────────── */
+/* =========================================
+חיפושים אחרונים (Recent Searches)
+========================================= */
 .section-title {
     font-size: 1.2rem; font-weight: 700;
     color: #1d1d1f; margin-bottom: 1rem;
@@ -89,7 +97,9 @@
 .chip-clear { background: none; border: none; color: #c7c7cc; cursor: pointer; font-size: 0.8rem; padding: 0 0 0 4px; }
 .chip-clear:hover { color: #ff3b30; }
 
-/* ── HOW IT WORKS CARDS ────────────────────────────────── */
+/* =========================================
+כרטיסיות הסבר לתהליך (How It Works Cards)
+========================================= */
 .how-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -115,7 +125,9 @@
 .how-card h3 { font-size: 1rem; font-weight: 700; color: #1d1d1f; margin-bottom: 0.4rem; }
 .how-card p { font-size: 0.85rem; color: #86868b; margin: 0; }
 
-/* ── STAT CHIPS ────────────────────────────────────────── */
+/* =========================================
+נתונים סטטיסטיים (Stat Chips)
+========================================= */
 .stat-row { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 2rem; }
 .stat-chip-q {
     background: rgba(0,113,227,0.08);
@@ -125,7 +137,9 @@
     display: flex; align-items: center; gap: 8px;
 }
 
-/* ── RESULTS PAGE ──────────────────────────────────────── */
+/* =========================================
+עמוד תוצאות החיפוש (Results Page)
+========================================= */
 .results-hero {
     margin-bottom: 2rem;
     animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -135,10 +149,13 @@
     display: inline-block; background: #1d1d1f; color: white;
     padding: 6px 20px; border-radius: 10px;
     font-size: 1.3rem; font-weight: 700; letter-spacing: 4px;
+/* שילוט מספר הרישוי מיושר משמאל לימין כדי להבטיח קריאות תקינה של המספר */
     direction: ltr; margin-top: 0.5rem;
 }
 
-/* vehicle detail cards */
+/* =========================================
+כרטיסיות נתוני רכב (Vehicle Detail Cards)
+========================================= */
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -171,7 +188,9 @@
     font-size: 1.1rem; font-weight: 700; color: #1d1d1f;
 }
 
-/* alert / notice cards */
+/* =========================================
+התראות רכב כגון תאונות ושעבודים (Notice Cards)
+========================================= */
 .notice-card {
     border-radius: 22px; padding: 1.5rem 2rem;
     display: flex; align-items: center; gap: 1.5rem;
@@ -186,7 +205,9 @@
 .notice-text h3 { font-weight: 700; font-size: 1.1rem; color: #1d1d1f; margin: 0 0 4px; }
 .notice-text p { color: #86868b; margin: 0; font-size: 0.9rem; }
 
-/* editable field (redesign) */
+/* =========================================
+עיצוב לשדות הניתנים לעריכה (Editable Fields Redesign)
+========================================= */
 .editable-card {
     border: 1.5px dashed var(--primary-blue, #007aff);
     background: rgba(0, 122, 255, 0.02);
@@ -197,7 +218,8 @@
 }
 .detail-input {
     width: 100%;
-    padding: 10px 15px 10px 35px; /* space for icon */
+/* ריווח פנימי א-סימטרי המשאיר מקום לאייקון הייעודי בצדו של שדה הקלט */
+    padding: 10px 15px 10px 35px; 
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     background: #fff;
@@ -220,7 +242,9 @@
     font-size: 0.8rem;
 }
 
-/* Action Buttons */
+/* =========================================
+אזור פעולות משתמש וכפתורים (Action Buttons)
+========================================= */
 .action-area {
     display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;
     padding-top: 2rem;
@@ -242,7 +266,9 @@
 }
 .btn-search-again:hover { background: rgba(0,0,0,0.07); }
 
-/* Loading overlay */
+/* =========================================
+מסך טעינה - ספינר (Loading Overlay)
+========================================= */
 .loading-overlay {
     position: fixed; inset: 0; background: rgba(255,255,255,0.9);
     backdrop-filter: blur(8px); display: flex; flex-direction: column;
@@ -256,7 +282,9 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── ANIMATIONS ────────────────────────────────────────── */
+/* =========================================
+אנימציות הופעה (Animations)
+========================================= */
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-25px); }
     to { opacity: 1; transform: translateY(0); }
@@ -266,13 +294,17 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── RESPONSIVE ────────────────────────────────────────── */
+/* =========================================
+התאמות רספונסיביות למובייל (Mobile Adjustments)
+========================================= */
 @media (max-width: 768px) {
     .search-hero h1 { font-size: 2rem; }
     .search-input-row { flex-direction: column; }
 }
 
-/* ── MOBILE TOP NAV ────────────────────────────────────── */
+/* =========================================
+ניווט עליון ייעודי למובייל (Mobile Top Nav)
+========================================= */
 .mobile-top-nav {
     display: none;
     padding: 15px 20px;

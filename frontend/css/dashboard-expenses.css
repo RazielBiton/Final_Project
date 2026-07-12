@@ -1,19 +1,28 @@
-/* --- EXPENSES MODULE: APPLE WALLET PREMIUM STYLES --- */
+/* =========================================================
+שם הקובץ: dashboard-expenses.css
+תיאור: קובץ עיצוב ספציפי למסך ההוצאות. קובץ זה משלב מראה מוקפד מסוג "Apple Wallet" (ארנק דיגיטלי), הכולל את כרטיס הפלטינום להוצאות, רשימת התנועות המעוצבת, קופסת תובנות ה-AI (Insights), מקרא גרפים (Legend) ותיקוני תצוגה וכיווניות עבור תיבות בחירה ורספונסיביות מובייל.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
-/* Base Premium Radius */
+/* =========================================
+עיגול פינות פרימיום (Base Premium Radius)
+========================================= */
 .border-radius-premium {
     border-radius: 24px !important;
 }
 
-/* --- PLATINUM EXPENSE CARD (High Performance, No Freezing) --- */
+/* =========================================
+כרטיס הוצאות פלטינום (Platinum Expense Card)
+========================================= */
+/* רקע אטום כהה למניעת בעיות ביצועים (Lag) שנוצרות מאפקט ה-Blur */
 .platinum-expense-card {
-    background: #0f172a; /* Solid dark base to prevent backdrop-filter lag */
+    background: #0f172a; 
     background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     border-radius: 20px;
     padding: 28px;
     color: #ffffff;
     position: relative;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* Lightweight shadow */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -21,6 +30,7 @@
     border: 1px solid rgba(255,255,255,0.08);
 }
 
+/* קו צבעוני עליון למראה חדשני (Accent Line) */
 .pec-accent-line {
     position: absolute;
     top: 0;
@@ -30,6 +40,7 @@
     background: linear-gradient(90deg, #3b82f6, #06b6d4, #8b5cf6);
 }
 
+/* עטיפת אייקון (Icon Wrap) */
 .pec-icon-wrap {
     width: 44px;
     height: 44px;
@@ -42,6 +53,7 @@
     font-size: 1.3rem;
 }
 
+/* תג לוחית רישוי בסגנון קוד (License Plate Badge) */
 .pec-plate-badge {
     background: rgba(255,255,255,0.05);
     padding: 8px 14px;
@@ -53,6 +65,9 @@
     border: 1px solid rgba(255,255,255,0.05);
 }
 
+/* =========================================
+אזור המאזן והיתרה (Balance Display Area)
+========================================= */
 .pec-balance-wrap {
     margin: 20px 0;
 }
@@ -84,6 +99,9 @@
     color: #ffffff;
 }
 
+/* =========================================
+פוטר הכרטיס והכפתורים (Card Footer & Buttons)
+========================================= */
 .pec-footer {
     display: flex;
     justify-content: space-between;
@@ -117,17 +135,20 @@
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
-/* AI Insights Box */
+/* =========================================
+קופסת תובנות בינה מלאכותית (AI Insights Box)
+========================================= */
+/* רקע בהיר ואטום להפחתת עומס עיבוד גרפי במקום אפקט זכוכית */
 .ai-insights-box {
-    background: #f8fafc; /* Solid color instead of heavy backdrop-filter blur */
+    background: #f8fafc; 
     border: 1px solid #e2e8f0;
     border-radius: 20px;
     padding: 16px 20px;
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03); /* Lighter shadow */
-    border-right: 4px solid #8b5cf6; /* AI Purple */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+    border-right: 4px solid #8b5cf6; 
 }
 
 .ai-icon-sparkle {
@@ -136,12 +157,15 @@
     animation: pulseSparkle 2s infinite ease-in-out;
 }
 
+/* אנימציית ניצוץ ה-AI פועם (Sparkle Animation) */
 @keyframes pulseSparkle {
     0%, 100% { transform: scale(1); opacity: 0.8; }
     50% { transform: scale(1.2); opacity: 1; }
 }
 
-/* Chart HTML Legend */
+/* =========================================
+מקרא גרפים מותאם אישית (Custom Chart Legend)
+========================================= */
 .custom-chart-legend {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -175,7 +199,9 @@
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
 }
 
-/* Apple Pay Style Transaction List */
+/* =========================================
+רשימת עסקאות - סגנון ארנק (Apple Pay Style Transaction List)
+========================================= */
 .transaction-item {
     display: flex;
     justify-content: space-between;
@@ -230,6 +256,9 @@
     align-items: center;
 }
 
+/* =========================================
+אפקטי ריחוף והרמה (Hover Lift Effects)
+========================================= */
 .hover-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -239,7 +268,9 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Glassy white cards */
+/* =========================================
+כרטיסיות זכוכית לבנות (Glassy White Cards)
+========================================= */
 .db-glass-card {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(15px);
@@ -247,7 +278,10 @@
     border: 1px solid rgba(255,255,255,0.7);
     box-shadow: 0 8px 30px rgba(0,0,0,0.04);
 }
-/* Responsive Chart Center Text */
+
+/* =========================================
+קונטיינר גרפים פרימיום ומרכוז טקסט (Responsive Chart Center Text)
+========================================= */
 .chart-container-premium {
     position: relative;
     width: 100%;
@@ -283,7 +317,10 @@
     margin-bottom: 2px;
 }
 
-/* Select dropdown fix for text overlapping arrow in RTL */
+/* =========================================
+תיקוני תיבת בחירה (Select Dropdown RTL Fix)
+========================================= */
+/* מניעת חפיפה של הטקסט עם חץ הבחירה כאשר השפה היא עברית (RTL) */
 #addExpenseModal select, #expenses-section select {
     padding-right: 40px !important;
     padding-left: 15px !important;
@@ -291,9 +328,12 @@
     white-space: nowrap !important;
 }
 
-/* ===== MOBILE ONLY ===== */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive)
+========================================= */
 @media (max-width: 768px) {
-    /* Fix: expense modal constrained above fixed footer */
+    
+    /* תיקון גובה ומיקום למודל הוספת ההוצאות כך שלא יוסתר על ידי הפוטר הקבוע */
     #addExpenseModal .modal-dialog {
         margin-bottom: 160px !important;
         max-height: calc(100vh - 200px) !important;

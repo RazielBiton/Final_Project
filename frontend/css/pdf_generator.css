@@ -1,8 +1,16 @@
-/* ─── EasyCare PDF – Enterprise RTL Edition ─── */
+/* =========================================================
+שם הקובץ: pdf_generator.css
+תיאור: קובץ עיצוב ייעודי למנוע ייצור מסמכי ה-PDF של המערכת (מבוסס html2canvas/jsPDF). מכיל הגדרות מיוחדות לשמירה על עיצוב נקי וברור (Enterprise RTL Edition), כללי כיווניות מחמירים (Float במקום Flex), תיקוני פונטים לסימון מטבע (₪), וחוקים למניעת שבירת שורות ואלמנטים (Page Breaks) במעבר בין עמודי ה-PDF.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
 @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
-/* ─── Container (off-screen, not display:none so html2canvas can read it) ─── */
+/* =========================================
+מעטפת ייצוא (Export Container)
+========================================= */
 #pdf-export-container {
+/* הסתרת המעטפת מעיני המשתמש מבלי להשתמש בהסרה מוחלטת מה-DOM כדי שספריית העיבוד (html2canvas) תוכל לייצר ממנה תמונה */
     display: none;
     position: fixed;
     left: -9999px;
@@ -12,7 +20,9 @@
     z-index: -9999;
 }
 
-/* ─── Document Root ─── */
+/* =========================================
+הגדרות מסמך ה-PDF (Document Root)
+========================================= */
 .pdf-document {
     width: 794px;
     padding: 40px 44px;
@@ -20,17 +30,23 @@
     font-family: 'Assistant', Arial, sans-serif;
     color: #111827;
     box-sizing: border-box;
+/* כיווניות ויישור טקסט מוחלט לעברית (RTL) לאורך כל המסמך */
     direction: rtl;
     text-align: right;
     -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Shekel Symbol Fix (₪ renders wrong in html2canvas with Google Fonts) ─── */
+/* =========================================
+תיקון סימן שקל (Shekel Symbol Fix)
+========================================= */
+/* החלפת גופן עבור סימן השקל (₪) שאינו מרונדר היטב בספריית העיבוד עם גופני רשת מורכבים */
 .nis {
     font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif !important;
 }
 
-/* ─── LTR inline text within RTL context ─── */
+/* =========================================
+שילוב טקסט באנגלית (LTR Inline Text)
+========================================= */
 .ltr-text {
     font-family: Arial, sans-serif;
     direction: ltr;
@@ -38,10 +54,15 @@
     display: inline;
 }
 
-/* ─── Page Break Rules ─── */
+/* =========================================
+חוקי שבירת עמודים במעבר ל-PDF (Page Break Rules)
+========================================= */
 .pdf-section,
 .pdf-specs-grid,
 .pdf-seller-pitch,
+/* =========================================
+טבלאות נתונים (Tables)
+========================================= */
 .pdf-table-container {
     page-break-inside: avoid;
     break-inside: avoid;
@@ -57,12 +78,17 @@ h3 {
     break-after: avoid;
 }
 
+/* =========================================
+כותרת תחתונה של מסמך הייצוא (Footer)
+========================================= */
 .pdf-footer {
     page-break-before: avoid;
     break-before: avoid;
 }
 
-/* ─── Badge ─── */
+/* =========================================
+תגיות סטטוס (Badges)
+========================================= */
 .pdf-badge-row {
     text-align: right;
     margin-bottom: 8px;
@@ -80,9 +106,12 @@ h3 {
     border-radius: 2px;
 }
 
-/* ─── Header: float-based to avoid RTL flex quirks ─── */
+/* =========================================
+כותרת עליונה (Header)
+========================================= */
+/* שימוש בהצפה (Float) במקום מודל גמיש (Flex) כדי למנוע תקלות כיווניות בספריית המרת ה-PDF */
 .pdf-header {
-    overflow: hidden; /* clearfix for the floated logo */
+    overflow: hidden; 
     border-bottom: 2px solid #111827;
     padding-bottom: 16px;
     margin-bottom: 28px;
@@ -90,17 +119,18 @@ h3 {
 }
 
 .pdf-logo {
-    float: right; /* physical right = RTL reading-start = visual right ✓ */
+    /* הצפת הלוגו לימין (הפיזי) כדי להתאים לתחילת קריאה בעברית (RTL) במקום לשמאל */
+    float: right; 
     height: 50px;
     width: auto;
     object-fit: contain;
-    margin-left: 20px; /* gap between logo and title text */
+    margin-left: 20px; 
 }
 
 .pdf-header-text {
     direction: rtl;
     text-align: right;
-    /* naturally fills the remaining width beside the floated logo */
+    
 }
 
 .pdf-title {
@@ -118,12 +148,15 @@ h3 {
     font-weight: 600;
 }
 
-/* ─── Seller Pitch ─── */
+/* =========================================
+הודעת המוכר (Seller Pitch)
+========================================= */
 .pdf-seller-pitch {
     width: 100%;
     box-sizing: border-box;
     background: #F9FAFB;
-    border-right: 4px solid #111827; /* RTL: accent on physical right = reading-start side ✓ */
+    /* הגדרת גבול מודגש בצד ימין כהתאמה לשפה העברית במקום בצד שמאל כמקובל בעיצוב באנגלית */
+    border-right: 4px solid #111827;
     border-left: none;
     padding: 20px 24px 20px 16px;
     border-radius: 0 6px 6px 0;
@@ -151,10 +184,12 @@ h3 {
     font-weight: 600;
     position: relative;
     z-index: 2;
-    padding-right: 44px; /* space for the quote icon */
+    padding-right: 44px; 
 }
 
-/* ─── Section Titles ─── */
+/* =========================================
+כותרות אזורים פנימיים (Section Titles)
+========================================= */
 .pdf-section-title {
     font-size: 17px;
     font-weight: 800;
@@ -168,13 +203,16 @@ h3 {
     border-bottom: 2px solid #F3F4F6;
 }
 
-/* ─── Specs Grid ─── */
+/* =========================================
+רשת מפרט טכני (Specs Grid)
+========================================= */
 .pdf-specs-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-bottom: 28px;
-    direction: rtl; /* items auto-place right→left ✓ */
+    /* סידור אוטומטי של פריטי הרשת בהתאם לכיווניות העברית - מימין לשמאל */
+    direction: rtl; 
 }
 
 .pdf-spec-item {
@@ -194,7 +232,7 @@ h3 {
     display: block;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    font-family: Arial, sans-serif; /* ensure Hebrew label renders correctly */
+    font-family: Arial, sans-serif; 
 }
 
 .pdf-spec-value {
@@ -204,14 +242,15 @@ h3 {
     line-height: 1.2;
 }
 
-/* ─── Section Wrapper ─── */
+/* =========================================
+מעטפת אזורים (Section Wrapper)
+========================================= */
 .pdf-section {
     margin-bottom: 28px;
     direction: rtl;
     text-align: right;
 }
 
-/* ─── Tables ─── */
 .pdf-table-container {
     margin-bottom: 28px;
 }
@@ -256,7 +295,9 @@ h3 {
     color: #111827;
 }
 
-/* ─── Gallery ─── */
+/* =========================================
+גלריית תמונות (Gallery)
+========================================= */
 .pdf-gallery-section {
     page-break-before: auto;
 }
@@ -283,7 +324,6 @@ h3 {
     display: block;
 }
 
-/* ─── Footer ─── */
 .pdf-footer {
     text-align: center;
     margin-top: 24px;

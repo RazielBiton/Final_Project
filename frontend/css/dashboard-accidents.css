@@ -1,4 +1,12 @@
-/* --- ACCIDENTS MODULE STYLES --- */
+/* =========================================================
+שם הקובץ: dashboard-accidents.css
+תיאור: קובץ עיצוב (CSS) ממוקד עבור מסך ניהול התאונות. הקובץ מטפל בנראות של כרטיסיות אירועי התאונה, אזור תצוגת התמונות (Preview), מודל דיווח התאונות (Modal) ותיקוני כיווניות (RTL) ספציפיים עבור ציר הזמן (Timeline) במובייל.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+כרטיסיית התאונה הכללית (Accident Card Styles)
+========================================= */
 .accident-card {
     transition: all 0.3s ease;
 }
@@ -8,6 +16,9 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* =========================================
+אזור העלאת ותצוגת תמונות (Image Preview Area)
+========================================= */
 #accImagePreviewContainer img {
     border: 3px solid #fff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -22,12 +33,16 @@
     transform: scale(1.05);
 }
 
-/* Force sticky footer avoidance for accidents modal */
+/* =========================================
+מודל הוספת דיווח תאונה (Add Accident Modal)
+========================================= */
+/* התאמת ריווח פנימי (Padding) כדי למנוע הסתרה על ידי הפוטר הקבוע (Sticky Footer) */
 #addAccidentModal {
     padding-bottom: 80px !important;
 }
 
-#addAccidentModal .modal-dialog {
+/* התאמת חלון המודל לתצוגת מסך מלא (Full Screen) במובייל והצמדת הפוטר לתחתית */
+    #addAccidentModal .modal-dialog {
     margin-bottom: 80px !important;
 }
 
@@ -39,9 +54,11 @@
     overflow-y: auto !important;
 }
 
-/* --- Mobile Fixes for Accidents Page --- */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive Fixes)
+========================================= */
 @media (max-width: 768px) {
-    /* Modal sticky footer & scrolling fix */
+    
     #addAccidentModal .modal-dialog {
         margin: 0;
         height: 100vh;
@@ -66,20 +83,20 @@
         box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
     }
     
-    /* RTL Timeline Alignment Fixes */
+    
+    /* יישור ציר הזמן (Timeline) לימין עקב תמיכה בכיווניות השפה העברית (RTL) ותיקוני ריווח במובייל */
     #accidents-list-container {
-        padding: 1.5rem 1rem !important; /* Better mobile spacing */
+        padding: 1.5rem 1rem !important; 
     }
     #accidents-list-container > div:first-child {
-        right: 15px !important; /* Move vertical line to the right */
+        right: 15px !important; 
     }
     .accident-timeline-wrapper {
-        padding-right: 40px !important; /* Push event card to the left of the line */
+        padding-right: 40px !important; 
         margin-bottom: 1.5rem !important;
     }
     .accident-timeline-wrapper > div:first-child {
-        /* Dot width=24px. Center of line is 15px.
-           right: 2px means dot center is 14px (slightly RIGHT of the line in RTL) */
+        
         right: 2px !important;
     }
     .accident-timeline-card {
@@ -87,7 +104,8 @@
         margin-right: 0 !important;
     }
     
-    /* Mobile Sticky Footer & Content Padding */
+    
+    /* דריסת הגדרות פוטר מקובע לתחתית (Sticky Footer) במיוחד למסך התאונות */
     .global-footer, .dashboard-footer-mini, footer {
         display: block !important;
         position: fixed !important;
@@ -101,7 +119,8 @@
         padding-bottom: 80px !important;
     }
     
-    /* Involved Vehicle License Plate Alignment & Content Overflow */
+    
+    /* תיקון בעיות גלישה (Overflow) ויישור טקסט עבור לוחית הרישוי של הרכב המעורב בתצוגת מובייל */
     .involved-vehicle-row {
         flex-direction: column;
         align-items: flex-start !important;

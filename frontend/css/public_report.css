@@ -1,4 +1,12 @@
-/* --- EASYCARE PUBLIC REPORT DESIGN SYSTEM --- */
+/* =========================================================
+שם הקובץ: public_report.css
+תיאור: קובץ עיצוב ייעודי עבור התצוגה הציבורית של דוח הרכב. מאופיין בעיצוב מודרני מבוסס מערכת עיצוב עצמאית (EasyCare Public Report Design System), הכולל שימוש במשתני צבעים ועיצוב גלובליים, אנימציות הברקה (Skeleton Loaders), צירי זמן ועיצוב תואם-מובייל לחוויית משתמש מקסימלית בחוץ.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
+
+/* =========================================
+משתני עיצוב וצבעים (CSS Variables)
+========================================= */
 :root {
     --pr-bg: #f8fafc;
     --pr-surface: #ffffff;
@@ -25,6 +33,9 @@
     --pr-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* =========================================
+איפוס והגדרות בסיס (Global Reset & Base)
+========================================= */
 body {
     font-family: 'Rubik', sans-serif;
     background-color: var(--pr-bg);
@@ -33,7 +44,9 @@ body {
     overflow-x: hidden;
 }
 
-/* --- HERO SECTION --- */
+/* =========================================
+אזור עליון - הירו (Hero Section)
+========================================= */
 .pr-hero {
     background: var(--pr-hero-gradient);
     color: #ffffff;
@@ -107,15 +120,20 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* --- OVERLAPPING CONTAINER --- */
+/* =========================================
+מעטפת מרכזית (Overlapping Container)
+========================================= */
 .pr-main-container {
+/* משיכת המעטפת כלפי מעלה (Margin שלילי) בכדי ליצור חפיפה עיצובית עם חלקו התחתון של אזור ההירו */
     margin-top: -40px;
     position: relative;
     z-index: 10;
     padding-bottom: 4rem;
 }
 
-/* --- CARDS --- */
+/* =========================================
+כרטיסיות מידע (Cards)
+========================================= */
 .pr-card {
     background: var(--pr-surface);
     border-radius: var(--pr-radius-md);
@@ -153,7 +171,9 @@ body {
     font-size: 1.1rem;
 }
 
-/* --- TOP STATS GRID --- */
+/* =========================================
+קוביות סטטיסטיקה ונתונים (Top Stats Grid)
+========================================= */
 .pr-stat-box {
     background: var(--pr-surface);
     border: 1px solid var(--pr-border);
@@ -194,7 +214,9 @@ body {
     font-weight: 500;
 }
 
-/* --- RELIABILITY WIDGET --- */
+/* =========================================
+וידג'ט מדד אמינות (Reliability Widget)
+========================================= */
 .pr-rel-widget {
     display: flex;
     align-items: center;
@@ -226,7 +248,9 @@ body {
     color: var(--pr-text-main);
 }
 
-/* --- TECH SPECS GRID --- */
+/* =========================================
+רשת מפרט טכני (Tech Specs Grid)
+========================================= */
 .pr-spec-item {
     display: flex;
     align-items: center;
@@ -262,7 +286,9 @@ body {
     color: var(--pr-text-muted);
 }
 
-/* --- TIMELINE --- */
+/* =========================================
+ציר זמן (Timeline)
+========================================= */
 .pr-timeline {
     position: relative;
     padding-right: 24px;
@@ -309,7 +335,9 @@ body {
     border-color: #cbd5e1;
 }
 
-/* --- EVENT CARDS (Fuel, Reports, Accidents) --- */
+/* =========================================
+כרטיסי אירועים כגון תאונות וטיפולים (Event Cards)
+========================================= */
 .pr-event-card {
     display: flex;
     flex-direction: column;
@@ -323,7 +351,8 @@ body {
     overflow-wrap: break-word;
 }
 .pr-event-card > div {
-    min-width: 0; /* Prevent flex children from blowing out container */
+/* מניעת פריצה (Overflow) של רכיבי הפלקס הפנימיים אל מחוץ לגבולות המעטפת */
+    min-width: 0; 
 }
 
 @media (min-width: 768px) {
@@ -349,7 +378,9 @@ body {
     border-right: 4px solid var(--pr-warning);
 }
 
-/* --- EMPTY STATES --- */
+/* =========================================
+מצבי חוסר נתונים (Empty States)
+========================================= */
 .pr-empty-state {
     text-align: center;
     padding: 3rem 1.5rem;
@@ -375,11 +406,14 @@ body {
     font-size: 0.95rem;
 }
 
-/* --- SKELETON LOADER --- */
+/* =========================================
+טעינת שלד (Skeleton Loader)
+========================================= */
 .pr-skeleton {
     background: #e2e8f0;
     background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
     background-size: 200% 100%;
+/* יצירת אנימציית הברקה מחזורית המשדרת למשתמש שהתוכן נמצא בטעינה */
     animation: pr-shimmer 1.5s infinite;
     border-radius: 4px;
 }
@@ -397,7 +431,9 @@ body {
     overflow-y: auto;
 }
 
-/* --- GALLERY --- */
+/* =========================================
+גלריית תמונות (Gallery)
+========================================= */
 .pr-gallery-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -423,7 +459,9 @@ body {
     box-shadow: var(--pr-shadow-md);
 }
 
-/* Modal for Image */
+/* =========================================
+מודל תמונה מוגדלת (Image Modal)
+========================================= */
 .pr-img-modal {
     display: none;
     position: fixed;

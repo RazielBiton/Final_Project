@@ -1,7 +1,12 @@
-/* =========================================
-   EasyCare - Modern Light Theme with Grid & Orbs
-   ========================================= */
+/* =========================================================
+שם הקובץ: main.css
+תיאור: קובץ העיצוב הראשי המשמש עמודי פתיחה ונחיתה (דוגמת עמוד הבית המרכזי לפני התחברות). הקובץ מתאפיין בעיצוב מודרני, נקי ובהיר (Light Theme), רשת רקע עדינה (Grid Pattern), ואפקטים של כתמי צבע מרחפים וזוהרים בטכניקת Glassmorphism.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
+/* =========================================
+משתני עיצוב וצבעים (CSS Variables)
+========================================= */
 :root {
     --primary-blue: #2d74d7;
     --primary-blue-hover: #1b5bb5;
@@ -11,6 +16,9 @@
     --text-muted: #4b5563;
 }
 
+/* =========================================
+איפוס והגדרות בסיס (Global Reset & Base)
+========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -21,7 +29,8 @@ body,
 html {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
-    /* Modern subtle grid pattern for texture */
+    
+/* יצירת רקע בעל טקסטורת רשת (Grid) עדינה למראה מודרני נקי */
     background-image:
         linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
@@ -33,12 +42,18 @@ html {
     flex-direction: column;
 }
 
+/* =========================================
+מצב טעינה ראשונית (Preload State)
+========================================= */
 body.is-preload * {
+/* ביטול כל האנימציות בעת טעינת הדף למניעת הופעה "קופצת" של אלמנטים */
     animation: none !important;
     transition: none !important;
 }
 
-/* --- Background Ambient Glow --- */
+/* =========================================
+אפקטים של רקע זוהר (Ambient Glow Background)
+========================================= */
 .ambient-bg {
     position: fixed;
     top: 0;
@@ -47,8 +62,9 @@ body.is-preload * {
     height: 100%;
     z-index: -1;
     overflow: hidden;
+/* ביטול קליטת לחיצות על שכבת הרקע כדי שלא תחסום אלמנטים אינטראקטיביים */
     pointer-events: none;
-    /* So the background doesn't block clicks */
+    
 }
 
 .blob {
@@ -81,6 +97,7 @@ body.is-preload * {
     animation-duration: 15s;
 }
 
+/* יצירת כתם צבע זוהר ורך המשתלב עם צבעי המערכת */
 .blob-center {
     top: 30%;
     left: 40%;
@@ -89,11 +106,14 @@ body.is-preload * {
     max-width: 500px;
     max-height: 500px;
     background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
-    /* Subtle purple mix */
+    
     animation-delay: -8s;
     animation-duration: 10s;
 }
 
+/* =========================================
+אנימציית רקע (Background Animations)
+========================================= */
 @keyframes floatBlob {
     0% {
         transform: translate(0, 0) scale(1);
@@ -104,7 +124,9 @@ body.is-preload * {
     }
 }
 
-/* --- Top Navigation --- */
+/* =========================================
+ניווט עליון (Top Navigation)
+========================================= */
 .top-nav {
     width: 100%;
     padding: 1.5rem 3rem;
@@ -145,6 +167,7 @@ body.is-preload * {
     border-radius: 20px;
     transition: all 0.3s ease;
     background: var(--primary-blue);
+/* שימוש באפקט "זכוכית מעורפלת" (Glassmorphism) לקישורי הניווט */
     backdrop-filter: blur(5px);
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
@@ -156,7 +179,9 @@ body.is-preload * {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* --- Centered Main Content --- */
+/* =========================================
+תוכן מרכזי (Main Centered Content)
+========================================= */
 .centered-content {
     flex: 1;
     display: flex;
@@ -168,11 +193,12 @@ body.is-preload * {
     min-height: 100vh;
 }
 
+/* מעטפת התוכן המרכזית עם אפקט Glassmorphism, הילה והצללה עדינה */
 .content-wrapper {
     max-width: 650px;
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
-    /* Glassmorphism card for the text */
+    
     -webkit-backdrop-filter: blur(10px);
     padding: 3rem;
     border-radius: 24px;
@@ -199,7 +225,9 @@ body.is-preload * {
     font-weight: 500;
 }
 
-/* --- Buttons --- */
+/* =========================================
+כפתורי פעולה (Action Buttons)
+========================================= */
 .btn {
     display: inline-block;
     text-decoration: none;
@@ -224,7 +252,9 @@ body.is-preload * {
     box-shadow: 0 15px 35px -5px rgba(45, 116, 215, 0.45);
 }
 
-/* --- Animations --- */
+/* =========================================
+אנימציות כלליות (General Animations)
+========================================= */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -247,16 +277,19 @@ body.is-preload * {
     }
 }
 
-/* --- Responsive --- */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive Fixes)
+========================================= */
 @media screen and (max-width: 768px) {
     .top-nav {
         padding: 1.5rem;
         justify-content: center;
     }
 
+/* הסתרת שם המותג בסרגל הניווט במסכים קטנים לשמירה על פשטות ומרווח פנוי */
     .nav-brand {
         display: none;
-        /* Keep it simpler on mobile */
+        
     }
 
     .content-wrapper {

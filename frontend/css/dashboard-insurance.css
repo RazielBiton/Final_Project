@@ -1,11 +1,19 @@
-/* --- INSURANCE COMPONENT STYLES --- */
-/* Custom CSS specific to the Insurance (ביטוחים) page */
+/* =========================================================
+שם הקובץ: dashboard-insurance.css
+תיאור: קובץ עיצוב ספציפי למסך ניהול הביטוחים. מכיל תיקוני עיצוב עבור תצוגת פרטי הביטוח והגדרות חכמות למודל עריכת הביטוח - כולל אזור גלילה מרכזי וקיבוע פוטר שמונע חפיפת אלמנטים במסכים קטנים.
+נכתב ע"י: Michael Geyshes & Raziel Biton
+========================================================= */
 
+/* =========================================
+פרטי ביטוח (Insurance Details)
+========================================= */
 .insurance-details {
     min-height: 80px;
 }
 
-/* --- Edit Insurance Modal: Scrollable Body & Sticky Footer --- */
+/* =========================================
+מודל עריכת ביטוח (Edit Insurance Modal)
+========================================= */
 #editInsuranceModal .modal-content {
     max-height: 85vh;
     display: flex;
@@ -17,19 +25,23 @@
     flex: 1 1 auto;
 }
 
+/* רקע אטום לפוטר למניעת חפיפה ושקיפות עם אזור הגלילה (Sticky Footer) */
 #editInsuranceModal .modal-footer {
     position: sticky;
     bottom: 0;
-    background: #fff; /* Solid background to prevent overlap transparency */
+    background: #fff; 
     z-index: 10;
     padding: 15px;
     border-top: 1px solid #eee;
     margin-top: auto;
 }
 
-/* --- Mobile Fixes for Insurance Page --- */
+/* =========================================
+התאמות רספונסיביות - מובייל (Mobile Responsive Fixes)
+========================================= */
 @media (max-width: 768px) {
-    /* Modal sticky footer & scrolling fix */
+    
+/* התאמות גלילה ופוטר מקובע בתוך מודל העריכה במסכי מובייל */
     #editInsuranceModal .modal-content {
         max-height: 90vh !important;
         display: flex !important;
@@ -50,7 +62,8 @@
         margin-top: auto !important;
     }
 
-    /* Keep the bottom of the section clear of the sticky footer */
+    
+/* הוספת ריווח תחתון (Padding) למניעת הסתרה של תוכן על ידי הפוטר הקבוע (Sticky Footer) */
     #insurance-section {
         padding-bottom: 100px !important;
     }

@@ -1,21 +1,29 @@
-// Globals
+/**
+ * @fileoverview frontend/js/dashboard.js
+ * @description קובץ הליבה (Core) לניהול עמוד לוח הבקרה (Dashboard). מכיל את הלוגיקה החולשת על נתוני הרכב המרכזיים, מנגנון שמירת הנתונים וסנכרון מול שרת ה-API, פונקציות הניווט (SPA Navigation) וטעינת תתי-המודולים אסינכרונית, ואת פונקציות העזר הגלובליות לשערוך וחישוב תאריכים וגרפים במערכת.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 let currentCar = null;
 let savedCars = [];
 
+/**
+ * מאזין הליבה של עמוד לוח הבקרה. בעת טעינת הדף, מחלץ את מזהה הרכב (מה-URL או מה-Session), מבצע Fetch לשרת כדי לסנכרן נתונים, מאכלס אוטומטית שדות חסרים, וטוען בצורה אסינכרונית את כלל ה-HTML של המודולים (Overview, Treatments, Reports וכו') לתוך העמוד ללא צורך בריענון.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Get Vehicle ID from URL or Session
+
     const urlParams = new URLSearchParams(window.location.search);
     let vehicleId = urlParams.get('id');
 
     if (!vehicleId) {
         vehicleId = sessionStorage.getItem('lastVehicleId');
         if (vehicleId) {
-            // Rewrite URL to include ID transparently
+
             window.history.replaceState(null, null, `?id=${vehicleId}` + (window.location.hash || ''));
         }
     }
 
-    // Build Global AutoComplete logic
     try {
         const vRes = await fetch('/api/vehicles/all');
         if (vRes.ok) {
@@ -30,10 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Remember in session for future navigations (like coming back from search)
     sessionStorage.setItem('lastVehicleId', vehicleId);
 
-    // Make functions available globally
     window.openEditModal = openEditModal;
     window.saveVehicleDetails = saveVehicleDetails;
 
@@ -44,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         if (res.ok) {
             currentCar = await res.json();
-            // initialize savedCars so saveToLocalStorage fallback still works
+
             savedCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
         } else {
             savedCars = JSON.parse(sessionStorage.getItem('userCars')) || [];
@@ -62,14 +68,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // --- DATA MIGRATION / INITIALIZATION ---
     if (!currentCar.insurance) currentCar.insurance = {};
     if (!currentCar.fuelLog) currentCar.fuelLog = [];
     if (!currentCar.treatments) currentCar.treatments = [];
     if (!currentCar.expenses) currentCar.expenses = [];
     if (!currentCar.accidents) currentCar.accidents = [];
 
-    // Bridge DB 'alerts' → 'customAlerts' (only if server didn't already send customAlerts)
     if (!currentCar.customAlerts || currentCar.customAlerts.length === 0) {
         if (currentCar.alerts && currentCar.alerts.length > 0) {
             currentCar.customAlerts = currentCar.alerts.map(a => ({
@@ -86,37 +90,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentCar.customAlerts = [];
         }
     }
-    // Ensure arrays always exist
+
     if (!currentCar.reports) currentCar.reports = [];
     if (!currentCar.gallery) currentCar.gallery = [];
-    // -----------------------------------------------
 
-
-    // Expose for chatbot
     window.currentCar = currentCar;
 
-    // 3. Render Initial State
     renderHeader();
     loadUserProfile();
 
-    // 4. Fetch HTML Views Asynchronously
     const sections = ['overview', 'treatments', 'insurance', 'reports', 'fuel', 'accidents', 'sell', 'alerts', 'expenses'];
     try {
         const dashboardContainer = document.getElementById('dashboardContent');
 
-        // Fetch components
         const fetchPromises = sections.map(view => fetch(`components/dashboard/${view}.html`).then(res => res.text()));
 
         const htmlParts = await Promise.all(fetchPromises);
 
-        // Inject parts
         dashboardContainer.innerHTML = htmlParts.join('\n');
     } catch (err) {
         console.error('Failed to load dashboard views:', err); alert('Error Loading Dashboard: ' + err.message);
         return;
     }
 
-    // 5. Pre-Load Module Data & Execute Chart bindings
     loadOverview();
     loadTreatments();
     loadInsurance();
@@ -125,10 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAccidents();
     if (typeof loadSell === 'function') loadSell();
 
-    // 6. Generate QR Code
     generateQR();
-    
-    // Choose start section: URL Hash > localStorage > Default
+
     const getStartSection = () => {
         if (window.location.hash) {
             const hash = window.location.hash.substring(1);
@@ -140,7 +134,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const initialSection = getStartSection();
     showSection(initialSection);
 
-    // Dynamic Hash Navigation Support (Back/Forward buttons)
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash.substring(1);
         if (sections.includes(hash)) {
@@ -148,18 +141,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // ============================================
-    // UNIVERSAL FORM AUTOSAVE DRAFT FEATURE
-    // ============================================
-
 });
 
-// Navigation Logic
+/**
+ * מערכת הניווט הפנימית בלוח הבקרה (SPA - Single Page Application). מסתירה את כל המודולים, מציגה את המודול המבוקש לפי המזהה, מעדכנת את שורת הכתובת (Hash), משנה את הכותרת הראשית ומפעילה את פונקציות הטעינה הרלוונטיות של אותו מודול ספציפי.
+ * @param {string} sectionId - מזהה המודול שיש להציג (לדוגמה 'overview', 'treatments').
+ * @param {HTMLElement} [element] - אלמנט הכפתור שנלחץ בסיידבר לצורך סימון כפעיל (אופציונלי).
+ */
 function showSection(sectionId, element) {
-    // Hide all sections
+
     document.querySelectorAll('.dashboard-section').forEach(el => el.classList.add('d-none'));
 
-    // Show selected
     const targetEl = document.getElementById(sectionId + '-section');
     if (targetEl) {
         targetEl.classList.remove('d-none');
@@ -167,31 +159,25 @@ function showSection(sectionId, element) {
         console.warn(`Section element not found: ${sectionId}-section`);
         return; // Early return to avoid broken state
     }
-    
-    // Update hash so refresh remembers location
+
     if (window.location.hash !== '#' + sectionId) {
         window.history.replaceState(null, null, '#' + sectionId);
     }
-    
-    // Update localStorage as ultimate fallback
+
     localStorage.setItem('lastDashboardSection', sectionId);
 
-    // Update Sidebar Active State
     document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
-    
-    // Find link even if element wasn't passed directly
+
     const linkEl = element || document.querySelector(`.db-list-group a[onclick*="'${sectionId}'"]`);
     if (linkEl) {
         linkEl.classList.add('active');
     }
 
-    // Close sidebar on mobile
     if (window.innerWidth <= 767) {
         const wrapper = document.getElementById('wrapper');
         if (wrapper) wrapper.classList.remove('toggled');
     }
 
-    // Rename Header
     const titles = {
         'overview': 'מבט על',
         'treatments': 'טיפולים ותחזוקה',
@@ -205,7 +191,6 @@ function showSection(sectionId, element) {
     };
     document.getElementById('pageTitle').textContent = titles[sectionId];
 
-    // Trigger module-specific load functions to ensure data is fresh and DOM is populated
     if (sectionId === 'overview' && typeof window.loadOverview === 'function') {
         window.loadOverview();
     } else if (sectionId === 'treatments' && typeof window.loadTreatments === 'function') {
@@ -228,10 +213,13 @@ function showSection(sectionId, element) {
     }
 }
 
-// Programmatic navigation (e.g. from overview alert cards)
+/**
+ * פונקציית מעטפת פומבית למעבר בין מודולים, המאפשרת ניווט תכנותי (למשל מלחיצה על התראה בכרטיסיה מסוימת אל עמוד מפורט אחר), תוך סנכרון תפריט הצד (Sidebar) לסטטוס הפעיל הנכון.
+ * @param {string} sectionId - מזהה המודול אליו יש לנווט.
+ */
 window.goToSection = function(sectionId) {
     showSection(sectionId);
-    // Sync sidebar highlight
+
     document.querySelectorAll('.list-group-item').forEach(el => {
         const onclick = el.getAttribute('onclick') || '';
         if (onclick.includes(`'${sectionId}'`)) el.classList.add('active');
@@ -239,11 +227,14 @@ window.goToSection = function(sectionId) {
     });
 }
 
+/**
+ * קוראת את נתוני המשתמש המחובר מהאחסון המקומי ומול שרת ה-API (בסנכרון רקע), ומציגה את שמו ותמונת הפרופיל שלו (Avatar) בתפריט הצד. במקרה של חוסר בתמונה, מייצרת דינמית תמונה המבוססת על אותיות שמו באמצעות שירות ui-avatars.
+ */
 function loadUserProfile() {
     try {
         let userStr = sessionStorage.getItem('loggedInUser');
         if (!userStr && sessionStorage.getItem('userId')) {
-            // Backward compatibility for existing sessions
+
             const fallbackUser = {
                 id: sessionStorage.getItem('userId'),
                 fullName: sessionStorage.getItem('userName') || 'משתמש',
@@ -266,8 +257,7 @@ function loadUserProfile() {
                     imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.fullName || user.email || 'U') + '&background=2d74d7&color=fff&rounded=true';
                 }
             }
-            
-            // Sync with DB
+
             if (user.id) {
                 fetch('/api/user/me', { headers: { 'userid': user.id } })
                     .then(res => res.json())
@@ -282,8 +272,7 @@ function loadUserProfile() {
                                     imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.FullName || u.Email || 'U') + '&background=2d74d7&color=fff&rounded=true';
                                 }
                             }
-                            
-                            // Keep LocalStorage fresh
+
                             let localUser = JSON.parse(userStr);
                             localUser.fullName = u.FullName;
                             localUser.email = u.Email;
@@ -302,6 +291,9 @@ function loadUserProfile() {
     }
 }
 
+/**
+ * מרנדרת את הרכיב העליון (Header) בלוח הבקרה עם פרטי הרכב הנבחר, לרבות שילוב דינמי של יצרן ודגם, התאמת גודל הגופן אופטית למחרוזות ארוכות, והצגת לוגו הרכב.
+ */
 function renderHeader() {
     const fullName = `${currentCar.brandHeb || currentCar.brand} ${currentCar.model}`;
     const nameEl = document.getElementById('vehicleName');
@@ -327,12 +319,13 @@ function renderHeader() {
     logoImg.onerror = () => { logoImg.src = 'images/logos/default.png'; };
 }
 
-// --- FEATURES ---
-
+/**
+ * מייצרת באופן לוקאלי קוד סריקה (QR Code) בסיסי לקישור הדף הנוכחי, ושותלת אותו בקונטיינר הייעודי בממשק (תלוי בספריית QRCode.js).
+ */
 function generateQR() {
     const qrContainer = document.getElementById('qrcode');
     qrContainer.innerHTML = ''; // Clear prev
-    // URL to current page
+
     const url = window.location.href;
     new QRCode(qrContainer, {
         text: url,
@@ -341,8 +334,11 @@ function generateQR() {
     });
 }
 
+/**
+ * מתודת גיבוי שנועדה להמיר את תכולת עמוד לוח הבקרה כולו (Page Wrapper) למסמך PDF ברזולוציה גבוהה לצורכי הדפסה או ארכיון (תלויה בספריות html2canvas ו-jsPDF).
+ */
 function exportToPDF() {
-    // Select the element to export. For dashboard, usually the content wrapper.
+
     const element = document.getElementById('page-content-wrapper');
     const opt = {
         margin: 0.5,
@@ -352,16 +348,14 @@ function exportToPDF() {
         jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
     };
 
-    // Temporarily show all sections to print everything?
-    // Or just print current view? User usually wants everything.
-    // Making a "Print View" is complex, let's print current view or specific report.
-    // User asked "Convert all vehicle details". Let's try to un-hide data for a sec or just print what's there.
-    // Better approach: Alert user this prints current view.
-
     html2pdf().set(opt).from(element).save();
 }
 
-// --- UTILS ---
+/**
+ * פונקציית עזר גלובלית המקבלת מחרוזת תאריך בפורמט ישראלי (DD/MM/YYYY) או פורמט ISO תקין, וממירה אותו לאובייקט Date תקני של JavaScript.
+ * @param {string} dateStr - תאריך כמחרוזת טקסט.
+ * @returns {Date|null} - אובייקט תאריך, או null אם המחרוזת ריקה/שגויה.
+ */
 window.parseDate = function (dateStr) {
     if (!dateStr) return null;
     const parts = String(dateStr).split('/');
@@ -372,6 +366,11 @@ window.parseDate = function (dateStr) {
     return isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * פונקציית עזר גלובלית להמרת אובייקט Date או מחרוזת תאריך לייצוג מחרוזתי תקין ואחיד בפורמט התצוגה הישראלי הקלאסי (DD/MM/YYYY).
+ * @param {Date|string} dateInput - התאריך שיש לפרמט.
+ * @returns {string} - מחרוזת התאריך המפורמטת, או כפולה ('--') אם הנתון חסר.
+ */
 window.formatDate = function (dateInput) {
     if (!dateInput) return '--';
     const d = window.parseDate(dateInput);
@@ -382,6 +381,11 @@ window.formatDate = function (dateInput) {
     return `${day}/${month}/${year}`;
 }
 
+/**
+ * פונקציית עזר גלובלית המכינה אובייקטי או מחרוזות תאריכים להזרקה תקינה לתוך אלמנט מסוג `<input type="date">` הדורש פורמט ISO מחמיר של YYYY-MM-DD.
+ * @param {Date|string} dateInput - התאריך להמרה.
+ * @returns {string} - המחרוזת המותאמת לקלט הדפדפן.
+ */
 window.toInputDate = function (dateInput) {
     if (!dateInput) return '';
     const d = window.parseDate(dateInput);
@@ -392,6 +396,11 @@ window.toInputDate = function (dateInput) {
     return `${year}-${month}-${day}`;
 }
 
+/**
+ * פונקציית עזר גלובלית הבודקת האם תאריך נתון מסוים הינו תאריך עתידי (או היום הנוכחי) ביחס לשעון המערכת (מנוקה משעות/דקות). משמשת רבות לבדיקת תוקף טסט וביטוח.
+ * @param {string} dateStr - תאריך במחרוזת.
+ * @returns {boolean} - אמת אם התאריך גדול או שווה להיום.
+ */
 window.isDateFuture = function (dateStr) {
     const d = window.parseDate(dateStr);
     if (!d) return false;
@@ -403,14 +412,17 @@ window.isDateFuture = function (dateStr) {
 let isSyncing = false;
 let pendingSync = false;
 
+/**
+ * מתודת הסנכרון והשמירה הגלובלית המרכזית. מעדכנת את אובייקט הרכב בזיכרון המקומי (sessionStorage) ומיד משגרת קריאת POST/PUT אסינכרונית כדי לסנכרן את השינויים לבסיס הנתונים (Azure DB) בשרת. מיישמת מנגנון תור (Queue/Debounce) למניעת מצבי Race Condition בעת רצף לחיצות/עדכונים מהיר.
+ * @returns {Promise<void>}
+ */
 window.saveToLocalStorage = async function () {
     const index = savedCars.findIndex(c => parseInt(c.id) === parseInt(currentCar.id));
     if (index !== -1) {
         savedCars[index] = currentCar;
         sessionStorage.setItem('userCars', JSON.stringify(savedCars));
     }
-    
-    // Queue synchronization to prevent Race Conditions dropping rows on fast typers/multiple images
+
     if (isSyncing) {
         pendingSync = true;
         return;
@@ -445,6 +457,15 @@ window.saveToLocalStorage = async function () {
 
 let expensesChartInstance = null;
 
+/**
+ * מאתחלת, רושמת ומרנדרת את תרשים ההוצאות הטבעתי (Doughnut Chart) המרכזי באמצעות ספריית Chart.js. אחראית על הגדרת הפלטות הצבעוניות החדשניות (Tailwind-like), האנימציות ועיצוב הטולטיפים המשוכלל להצגת מטבע השקל.
+ * @param {number} treatmentCost - סך הוצאות טיפולים.
+ * @param {number} insuranceCost - סך הוצאות ביטוח.
+ * @param {number} fuelCost - סך הוצאות דלק.
+ * @param {number} accidentCost - סך הוצאות תאונות.
+ * @param {number} reportCost - סך הוצאות דוחות.
+ * @param {number} otherCost - סך הוצאות נוספות/אחרות.
+ */
 function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, accidentCost = 0, reportCost = 0, otherCost = 0) {
     const canvas = document.getElementById('expensesChart');
     if (!canvas) return;
@@ -453,7 +474,6 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
         expensesChartInstance.destroy();
     }
 
-    // Modern, vibrant colors for the pie chart
     const colors = {
         treatments: '#ef4444', // Vivid Red
         insurance: '#10b981',  // Emerald Green
@@ -538,10 +558,14 @@ function initExpensesChart(treatmentCost = 0, insuranceCost = 0, fuelCost = 0, a
     });
 }
 
+/**
+ * אלגוריתם שקלול הציון הכללי המסורתי של האפליקציה בטווח (0-100). מוריד נקודות (קנסות) מהציון על סמך היעדר טסט בתוקף (-15), קילומטראז' חריג ביחס לשנים, והיסטוריה מרובת תאונות בתיק הרכב (-10 לכל תאונה).
+ * @param {Object} carData - אובייקט הרכב המכיל את המידע עליו יופעל החישוב.
+ * @returns {number} - הציון המחושב לאחר שקלול כלל ההפחתות.
+ */
 function calculateReliability(carData) {
     let score = 100;
-    
-    // Penalty for missing or expired test
+
     if (!carData.testDate || carData.testDate === 'אין נתונים') {
         score -= 15;
     } else {
@@ -556,15 +580,13 @@ function calculateReliability(carData) {
         
         if (isNaN(testD.getTime()) || testD < today) score -= 15;
     }
-    
-    // Penalty for high km
+
     const mileage = parseInt(carData.km);
     if (!isNaN(mileage)) {
         const kmPenalty = Math.floor(mileage / 100000) * 5;
         score -= kmPenalty;
     }
-    
-    // Penalty for accidents
+
     if (carData.accidents && Array.isArray(carData.accidents)) {
         score -= (carData.accidents.length * 10);
     }
@@ -572,6 +594,9 @@ function calculateReliability(carData) {
     return Math.max(0, score);
 }
 
+/**
+ * פותחת את מודאל ההגדרות והעריכה של פרטי הרכב הכלליים (יצרן, דגם, שנת ייצור, קילומטראז' גלובלי, צבע, טסט ועוד). מאכלסת טרם הפתיחה את השדות מתוך נתוני הרכב ומכינה אותם לעריכת המשתמש.
+ */
 function openEditModal() {
     document.getElementById('editBrand').value = currentCar.brandHeb || currentCar.brand || '';
     document.getElementById('editModel').value = currentCar.model || '';
@@ -609,6 +634,10 @@ function openEditModal() {
     new bootstrap.Modal(document.getElementById('editVehicleModal')).show();
 }
 
+/**
+ * שומרת באופן רשמי ואסינכרוני את פרטי הרכב הכלליים שנערכו במודאל. מבצעת ולידציות מחמירות על שדות קריטיים, מטפלת בהעלאת והחלפת לוגו הרכב, פונה בעת הצורך ל-API חיצוני לתרגום השם מול מאגר הלוגואים, ולאחר מכן משדרת את העדכון העבה (Payload) אל ה-API המרכזי (PUT request).
+ * @returns {Promise<void>}
+ */
 async function saveVehicleDetails() {
     const btn = document.getElementById('btnSaveVehicleDetails');
     const normalText = btn.querySelector('.normal-text');
@@ -661,7 +690,6 @@ async function saveVehicleDetails() {
                 logo: logoData || currentCar.logo
             };
 
-            // Call the direct PUT endpoint
             const res = await fetch(`/api/vehicles/${currentCar.id}`, {
                 method: 'PUT',
                 headers: { 
@@ -673,12 +701,10 @@ async function saveVehicleDetails() {
 
             if (!res.ok) throw new Error('שגיאה בשמירת הנתונים במסד הנתונים.');
 
-            // Update local memory and UI
             Object.assign(currentCar, payload);
             renderHeader(); 
             if (typeof window.loadOverview === 'function') window.loadOverview();
-            
-            // Full Sync for background
+
             saveToLocalStorage();
             
             bootstrap.Modal.getInstance(document.getElementById('editVehicleModal')).hide();
@@ -722,6 +748,9 @@ async function saveVehicleDetails() {
     }
 }
 
+/**
+ * מאזין צדדי הממתין לטעינת ה-DOM על מנת להצמיד את אירוע השמירה לכפתור העדכון בחלון עריכת הרכב הכללי.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSaveVehicleDetails');
     if (btnSave) {
@@ -729,6 +758,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * מנגנון השלמה אוטומטית (Autocomplete) גלובלי לחיפוש רכבים בתוך מערכת לוח הבקרה הראשי. מחפש בזמן אמת לפי לוחית רישוי או דגם רכב מתוך מערך נתונים כללי, מקפיץ תוצאות ומאפשר בלחיצה ניווט מהיר אל עמוד התוצאות או המעבר המהיר ביניהם.
+ * @param {string} inputId - מזהה אלמנט ה-Input לחיפוש.
+ * @param {string} listId - מזהה הרשימה (UL/DIV) להצגת ההשלמות.
+ * @param {Array} allVehiclesArr - מערך כלל כלי הרכב שעל בסיסם יבוצע החיפוש.
+ */
 function attachAutocomplete(inputId, listId, allVehiclesArr) {
     const input = document.getElementById(inputId);
     const list = document.getElementById(listId);
