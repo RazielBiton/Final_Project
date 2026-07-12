@@ -1,3 +1,10 @@
+/**
+ * @fileoverview search_results.js
+ * @description מנהל את דף תוצאות החיפוש, כולל שליפת נתונים מהשרת, סינון דינמי של רכבים (לפי יצרן, דלק וצבע), והצגת התוצאות בממשק המשתמש.
+ * @author Michael Geyshes & Raziel Biton
+ * @version 1.0.0
+ */
+
 let allVehicles = [];     // All vehicles returned from API
 let matchedVehicles = []; // Vehicles matching the initial search term
 let filterState = {
@@ -6,6 +13,12 @@ let filterState = {
     colors: new Set()
 };
 
+/**
+ * מאזין לאירוע טעינת הדף (DOMContentLoaded). שולף את מונח החיפוש משורת הכתובת (URL), 
+ * מציג שלדי טעינה (Skeletons) ראשוניים בממשק, ומתחיל את תהליך משיכת הרכבים מהשרת.
+ * 
+ * @returns {void}
+ */
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Get search query from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,13 +31,24 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndFilterVehicles(q);
 });
 
-// Function called when the user submits a new search
+/**
+ * מתבצעת בעת שליחת בקשת חיפוש חדשה משורת החיפוש העליונה.
+ * קוראת את מונח החיפוש, מציגה חיווי טעינה ומפנה מחדש לדף התוצאות עם הפרמטר המעודכן בכתובת.
+ * 
+ * @returns {void}
+ */
 window.searchVehicles = function() {
     const q = document.getElementById('topSearchInput').value;
     document.getElementById('searchSpinner').classList.remove('d-none');
     window.location.href = `search_results.html?q=${encodeURIComponent(q)}`;
 };
 
+/**
+ * מאפסת את כל אפשרויות הסינון (יצרן, סוג דלק, צבע) שנבחרו על ידי המשתמש.
+ * מנקה את התצוגה של תיבות הסימון (Checkboxes) ומעדכנת מחדש את תצוגת התוצאות ללא סינונים.
+ * 
+ * @returns {void}
+ */
 window.clearFilters = function() {
     filterState.brands.clear();
     filterState.fuels.clear();
@@ -33,6 +57,12 @@ window.clearFilters = function() {
     applyFiltersAndRender();
 };
 
+/**
+ * מייצרת ומציגה "שלדי טעינה" (Skeletons) כדי לספק חיווי חזותי למשתמש בזמן המתנה לנתונים מהשרת.
+ * 
+ * @param {number} count - כמות כרטיסי השלד שיש לייצר ולהציג
+ * @returns {void}
+ */
 function generateSkeletons(count) {
     const loader = document.getElementById('skeletonLoader');
     let html = '';
@@ -59,6 +89,14 @@ function generateSkeletons(count) {
     if (grid) grid.innerHTML = '';
 }
 
+/**
+ * מושכת את כלל הרכבים מהשרת, מפעילה פילטר ראשוני בהתאם למונח החיפוש (שאילתה), 
+ * ומתחילה את שרשרת הרינדור (הצגת פילטרים ותוצאות). במקרה של שגיאה - מציגה הודעה מתאימה.
+ * 
+ * @param {string} query - מונח החיפוש (מספר רישוי, יצרן, דגם וכו')
+ * @returns {Promise<void>}
+ * @throws {Error} - נזרקת שגיאה במקרה של כשלון בתקשורת מול ה-API או בשליפת הנתונים
+ */
 async function fetchAndFilterVehicles(query) {
     const loader = document.getElementById('skeletonLoader');
     const statWidget = document.getElementById('totalDbCarsTop');
@@ -110,6 +148,12 @@ let availableBrands = [];
 let availableFuels = [];
 let availableColors = [];
 
+/**
+ * עוברת על כל הרכבים שנמצאו בהתאמה לחיפוש הנוכחי, ומחלצת מתוכם את רשימת היצרנים, 
+ * סוגי הדלק והצבעים הזמינים על מנת לבנות את תפריט הסינון הדינמי למשתמש.
+ * 
+ * @returns {void}
+ */
 function extractAvailableFilters() {
     const brandsSet = new Set();
     const fuelsSet = new Set();
@@ -126,6 +170,12 @@ function extractAvailableFilters() {
     availableColors = Array.from(colorsSet).sort();
 }
 
+/**
+ * מרנדרת (מייצרת ב-HTML) את תיבות הסימון (Checkboxes) עבור קטגוריות הסינון (יצרנים, סוגי דלק, צבעים).
+ * מציגה הודעה מתאימה אם אין אפשרויות סינון באחת הקטגוריות, ומצמידה מאזיני אירועים לשינויים.
+ * 
+ * @returns {void}
+ */
 function renderFilters() {
     const renderCheckboxes = (containerId, array, stateSet, filterCatName) => {
         const container = document.getElementById(containerId);
@@ -160,6 +210,13 @@ function renderFilters() {
     });
 }
 
+/**
+ * מטפלת באירוע שינוי בחירת סינון (סימון או ביטול סימון של Checkbox).
+ * מעדכנת את מצב הסינון (filterState) וקוראת לפונקציה המעדכנת את התצוגה.
+ * 
+ * @param {Event} e - אובייקט האירוע של שינוי ה-Checkbox
+ * @returns {void}
+ */
 function handleFilterChange(e) {
     const cat = e.target.dataset.category;
     const val = e.target.value;
@@ -170,6 +227,12 @@ function handleFilterChange(e) {
     applyFiltersAndRender();
 }
 
+/**
+ * מסננת את הרשימה המקורית של תוצאות החיפוש בהתאם למסננים (Filters) שהמשתמש בחר,
+ * ומעבירה את הרשימה המסוננת הסופית לפונקציית הרינדור של התצוגה (Grid).
+ * 
+ * @returns {void}
+ */
 function applyFiltersAndRender() {
     let results = matchedVehicles.filter(v => {
         const brandMatch = filterState.brands.size === 0 || filterState.brands.has(v.BrandHeb);
@@ -180,6 +243,14 @@ function applyFiltersAndRender() {
     renderGrid(results);
 }
 
+/**
+ * מייצרת את כרטיסי הרכבים ומציגה אותם ברשת (Grid) בממשק המשתמש. 
+ * מנהלת גם את הצגת הודעת "לא נמצאו תוצאות" ואת ספירת התוצאות, 
+ * וקובעת את עיצוב הסטטוס ומספר הרישוי.
+ * 
+ * @param {Array<Object>} vehiclesToRender - מערך של אובייקטי רכבים שיש להציג על המסך
+ * @returns {void}
+ */
 function renderGrid(vehiclesToRender) {
     const grid = document.getElementById('resultsGrid');
     const noResults = document.getElementById('noResultsMsg');
@@ -251,6 +322,15 @@ function renderGrid(vehiclesToRender) {
     });
 }
 
+/**
+ * מצמידה מנגנון השלמה אוטומטית (Autocomplete) לשורת החיפוש. 
+ * מציגה הצעות מתוך מאגר הרכבים תוך כדי הקלדה ומאפשרת למשתמש לבחור תוצאה ישירות מהרשימה.
+ * 
+ * @param {string} inputId - מזהה (ID) של שדה הקלט (Input) של החיפוש
+ * @param {string} listId - מזהה (ID) של אלמנט הרשימה (UL) שבו יוצגו ההצעות
+ * @param {Array<Object>} allVehiclesArr - מערך כל הרכבים במערכת, מתוכו יבוצע חיפוש ההשלמות
+ * @returns {void}
+ */
 function attachAutocomplete(inputId, listId, allVehiclesArr) {
     const input = document.getElementById(inputId);
     const list = document.getElementById(listId);

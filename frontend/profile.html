@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+  @fileoverview profile.html
+  @description עמוד ניהול פרופיל המשתמש. מאפשר עדכון פרטים אישיים, שינוי סיסמה (אימות ישיר מול Supabase), והגדרת תזכורות מובנות/מותאמות אישית.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <html lang="he" dir="rtl">
 
 <head>
@@ -12,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>EasyCare - פרופיל אישי</title>
     <style>
-        /* ── Profile-specific inline styles ── */
+        /* === עיצובי CSS מקומיים לעמוד הפרופיל === */
         .profile-section-card {
             background: var(--glass-bg, rgba(255,255,255,0.7));
             backdrop-filter: blur(15px);
@@ -47,7 +53,7 @@
             flex-shrink: 0;
         }
 
-        /* Avatar area */
+        /* אזור תמונת פרופיל */
         .avatar-area {
             display: flex;
             align-items: center;
@@ -90,7 +96,7 @@
             font-size: 0.82rem; font-weight: 600;
         }
 
-        /* Form elements */
+        /* רכיבי טופס */
         .pf-form-group { margin-bottom: 1.3rem; }
         .pf-form-group label {
             display: block;
@@ -155,7 +161,7 @@
             box-shadow: 0 8px 24px rgba(255,59,48,0.30);
         }
 
-        /* Verification code area */
+        /* אזור קוד אימות */
         .verify-row {
             display: flex; gap: 10px; align-items: flex-end;
         }
@@ -177,7 +183,7 @@
             opacity: 0.5; cursor: not-allowed;
         }
 
-        /* Toggle switches */
+        /* כפתורי מתג (Toggles) */
         .toggle-row {
             display: flex;
             align-items: center;
@@ -217,7 +223,7 @@
         .sw input:checked + .sl { background: var(--primary-blue, #0071e3); }
         .sw input:checked + .sl:before { transform: translateX(-22px); }
 
-        /* Custom reminder modal */
+        /* מודל תזכורות מותאם אישית */
         .reminder-list { margin-top: 1rem; }
         .reminder-item {
             display: flex; align-items: center; justify-content: space-between;
@@ -250,7 +256,7 @@
         }
         .btn-add-reminder:hover { background: #0077ed; }
 
-        /* Toast */
+        /* התראות צפות (Toasts) */
         .pf-toast {
             position: fixed; bottom: 30px; left: 50%;
             transform: translateX(-50%) translateY(80px);
@@ -287,11 +293,11 @@
 </head>
 
 <body class="homepage is-loading">
-    <!-- Animated Mesh Background -->
+    <!-- === רקע מעוצב (Mesh Background) === -->
     <div class="mesh-bg"></div>
 
     <div class="layout-container">
-        <!-- Sidebar Navigation (Main Fleet Level) — EXACT COPY from after_login.html -->
+        <!-- === סרגל צד (תפריט ניווט ראשי) === -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
@@ -313,7 +319,7 @@
                 </div>
             </nav>
             
-            <!-- User Profile Section at Bottom -->
+            <!-- אזור פרופיל משתמש בתחתית הסרגל -->
             <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
                 <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                 <div class="text-end me-3">
@@ -324,15 +330,15 @@
         </aside>
 
         <main class="main-content">
-            <!-- Hero Greeting — same style as after_login -->
+            <!-- === אזור פתיח (Hero Greeting) === -->
             <header class="hero-header">
                 <h1 id="heroGreeting">הגדרות פרופיל</h1>
                 <p class="hero-subtitle">עדכן את הפרטים האישיים, אבטחת החשבון והתזכורות שלך.</p>
             </header>
 
-            <!-- ═══ PROFILE CONTENT ═══ -->
+            <!-- === תוכן הפרופיל (Profile Content) === -->
 
-            <!-- 1 · Avatar + Personal Details -->
+            <!-- חלק 1: תמונת פרופיל ופרטים מזהים -->
             <div class="profile-section-card">
                 <div class="avatar-area">
                     <div class="avatar-frame">
@@ -350,7 +356,7 @@
             </div>
 
             <div class="profile-grid-2col">
-                <!-- 2 · Personal Details -->
+                <!-- חלק 2: טופס פרטים אישיים -->
                 <div class="profile-section-card">
                     <div class="section-title">
                         <div class="icon-box"><i class="fas fa-id-card"></i></div>
@@ -375,14 +381,14 @@
                     </form>
                 </div>
 
-                <!-- 3 · Password Change -->
+                <!-- חלק 3: שינוי סיסמה -->
                 <div class="profile-section-card" style="position:relative;">
                     <div class="section-title">
                         <div class="icon-box"><i class="fas fa-shield-alt"></i></div>
                         שינוי סיסמה
                     </div>
 
-                    <!-- Password Change Area -->
+                    <!-- אזור עדכון סיסמה ישיר -->
                     <div id="pwDirectArea">
                         <p style="color:#86868b;font-size:0.9rem;margin-bottom:1.5rem;">להחלפת סיסמה, הזן את הסיסמה הנוכחית ואת הסיסמה החדשה.</p>
                         
@@ -420,7 +426,7 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Success -->
+                    <!-- שלב הצלחה בשינוי סיסמה -->
                     <div id="pwStep3" style="display:none;text-align:center;padding:2rem 0;">
                         <i class="fas fa-check-circle" style="font-size:3rem;color:#34c759;"></i>
                         <h3 style="margin-top:1rem;color:#1d1d1f;">הסיסמה שונתה בהצלחה!</h3>
@@ -429,14 +435,14 @@
                 </div>
             </div>
 
-            <!-- 4 · Reminders -->
+            <!-- חלק 4: ניהול תזכורות -->
             <div class="profile-section-card" style="margin-top: 0;">
                 <div class="section-title">
                     <div class="icon-box"><i class="fas fa-bell"></i></div>
                     תזכורות
                 </div>
 
-                <!-- Built-in toggles -->
+                <!-- תזכורות מובנות (מערכת) -->
                 <div class="toggle-row">
                     <div class="toggle-info">
                         <div class="t-icon"><i class="fas fa-clipboard-check"></i></div>
@@ -458,7 +464,7 @@
                     <label class="sw"><input type="checkbox" id="remInsurance" checked><span class="sl"></span></label>
                 </div>
 
-                <!-- Custom Reminders -->
+                <!-- תזכורות מותאמות אישית -->
                 <hr style="border-color: rgba(0,0,0,0.05); margin: 1.5rem 0;">
                 <div class="section-title" style="font-size: 1.1rem; margin-bottom: 0.8rem;">
                     <div class="icon-box" style="width:34px;height:34px;font-size:1rem;"><i class="fas fa-plus-circle"></i></div>
@@ -477,7 +483,7 @@
                     </select>
                     <button type="button" class="btn-add-reminder" onclick="addCustomReminder()"><i class="fas fa-plus"></i> הוסף</button>
                 </div>
-                <!-- Custom interval row (shown only when 'custom' selected) -->
+                <!-- בחירת תדירות מותאמת אישית (מוצג רק בבחירת מותאם אישית) -->
                 <div id="customIntervalRow" class="add-reminder-row" style="display:none;margin-top:0.5rem;">
                     <label style="color:#86868b;font-size:0.85rem;white-space:nowrap;align-self:center;">כל</label>
                     <input type="number" id="customIntervalNum" class="pf-input" min="1" value="2" style="max-width:80px;">
@@ -488,7 +494,7 @@
                     </select>
                 </div>
                 <div class="reminder-list" id="reminderList">
-                    <!-- custom reminders injected here -->
+                    <!-- המערכת מזריקה לכאן את התזכורות -->
                 </div>
             </div>
 

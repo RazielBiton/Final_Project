@@ -1,12 +1,18 @@
-<!-- 6. SELL SECTION (COMPREHENSIVE) -->
+<!-- 
+  @fileoverview sell.html (Dashboard Component)
+  @description אזור ניהול מכירת הרכב והפקת דוחות (Certificate/QR). כולל הגדרות שקיפות, כתיבת טקסט מוכר, וגלריית תמונות.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
+<!-- === אזור ניהול המכירה (Sell Section) === -->
 <div id="sell-section" class="dashboard-section d-none">
 
-    <!-- ADMIN HERO SECTION -->
+    <!-- === אזור הכותרת הראשית (Hero Section) === -->
     <div class="row">
         <div class="col-12">
             <div class="sell-hero-banner text-center"
                 style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 40px 20px; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
-                <!-- Abstract Apple style glow -->
+                <!-- אפקט תאורה ברקע (Glow Effect) -->
                 <div
                     style="position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(255,255,255,0) 70%); transform: rotate(30deg); pointer-events: none;">
                 </div>
@@ -28,7 +34,7 @@
 
     <div class="row g-4 mb-4">
 
-        <!-- UI FILTERS & TRANSPARENCY TOGGLES (Apple Configurator Style) -->
+        <!-- === מסנני תצוגה והגדרות שקיפות (UI Filters & Toggles) === -->
         <div class="col-md-7">
             <div class="sell-settings-card h-100">
                 <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
@@ -43,7 +49,7 @@
                     </div>
                 </div>
 
-                <!-- Toggles Container -->
+                <!-- מיכל כפתורי מתג (Toggles Container) -->
                 <div class="toggles-list">
 
                     <div class="sell-feature-row d-flex align-items-center justify-content-between">
@@ -98,7 +104,7 @@
             </div>
         </div>
 
-        <!-- SELLER CUSTOM TEXT (Pitch) -->
+        <!-- === אזור טקסט חופשי למוכר (Seller Pitch) === -->
         <div class="col-md-5">
             <div class="sell-settings-card h-100"
                 style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
@@ -135,9 +141,9 @@
 
     </div>
 
-    <!-- GENERATOR CARDS -->
+    <!-- === כרטיסיות מחולל דוחות (Generator Cards) === -->
     <div class="row g-4 mb-5">
-        <!-- PDF Report Card -->
+        <!-- כרטיסיית הפקת דוח PDF -->
         <div class="col-md-6">
             <div class="generator-card pdf-action" onclick="window.generateFullPDFReport()" style="cursor: pointer;">
                 <div class="icon-wrapper">
@@ -157,7 +163,7 @@
             </div>
         </div>
 
-        <!-- QR Sticker Card -->
+        <!-- כרטיסיית הפקת מדבקת QR -->
         <div class="col-md-6">
             <div class="generator-card qr-action" onclick="window.generateStickerQR()" style="cursor: pointer;">
                 <div class="icon-wrapper">
@@ -177,7 +183,7 @@
         </div>
     </div>
 
-    <!-- CAR PHOTO GALLERY ADMIN SECTION -->
+    <!-- === אזור ניהול גלריית תמונות (Car Photo Gallery) === -->
     <div class="row mt-4 pb-5 mb-5">
         <div class="col-12">
             <div class="card border-0 rounded-4" style="box-shadow: 0 4px 25px rgba(0,0,0,0.03);">
@@ -199,7 +205,7 @@
                     </div>
 
                     <div id="sellGalleryGrid" class="row g-3">
-                        <!-- Thumbnails injected dynamically via dashboard-sell.js -->
+                        <!-- המערכת מזריקה לכאן את התמונות הממוזערות -->
                     </div>
                 </div>
             </div>
@@ -208,17 +214,16 @@
 
 </div>
 
-<!-- THE PDF CONTAINER - ENTERPRISE GRADE -->
-<!-- PDF EXPORT CONTAINER -->
+<!-- === מיכל לייצוא דוח PDF (PDF Export Container) === -->
 <div id="pdf-export-container">
     <div id="pdf-content" class="pdf-document">
 
-        <!-- Badge -->
+        <!-- תגית הדוח (Badge) -->
         <div class="pdf-badge-row">
             <span class="pdf-official-badge">OFFICIAL CERTIFICATE</span>
         </div>
 
-        <!-- Header -->
+        <!-- כותרת עליונה של הדוח (PDF Header) -->
         <div class="pdf-header">
             <img id="pdf-logo" class="pdf-logo" src="" alt="Logo" style="display:none;">
             <div class="pdf-header-text">
@@ -229,13 +234,13 @@
             </div>
         </div>
 
-        <!-- Seller Pitch -->
+        <!-- טקסט המוכר בדוח (PDF Seller Pitch) -->
         <div id="pdf-seller-pitch-container" class="pdf-seller-pitch" style="display:none;">
             <span class="pdf-pitch-icon">"</span>
             <p id="pdf-seller-pitch-text" class="pdf-pitch-text"></p>
         </div>
 
-        <!-- Specs Grid -->
+        <!-- רשת מפרט טכני בדוח (Specs Grid) -->
         <h3 class="pdf-section-title">מפרט<span style="unicode-bidi:plaintext"> </span>טכני<span
                 style="unicode-bidi:plaintext"> </span>ונתונים<span style="unicode-bidi:plaintext"> </span>בסיסיים</h3>
         <div class="pdf-specs-grid">
@@ -277,10 +282,10 @@
             </div>
         </div>
 
-        <!-- Dynamic: tables + gallery -->
+        <!-- אזור תוכן דינמי בדוח (Tables & Gallery) -->
         <div id="pdf-dynamic-content"></div>
 
-        <!-- Footer -->
+        <!-- כותרת תחתונה של הדוח (PDF Footer) -->
         <div class="pdf-footer">
             <div id="pdf-footer-time"></div>
             <div>הופק באמצעות מערכת ניהול הרכב של <span class="ltr-text">EasyCare</span> &copy; 2026</div>

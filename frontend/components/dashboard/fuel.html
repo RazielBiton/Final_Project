@@ -1,7 +1,13 @@
-<!-- 5. FUEL SECTION (MODERNIZED) -->
+<!-- 
+  @fileoverview fuel.html (Dashboard Component)
+  @description רכיב מעקב צריכת דלק וחשמל. מציג נתונים, הוצאות מצטברות, מחירון מעודכן והיסטוריית תדלוקים.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
+<!-- === אזור מעקב דלק וטעינה (Fuel Section) === -->
 <div id="fuel-section" class="dashboard-section d-none">
 
-    <!-- Header with vibrant title and action -->
+    <!-- === אזור כותרת ופעולות (Header & Actions) === -->
     <div
         style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; background:linear-gradient(135deg, #ffffff, #f0f9ff); padding:1.5rem; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.04); border:1px solid #e0f2fe; flex-wrap: wrap; gap: 15px; position: relative; overflow: hidden;">
         <div
@@ -31,9 +37,9 @@
         </div>
     </div>
 
-    <!-- Fuel KPI Cards Matrix -->
+    <!-- === כרטיסיות נתוני דלק/אנרגיה (Fuel KPI Cards) === -->
     <div class="row g-4 mb-4" id="fuel-kpi-cards">
-        <!-- Consumption Card -->
+        <!-- כרטיסיית נתוני הוצאות והזנות -->
         <div class="col-lg-4 col-md-6">
             <div
                 style="background: #fff; border-radius: 24px; padding: 1.8rem; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.02); height: 100%; position: relative; overflow: hidden;">
@@ -63,7 +69,7 @@
             </div>
         </div>
 
-        <!-- Live Prices Matrix Card -->
+        <!-- כרטיסיית מחירון דלק וחשמל ארצי (Live Prices) -->
         <div class="col-lg-4 col-md-6">
             <div
                 style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 1.8rem; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.1); height: 100%; position: relative;">
@@ -107,7 +113,7 @@
             </div>
         </div>
 
-        <!-- Smart Tip Card -->
+        <!-- כרטיסיית טיפ לחיסכון (Smart Tip) -->
         <div class="col-lg-4 col-md-12">
             <div
                 style="background: #fff; border-radius: 24px; padding: 1.8rem; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.02); height: 100%; background-image: radial-gradient(at top right, #f8fafc, #ffffff);">
@@ -130,7 +136,7 @@
         </div>
     </div>
 
-    <!-- EV Message Area (Hidden by default) -->
+    <!-- === הודעה מיוחדת לרכבים חשמליים (EV Message Area) === -->
     <div id="evFuelMessage" class="d-none"
         style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #bbf7d0; border-radius: 24px; padding: 2.5rem; text-align: center; margin-bottom: 2rem;">
         <div
@@ -144,7 +150,7 @@
         </p>
     </div>
 
-    <!-- Fuel History Container -->
+    <!-- === אזור היסטוריית תדלוק/טעינה (Fuel History) === -->
     <div
         style="background: #fff; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 15px 40px rgba(0,0,0,0.03); overflow: hidden;">
         <div
@@ -156,7 +162,7 @@
             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">מסודר לפי תאריך (חדש לישן)</span>
         </div>
         <div id="fuel-list" style="max-height: 600px; overflow-y: auto; padding: 1rem;">
-            <!-- Populated securely via JavaScript -->
+            <!-- המערכת מזריקה לכאן את רשימת התדלוקים/טעינות דרך JavaScript -->
         </div>
     </div>
 </div>

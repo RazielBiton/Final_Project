@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+  @fileoverview search.html
+  @description עמוד החיפוש המרכזי של האפליקציה המאפשר למשתמש לאתר רכבים במסד הנתונים הממשלתי לפי מספר רישוי. כולל היסטוריית חיפושים מהירה ואנימציות רקע.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <html lang="he" dir="rtl">
 
 <head>
@@ -15,11 +21,11 @@
 </head>
 
 <body class="homepage is-loading">
-    <!-- Animated Mesh Background -->
+    <!-- === רקע אנימציה === -->
     <div class="mesh-bg"></div>
 
     <div class="layout-container">
-        <!-- Sidebar Navigation (Main Fleet Level) -->
+        <!-- === סרגל צד (תפריט ניווט ראשי) === -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>EasyCare</h2>
@@ -41,7 +47,7 @@
                 </div>
             </nav>
             
-            <!-- User Profile Section at Bottom -->
+            <!-- אזור פרופיל המשתמש בתחתית הסרגל -->
             <div class="sidebar-profile p-3 mt-4" style="border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;">
                 <img id="sidebarUserImg" src="https://ui-avatars.com/api/?name=U&background=2d74d7&color=fff&rounded=true" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                 <div class="text-end me-3">
@@ -51,21 +57,22 @@
             </div>
         </aside>
 
+        <!-- === תוכן ראשי === -->
         <main class="main-content">
             
-            <!-- Mobile Top Nav (Visible only on mobile) -->
+            <!-- תפריט עליון למובייל (מוסתר במסכים גדולים) -->
             <div class="mobile-top-nav d-md-none">
                 <a href="after_login.html" class="btn-back-mobile">
                     <i class="fas fa-arrow-right"></i> חזרה לצי הרכבים
                 </a>
             </div>
 
-            <!-- Search Hero -->
+            <!-- === אזור חיפוש ראשי (Hero) === -->
             <div class="search-hero">
                 <h1><i class="fas fa-search" style="color: var(--primary-blue); font-size: 2.2rem; margin-left: 16px;"></i>חיפוש במאגר הממשלתי</h1>
                 <p>נתונים אמיתיים ומעודכנים ממשרד התחבורה — תוצאות מיידיות</p>
 
-                <!-- Quick Stats -->
+                <!-- סרגל סטטיסטיקות מהירות -->
                 <div class="stat-row">
                     <div class="stat-chip-q"><i class="fas fa-database"></i> מאגר ממשלתי מאומת</div>
                     <div class="stat-chip-q"><i class="fas fa-bolt"></i> תוצאות בשניות</div>
@@ -73,9 +80,10 @@
                 </div>
             </div>
 
-            <!-- Main Search Box -->
+            <!-- === טופס הזנת מספר רישוי === -->
             <div class="search-glass-box">
                 <label for="plateInput"><i class="fas fa-id-badge" style="margin-left:6px; color:var(--primary-blue);"></i>מספר רישוי הרכב</label>
+                <!-- טופס החיפוש עם בדיקת תקינות הקלט בזמן אמת -->
                 <form id="searchForm">
                     <div class="search-input-row">
                         <input
@@ -100,13 +108,14 @@
                 </form>
             </div>
 
-            <!-- Recent Searches -->
+            <!-- === אזור חיפושים אחרונים === -->
             <div id="recentSection" style="display:none;">
                 <div class="section-title"><i class="fas fa-history"></i> חיפושים אחרונים</div>
+                <!-- מיכל כרטיסיות דינמיות להיסטוריית החיפוש -->
                 <div class="recent-chips" id="recentChips"></div>
             </div>
 
-            <!-- How It Works -->
+            <!-- === אזור הסבר: איך זה עובד === -->
             <div class="section-title" style="margin-top: 1rem;"><i class="fas fa-lightbulb"></i> איך זה עובד?</div>
             <div class="how-grid">
                 <div class="how-card" style="animation-delay: 0.1s;">
@@ -131,6 +140,7 @@
                 </div>
             </div>
             
+            <!-- תחתית האתר הדינמית -->
             <footer class="global-footer"></footer>
         </main>
     </div>
@@ -142,12 +152,22 @@
     <script src="js/global-autosave.js"></script>
 
     <script>
-    // ── Remove is-loading class ──────────────────────────────
+    /**
+     * מאזין לאירוע טעינת הדף (DOMContentLoaded).
+     * מסיר את מחלקת הטעינה כדי להציג את האנימציות בכניסה.
+     * 
+     * @returns {void}
+     */
     document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove('is-loading');
     });
 
-    // ── Sidebar User Load ────────────────────────────────────
+    /**
+     * פונקציית מעטפת לטעינת נתוני המשתמש המחובר מסרגל הצד (Sidebar).
+     * מזהה את המשתמש ומעדכנת את שמו ותמונת הפרופיל שלו.
+     * 
+     * @returns {void}
+     */
     (function() {
         const user = JSON.parse(sessionStorage.getItem('loggedInUser') || '{}');
         const nameEl = document.getElementById('sidebarUserName');
@@ -158,13 +178,23 @@
         }
     })();
 
-    // ── Recent Searches (localStorage) ──────────────────────
     const RECENT_KEY = 'easycare_recent_searches';
 
+    /**
+     * מחזירה את רשימת החיפושים האחרונים מתוך האחסון המקומי (localStorage).
+     * 
+     * @returns {Array<string>} - מערך של מספרי רישוי שחופשו לאחרונה
+     */
     function getRecent() {
         try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
     }
 
+    /**
+     * שומרת מספר רישוי חדש לרשימת החיפושים האחרונים באחסון המקומי (עד 6 פריטים).
+     * 
+     * @param {string} plate - מספר הרישוי לשמירה
+     * @returns {void}
+     */
     function saveRecent(plate) {
         let list = getRecent().filter(p => p !== plate);
         list.unshift(plate);
@@ -172,12 +202,25 @@
         localStorage.setItem(RECENT_KEY, JSON.stringify(list));
     }
 
+    /**
+     * מסירה מספר רישוי ספציפי מרשימת החיפושים האחרונים.
+     * מרעננת את התצוגה המקומית מיד לאחר המחיקה.
+     * 
+     * @param {string} plate - מספר הרישוי למחיקה
+     * @returns {void}
+     */
     function removeRecent(plate) {
         const list = getRecent().filter(p => p !== plate);
         localStorage.setItem(RECENT_KEY, JSON.stringify(list));
         renderRecent();
     }
 
+    /**
+     * מרנדרת מחדש (מייצרת אלמנטי DOM) את אזור החיפושים האחרונים באתר.
+     * מעדכנת את הצגת הכרטיסיות (Chips) או מסתירה את האזור כולו במידה ואין היסטוריה.
+     * 
+     * @returns {void}
+     */
     function renderRecent() {
         const list = getRecent();
         const section = document.getElementById('recentSection');
@@ -195,12 +238,26 @@
         `).join('');
     }
 
+    /**
+     * מפעילה חיפוש על בסיס לחיצה מהיסטוריית החיפושים.
+     * שומרת מחדש את המספר בראש הרשימה ומפנה לדף התוצאות.
+     * 
+     * @param {string} plate - מספר הרישוי לחיפוש
+     * @returns {void}
+     */
     function goSearch(plate) {
         saveRecent(plate);
         window.location.href = `results.html?plate=${plate}`;
     }
 
-    // ── Form Submit ──────────────────────────────────────────
+    /**
+     * מאזין לאירוע שליחת טופס החיפוש הראשי.
+     * מוודא את תקינות הקלט (מספר רישוי בין 5 ל-8 ספרות), במקרה של שגיאה מפעיל חיווי חזותי אדום.
+     * אם תקין, שומר בהיסטוריה ומעביר לעמוד התוצאות.
+     * 
+     * @param {Event} e - אובייקט הלחיצה או השליחה (submit event)
+     * @returns {void}
+     */
     document.getElementById('searchForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const plate = document.getElementById('plateInput').value.trim();
@@ -218,7 +275,6 @@
         window.location.href = `results.html?plate=${plate}`;
     });
 
-    // ── Init ─────────────────────────────────────────────────
     renderRecent();
     </script>
 </body>

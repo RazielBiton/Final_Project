@@ -1,7 +1,13 @@
-<!-- 1. OVERVIEW SECTION -->
+<!-- 
+  @fileoverview overview.html (Dashboard Component)
+  @description תצוגת 'מבט על' המסכמת מדדי מפתח (KPI), בריאות רכב, התפלגות הוצאות ומפרט טכני.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
+<!-- === אזור מבט על (Overview Section) === -->
 <div id="overview-section" class="dashboard-section">
 
-    <!-- KPI Cards Row -->
+    <!-- === אזור מדדים מרכזיים (KPI Cards) === -->
     <div class="db-row my-2">
         <div class="db-col-sm-6 db-col-lg-3 mb-3">
             <div
@@ -57,14 +63,14 @@
         </div>
     </div>
 
-    <!-- Row 1: Health Score & Alerts -->
+    <!-- === אזור ציון בריאות והתראות (Health & Alerts) === -->
     <div class="db-row mb-4 align-items-stretch">
 
-        <!-- Vehicle Health Score -->
+        <!-- כרטיסיית ציון בריאות הרכב -->
         <div class="db-col-lg-6 mb-3 d-flex">
             <div
                 style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.08);padding:1.4rem;width:100%;border:1px solid #f1f5f9;">
-                <!-- Header -->
+                <!-- כותרת הכרטיסייה (Header) -->
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div
@@ -83,25 +89,25 @@
                     </div>
                 </div>
 
-                <!-- Progress bar -->
+                <!-- סרגל התקדמות ציון בריאות -->
                 <div style="background:#f1f5f9;border-radius:50px;height:12px;overflow:hidden;margin-bottom:1.1rem;">
                     <div id="reliability-bar"
                         style="height:100%;width:0%;border-radius:50px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width 0.8s cubic-bezier(0.4,0,0.2,1);">
                     </div>
                 </div>
 
-                <!-- Criteria checklist -->
+                <!-- רשימת קריטריונים לבריאות (מוזרק ע"י JS) -->
                 <div id="reliability-checklist" style="display:flex;flex-direction:column;gap:7px;">
-                    <!-- Injected by JS -->
+                    <!-- המערכת מזריקה לכאן נתונים באופן דינמי -->
                 </div>
             </div>
         </div>
 
-        <!-- Upcoming Alerts from customAlerts -->
+        <!-- כרטיסיית התראות ותזכורות קרובות -->
         <div class="db-col-lg-6 mb-3 d-flex">
             <div
                 style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.08);padding:1.4rem;width:100%;border:1px solid #f1f5f9;">
-                <!-- Header -->
+                <!-- כותרת הכרטיסייה (Header) -->
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div
@@ -120,13 +126,13 @@
                 </div>
                 <div id="alertsList"
                     style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;">
-                    <!-- Injected by JS -->
+                    <!-- המערכת מזריקה לכאן נתונים באופן דינמי -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Row 2: Expense Breakdown -->
+    <!-- === אזור התפלגות הוצאות (Expense Breakdown) === -->
     <div class="db-row mb-4 align-items-stretch">
         <div class="db-col-12 mb-3 d-flex">
             <div
@@ -228,7 +234,7 @@
         </div>
     </div>
 
-    <!-- Row 3: Technical Specs -->
+    <!-- === אזור נתונים ומפרט טכני (Technical Specs) === -->
     <div class="db-row mb-0 align-items-stretch">
         <div class="db-col-12 d-flex mb-2">
             <div

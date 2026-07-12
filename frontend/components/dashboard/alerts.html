@@ -1,6 +1,12 @@
+<!-- 
+  @fileoverview alerts.html (Dashboard Component)
+  @description רכיב מרכז ההתראות והתזכורות. מציג לוח אירועים מבוסס ציר זמן, הצעות מהירות ומדדי מצב להתראות (פתוחות/סגורות).
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <div id="alerts-section" class="dashboard-section d-none">
 
-    <!-- Hero Header & KPIs -->
+    <!-- === אזור כותרת ומדדים (Hero & KPIs) === -->
     <div class="db-row mb-4">
         <div class="db-col-12">
             <div class="alerts-premium-header shadow-sm">
@@ -31,7 +37,7 @@
         </div>
     </div>
 
-    <!-- Smart "One-Click" Suggestions (AI Feel) -->
+    <!-- === אזור הצעות מהירות חכמות (Smart Suggestions) === -->
     <div class="db-row mb-2">
         <div class="db-col-12">
             <h6 class="text-muted fw-bold mb-2 ps-1" style="font-size: 0.85rem;"><i
@@ -55,19 +61,19 @@
         </div>
     </div>
 
-    <!-- Main Board -->
+    <!-- === לוח התראות מרכזי (Main Board) === -->
     <div class="db-row mt-3">
         <div class="db-col-12">
-            <!-- Apple Style Segmented Control -->
+            <!-- כפתורי סינון התראות בסגנון כרטיסיות -->
             <div class="apple-segmented-control mx-auto mx-md-0" id="alertsSegmentFilter">
                 <button class="segment-btn active" onclick="filterAlerts('all')">הכל</button>
                 <button class="segment-btn" onclick="filterAlerts('upcoming')">פתוחות וקרובות</button>
                 <button class="segment-btn" onclick="filterAlerts('done')">הושלמו (היסטוריה)</button>
             </div>
 
-            <!-- The Vertical Timeline UI -->
+            <!-- ציר זמן התראות (Timeline) -->
             <div class="premium-timeline" id="alertsTimelineContainer">
-                <!-- JS will inject timeline nodes here -->
+                <!-- המערכת מזריקה לכאן התראות באופן דינמי -->
             </div>
         </div>
     </div>

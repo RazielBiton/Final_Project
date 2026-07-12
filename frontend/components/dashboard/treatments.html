@@ -1,7 +1,13 @@
-<!-- 2. TREATMENTS SECTION -->
+<!-- 
+  @fileoverview treatments.html (Dashboard Component)
+  @description רכיב ניהול טיפולים ותחזוקה המוזרק דינמית לתוך ה-Dashboard. מציג היסטוריית טיפולים, עלויות מצטברות, ואפשרות לרישום טיפול חדש.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
+<!-- === אזור ניהול טיפולים (Treatments Section) === -->
 <div id="treatments-section" class="dashboard-section d-none">
 
-    <!-- Header with vibrant title and button -->
+    <!-- === כותרת רכיב וכפתור הוספה (Header & Add Button) === -->
     <div
         style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; background:#fff; padding:1.2rem; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,0.03); border:1px solid #f1f5f9; flex-wrap: wrap; gap: 15px;">
         <div style="display:flex; align-items:center; gap:12px;">
@@ -24,7 +30,7 @@
         </button>
     </div>
 
-    <!-- Stats Row with modern cards -->
+    <!-- === אזור סטטיסטיקות טיפולים (Stats Row) === -->
     <div class="db-row mb-4">
         <div class="db-col-md-6 mb-3">
             <div
@@ -58,7 +64,7 @@
         </div>
     </div>
 
-    <!-- Table Container -->
+    <!-- === טבלת היסטוריית טיפולים (Table Container) === -->
     <div
         style="background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); border:1px solid #f1f5f9; padding: 1.2rem; overflow: hidden;">
         <h5
@@ -87,7 +93,7 @@
                     </tr>
                 </thead>
                 <tbody id="treatmentsTableBody">
-                    <!-- JS Generated -->
+                    <!-- המערכת מזריקה לכאן את שורות הטיפולים -->
                 </tbody>
             </table>
         </div>

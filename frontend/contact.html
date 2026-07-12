@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+  @fileoverview contact.html
+  @description עמוד יצירת קשר עם מערכת EasyCare. העמוד מאפשר לשלוח פניות באמצעות טופס ייעודי עם חיווי לתוצאת השליחה.
+  @author Michael Geyshes & Raziel Biton
+  @version 1.0.0
+-->
 <html lang="en">
 
 <head>
@@ -11,8 +17,11 @@
 </head>
 
 <body>
+  <!-- === מעטפת דף צור קשר (Main Container) === -->
   <div class="container">
     <div class="form-container">
+      
+      <!-- === אזור מידע טקסטואלי (Left Container) === -->
       <div class="left-container">
         <div class="left-inner-container">
           <h2>!בואו נדבר</h2>
@@ -25,6 +34,8 @@
           <a class="btn_home" href="index.html">חזור לדף הבית</a>
         </div>
       </div>
+      
+      <!-- === אזור טופס הפנייה (Right Container) === -->
       <div class="right-container">
         <div class="right-inner-container">
           <form id="contactForm">
@@ -34,6 +45,8 @@
             <input type="text" id="contactName" placeholder="שם מלא" required />
             <input type="email" id="contactEmail" placeholder="אימייל" required />
             <input type="tel" id="contactPhone" placeholder="מספר טלפון" required />
+            
+            <!-- אזור הזנת תוכן ההודעה כולל ספירת תווים למובייל -->
             <textarea rows="4" id="contactMessage" placeholder="אנא הכנס הודעתך" required maxlength="300"></textarea>
             <div id="mobileCharCount" style="text-align: left; font-size: 0.8rem; color: #6c757d; margin-top: -5px; margin-bottom: 10px;">0/300</div>
             
@@ -48,9 +61,9 @@
     </div>
   </div>
 
-
+  <!-- === סקריפטים (Scripts) === -->
   <script src="js/contact.js"></script>
-<script src="js/global-autosave.js"></script>
+  <script src="js/global-autosave.js"></script>
 </body>
 
 </html>
