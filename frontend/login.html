@@ -1,11 +1,5 @@
 <!DOCTYPE html>
-<!-- 
-  @fileoverview login.html
-  @description עמוד התחברות והרשמה. משתמש בעיצוב של פאנל כפול (Overlay) כדי להחליף בין טופס התחברות לטופס הרשמה באותו העמוד.
-  @author Michael Geyshes & Raziel Biton
-  @version 1.0.0
--->
-<html lang="he" dir="rtl">
+<html lang="en">
 
 <head>
 	<meta charset="UTF-8">
@@ -17,15 +11,26 @@
 
 <body class="homepage is-loading">
 
-    <!-- === מעטפת דף ההתחברות וההרשמה (Main Container) === -->
 	<div class="container" id="container">
-        <!-- === אזור הרשמה (Sign Up Container) === -->
 		<div class="form-container sign-up-container">
 			<form action="#">
 				<h1>צור משתמש</h1>
 				<div class="social-container">
 					<a href="#" class="social-btn google-btn" aria-label="Google">
-						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path
+								d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+								fill="#4285F4" />
+							<path
+								d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+								fill="#34A853" />
+							<path
+								d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+								fill="#FBBC05" />
+							<path
+								d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+								fill="#EA4335" />
+						</svg>
 						<span>התחברות עם Google</span>
 					</a>
 				</div>
@@ -37,14 +42,25 @@
 				<button>הרשם</button>
 			</form>
 		</div>
-
-        <!-- === אזור התחברות (Sign In Container) === -->
 		<div class="form-container sign-in-container">
 			<form action="#">
 				<h1>התחברות</h1>
 				<div class="social-container">
 					<a href="#" class="social-btn google-btn" aria-label="Google">
-						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path
+								d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+								fill="#4285F4" />
+							<path
+								d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+								fill="#34A853" />
+							<path
+								d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+								fill="#FBBC05" />
+							<path
+								d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+								fill="#EA4335" />
+						</svg>
 						<span>התחברות עם Google</span>
 					</a>
 				</div>
@@ -56,18 +72,14 @@
 				<button type="button" class="login_btn" data-href="after_login.html">התחברות</button>
 			</form>
 		</div>
-
-        <!-- === אזור חופף (Overlay Panels) === -->
 		<div class="overlay-container">
 			<div class="overlay">
-                <!-- פאנל אנימציה שמאלי -->
 				<div class="overlay-panel overlay-left">
 					<img src="images/logo.png" alt="Logo" class="Logo_img">
 					<h1>!אורח יקר</h1>
 					<p>.הזן את הפרטים האישיים שלך והתחל את המסע שלך</p>
 					<button class="ghost" id="signIn">התחברות</button>
 				</div>
-                <!-- פאנל אנימציה ימני -->
 				<div class="overlay-panel overlay-right">
 					<img src="images/logo.png" alt="Logo" class="Logo_img">
 					<h1>!היי</h1>
@@ -78,10 +90,8 @@
 		</div>
 	</div>
 
-    <!-- === כותרת תחתונה גלובלית (Footer) === -->
 	<footer class="global-footer"></footer>
-	
-    <!-- === סקריפטים (Scripts) === -->
+	<!-- Supabase JS SDK -->
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script src="js/login.js"></script>
 	<script src="js/global_footer.js"></script>
