@@ -11,7 +11,7 @@
 ![Render](https://img.shields.io/badge/Hosting-Render-46E3B7?logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-ISC-blue)
 
-**פרויקט גמר** &middot; מיכאל גייאשס & רזיאל ביטון
+**פרויקט גמר** &middot; מיכאל גיישס & רזיאל ביטון
 
 *כל היסטוריית הרכב שלך — טיפולים, ביטוחים, דלק, דוחות ותאונות — במקום אחד, חכם ואוטומטי.*
 
