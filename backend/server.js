@@ -1359,8 +1359,7 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Database synchronization failed', 
-            details: err.message,
-            stack: err.stack
+            details: err.message
         });
     }
 });
