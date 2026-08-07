@@ -44,8 +44,7 @@ app.use((req, res, next) => {
     if (userId) {
         req.userId = parseInt(userId);
     } else {
-
-        req.userId = 1;
+        return res.status(401).json({ error: "Unauthorized: Missing userid in headers" });
     }
     next();
 });
