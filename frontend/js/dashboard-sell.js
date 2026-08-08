@@ -63,7 +63,7 @@ window.saveSellSettings = async function () {
     if (tHand) currentCar.sellSettings.hand = tHand.value;
 
     if (window.saveToLocalStorage) {
-        window.saveToLocalStorage();
+        await window.saveToLocalStorage();
     }
     console.log("Sell settings saved to DB: ", currentCar.sellSettings);
 };
@@ -72,7 +72,7 @@ window.saveSellSettings = async function () {
  * מחוללת קוד סריקה (QR Code) ייחודי המקושר לדף "דוח רכב ציבורי" (Public Report) המכיל את כלל היסטוריית הרכב המאושרת לחשיפה. הקוד מוצג במודאל וניתן להורדה כקובץ תמונה להדפסה (לצורך הדבקה על הרכב).
  * דורשת מינימום 3 תמונות בגלריה להפקתה.
  */
-window.generateStickerQR = function () {
+window.generateStickerQR = async function () {
     if (!currentCar) return;
 
     const photos = currentCar.gallery || [];
@@ -81,7 +81,7 @@ window.generateStickerQR = function () {
         return;
     }
 
-    window.saveSellSettings(); // Ensure anything edited is flushed to db first
+    await window.saveSellSettings(); // Ensure anything edited is flushed to db first
 
     const qrContainer = document.getElementById('qrcode');
     if (qrContainer) qrContainer.innerHTML = '';

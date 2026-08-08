@@ -23,7 +23,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const res = await fetch(`/api/vehicles/sync/${vehicleId}`);
+        // מוסיפים timestamp כדי למנוע שמירה ב-cache של הדפדפן (כך שהשינויים מהמוכר ישתקפו מיידית)
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/vehicles/sync/${vehicleId}?t=${timestamp}`, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (res.ok) {
             const currentCar = await res.json();
             renderPublicReport(currentCar);
@@ -227,7 +235,7 @@ function renderPublicReport(car) {
                 if (!insData || (!insData.company && !insData.date)) continue;
 
                 let docsBtn = insData.invoice ? `<a href="${insData.invoice}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2"><i class="fas fa-file-contract me-1"></i> צפה בפוליסה</a>` : '';
-                
+
                 // הצגת עלות רק אם showCosts מופעל
                 let costBlock = '';
                 if (showCosts) {
@@ -296,7 +304,7 @@ function renderPublicReport(car) {
     // === סקציית תדלוקים - הסתרת עלויות אם showCosts === false ===
     const fuels = car.fuelLog || [];
     const fContainer = document.getElementById('pr-fuel-data');
-    
+
     let fuelTypeStr = car.fuelType || '';
     let isElectric = fuelTypeStr.includes('חשמל') || fuelTypeStr.includes('Electric');
     let isHybrid = fuelTypeStr.includes('היבריד') || fuelTypeStr.includes('פלאג') || fuelTypeStr.includes('Hybrid');
