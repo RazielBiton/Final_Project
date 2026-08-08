@@ -456,11 +456,12 @@ window.saveToLocalStorage = async function () {
             });
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
-                console.error("Azure DB Sync failed:", errData.error || resp.status);
+                const errMsg = errData.details || errData.error || 'שגיאת רשת';
+                console.error("Azure DB Sync failed:", errMsg);
                 if (syncInd) {
-                    syncInd.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> שגיאת רשת בשמירה, מנסה שוב בקרוב...';
+                    syncInd.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i> שגיאה: ${errMsg.substring(0, 50)}...`;
                     syncInd.style.background = '#dc2626'; // red
-                    setTimeout(() => { syncInd.style.opacity = '0'; }, 3000);
+                    setTimeout(() => { syncInd.style.opacity = '0'; }, 8000);
                 }
             } else {
                 console.log("Successfully synced Vehicle Data to Azure DB.");
