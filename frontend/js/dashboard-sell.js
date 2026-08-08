@@ -17,6 +17,8 @@ window.loadSell = function () {
             showCosts: true,
             showInsurance: true,
             showAccidents: true,
+            showFuelLogs: true,
+            showFines: true,
             sellerComment: "",
             hand: currentCar.hand || "1"
         };
@@ -27,6 +29,8 @@ window.loadSell = function () {
     const tCosts = document.getElementById('toggleCosts');
     const tInsurance = document.getElementById('toggleInsurance');
     const tAccidents = document.getElementById('toggleAccidents');
+    const tFuelLogs = document.getElementById('toggleFuelLogs');
+    const tFines = document.getElementById('toggleFines');
     const tComment = document.getElementById('sellerCommentBox');
     const tHand = document.getElementById('sellerHandSelector');
 
@@ -34,6 +38,8 @@ window.loadSell = function () {
     if (tCosts) tCosts.checked = s.showCosts !== false;
     if (tInsurance) tInsurance.checked = s.showInsurance !== false;
     if (tAccidents) tAccidents.checked = s.showAccidents !== false;
+    if (tFuelLogs) tFuelLogs.checked = s.showFuelLogs !== false;
+    if (tFines) tFines.checked = s.showFines !== false;
     if (tComment) tComment.value = s.sellerComment || "";
     if (tHand) tHand.value = s.hand || currentCar.hand || "1";
 
@@ -52,6 +58,8 @@ window.saveSellSettings = async function () {
     const tCosts = document.getElementById('toggleCosts');
     const tInsurance = document.getElementById('toggleInsurance');
     const tAccidents = document.getElementById('toggleAccidents');
+    const tFuelLogs = document.getElementById('toggleFuelLogs');
+    const tFines = document.getElementById('toggleFines');
     const tComment = document.getElementById('sellerCommentBox');
     const tHand = document.getElementById('sellerHandSelector');
 
@@ -59,8 +67,10 @@ window.saveSellSettings = async function () {
     currentCar.sellSettings.showCosts = tCosts ? tCosts.checked : true;
     currentCar.sellSettings.showInsurance = tInsurance ? tInsurance.checked : true;
     currentCar.sellSettings.showAccidents = tAccidents ? tAccidents.checked : true;
+    currentCar.sellSettings.showFuelLogs = tFuelLogs ? tFuelLogs.checked : true;
+    currentCar.sellSettings.showFines = tFines ? tFines.checked : true;
     currentCar.sellSettings.sellerComment = tComment ? tComment.value.trim() : "";
-    if (tHand) currentCar.sellSettings.hand = tHand.value;
+    currentCar.sellSettings.hand = tHand ? tHand.value : (currentCar.hand || "1");
 
     if (window.saveToLocalStorage) {
         await window.saveToLocalStorage();

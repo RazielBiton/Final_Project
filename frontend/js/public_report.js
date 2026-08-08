@@ -73,6 +73,8 @@ function renderPublicReport(car) {
     const showCosts = s.showCosts !== false;
     const showInsurance = s.showInsurance !== false;
     const showAccidents = s.showAccidents !== false;
+    const showFuelLogs = s.showFuelLogs !== false;
+    const showFines = s.showFines !== false;
 
     const brand = car.brandHeb || car.brand || 'רכב לא ידוע';
     const logoSrc = car.logo || 'images/logos/default.png';
@@ -273,9 +275,13 @@ function renderPublicReport(car) {
         }
     }
 
-    // === סקציית קנסות - הסתרת עלויות אם showCosts === false ===
-    const reports = car.reports || [];
-    const rContainer = document.getElementById('pr-reports-data');
+    // === סקציית קנסות - הסתרה מלאה אם showFines === false ===
+    const reportsSection = document.getElementById('pr-section-reports');
+    if (!showFines) {
+        if (reportsSection) reportsSection.style.display = 'none';
+    } else {
+        const reports = car.reports || [];
+        const rContainer = document.getElementById('pr-reports-data');
     if (reports.length > 0) {
         let html = ``;
         reports.forEach(r => {
@@ -300,10 +306,15 @@ function renderPublicReport(car) {
     } else {
         rContainer.innerHTML = getEmptyStateHTML('fa-check-circle text-success', 'רכב נקי מדוחות', 'לא נמצאו דוחות תנועה או חניה מתועדים.', true);
     }
+    }
 
-    // === סקציית תדלוקים - הסתרת עלויות אם showCosts === false ===
-    const fuels = car.fuelLog || [];
-    const fContainer = document.getElementById('pr-fuel-data');
+    // === סקציית תדלוקים - הסתרה מלאה אם showFuelLogs === false ===
+    const fuelSection = document.getElementById('pr-section-fuel');
+    if (!showFuelLogs) {
+        if (fuelSection) fuelSection.style.display = 'none';
+    } else {
+        const fuels = car.fuelLog || [];
+        const fContainer = document.getElementById('pr-fuel-data');
 
     let fuelTypeStr = car.fuelType || '';
     let isElectric = fuelTypeStr.includes('חשמל') || fuelTypeStr.includes('Electric');
@@ -354,10 +365,11 @@ function renderPublicReport(car) {
                 ${fuelCostBlock}
             </div>`;
         });
-        html += `</div>`;
-        fContainer.innerHTML = html;
-    } else {
-        fContainer.innerHTML = getEmptyStateHTML(actionIcon, emptyStateTitle, emptyStateDesc);
+            html += `</div>`;
+            fContainer.innerHTML = html;
+        } else {
+            fContainer.innerHTML = getEmptyStateHTML(actionIcon, emptyStateTitle, emptyStateDesc);
+        }
     }
 
     // === סקציית תאונות - הסתרה מלאה אם showAccidents === false ===
