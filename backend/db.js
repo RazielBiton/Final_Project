@@ -74,10 +74,13 @@ const poolPromise = {
 };
 
 process.on('unhandledRejection', (reason) => {
-    console.error('⚠️  Unhandled Promise Rejection (server kept alive):', reason?.message || reason);
+    console.error('⚠️  FATAL ERROR: Unhandled Promise Rejection:', reason);
+    process.exit(1);
 });
 process.on('uncaughtException', (err) => {
-    console.error('⚠️  Uncaught Exception (server kept alive):', err.message);
+    console.error('⚠️  FATAL ERROR: Uncaught Exception:', err.message);
+    console.error(err.stack);
+    process.exit(1);
 });
 
 module.exports = {
