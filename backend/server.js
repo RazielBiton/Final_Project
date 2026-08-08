@@ -1184,10 +1184,12 @@ app.post('/api/vehicles/sync/:id', async (req, res) => {
         const vehicleId = parseInt(req.params.id);
         const car = req.body;
         const pool = await poolPromise;
+        
+        const userId = req.headers['userid'] ? parseInt(req.headers['userid']) : null;
 
         const checkOwnership = await pool.request()
             .input('Id', sql.Int, vehicleId)
-            .input('UserId', sql.Int, req.userId)
+            .input('UserId', sql.Int, userId)
             .query('SELECT Id FROM Vehicles WHERE Id = @Id AND UserId = @UserId AND IsDeleted = 0');
         
         if (checkOwnership.recordset.length === 0) {
