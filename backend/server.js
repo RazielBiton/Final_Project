@@ -22,7 +22,16 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use(express.static(path.join(__dirname, '../frontend')));
+// הגדרת נתיב סטטי עם חסימת Cache לקבצי HTML ו-JS כדי שהשינויים ישתקפו מיד
+app.use(express.static(path.join(__dirname, '../frontend'), {
+    setHeaders: function (res, filePath) {
+        if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+        }
+    }
+}));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const GEMINI_MODEL = "gemini-2.5-flash";

@@ -130,7 +130,7 @@ window.generateStickerQR = async function () {
 /**
  * פונקציית הליבה במודול זה: מפיקה, על בסיס נתוני הרכב וההגדרות שנשמרו, דוח רכב רשמי ומהודר בפורמט PDF ("דוח פרימיום"). הפונקציה בונה דינמית טבלאות HTML עבור טיפולים, פוליסות ביטוח, היסטוריית תאונות וצריכת דלק, ולאחר מכן ממירה אותם פיזית לקובץ PDF הניתן לשמירה וחלוקה לקונים עתידיים.
  */
-window.generateFullPDFReport = function () {
+window.generateFullPDFReport = async function () {
     if (!currentCar) return;
 
     const photos = currentCar.gallery || [];
@@ -139,7 +139,7 @@ window.generateFullPDFReport = function () {
         return;
     }
 
-    window.saveSellSettings();
+    await window.saveSellSettings();
 
     const s = currentCar.sellSettings || {};
     const fmt = window.formatDate ? window.formatDate.bind(window) : (d => d || '-');
