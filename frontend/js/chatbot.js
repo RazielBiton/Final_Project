@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'userid': sessionStorage.getItem('userId') || '1' },
                 body: JSON.stringify({ message: text, carContext: carContext, history: sentHistory })
             });
 

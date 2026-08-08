@@ -37,7 +37,7 @@ const { sql, poolPromise } = require('./db');
  */
 app.use((req, res, next) => {
 
-    if (req.path === '/api/login' || req.path === '/api/register' || req.path.startsWith('/api/auth/') || req.path.startsWith('/api/vehicles/sync/') || !req.path.startsWith('/api')) {
+    if (req.path === '/api/login' || req.path === '/api/register' || req.path.startsWith('/api/auth/') || req.path.startsWith('/api/vehicles/sync/') || req.path.startsWith('/api/config/') || req.path === '/api/contact' || req.path === '/api/current-fuel-ai' || !req.path.startsWith('/api')) {
         return next();
     }
     const userId = req.headers['userid'];

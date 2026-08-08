@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const vRes = await fetch('/api/vehicles/all');
+        const vRes = await fetch('/api/vehicles/all', {
+            headers: { 'userid': sessionStorage.getItem('userId') || '1' }
+        });
         if (vRes.ok) {
             const allV = await vRes.json();
             attachAutocomplete('globalSearchInput', 'globalAutocompleteList', allV || []);

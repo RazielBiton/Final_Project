@@ -102,7 +102,9 @@ async function fetchAndFilterVehicles(query) {
     const statWidget = document.getElementById('totalDbCarsTop');
 
     try {
-        const response = await fetch('/api/vehicles/all');
+        const response = await fetch('/api/vehicles/all', {
+            headers: { 'userid': sessionStorage.getItem('userId') || '1' }
+        });
         if (!response.ok) throw new Error("Failed to fetch vehicles");
         allVehicles = await response.json();
         allVehicles = allVehicles || [];

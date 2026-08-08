@@ -352,7 +352,7 @@ window.processAiDoc = async function(input) {
         try {
             const res = await fetch('/api/ai/parse-insurance', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'userid': sessionStorage.getItem('userId') || '1' },
                 body: JSON.stringify({ 
                     mimeType: file.type, 
                     base64Data: base64String,
