@@ -431,6 +431,17 @@ window.saveToLocalStorage = async function () {
     }
 
     isSyncing = true;
+    
+    let syncInd = document.getElementById('globalSyncInd');
+    if (!syncInd) {
+        syncInd = document.createElement('div');
+        syncInd.id = 'globalSyncInd';
+        syncInd.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i> שומר נתונים בענן...';
+        syncInd.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#2563eb;color:#fff;padding:10px 20px;border-radius:50px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition:opacity 0.3s;font-size:0.9rem;font-weight:600;display:flex;align-items:center;opacity:0;';
+        document.body.appendChild(syncInd);
+    }
+    syncInd.style.opacity = '1';
+
     do {
         pendingSync = false;
         try {
@@ -446,11 +457,26 @@ window.saveToLocalStorage = async function () {
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
                 console.error("Azure DB Sync failed:", errData.error || resp.status);
+                if (syncInd) {
+                    syncInd.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> שגיאת רשת בשמירה, מנסה שוב בקרוב...';
+                    syncInd.style.background = '#dc2626'; // red
+                    setTimeout(() => { syncInd.style.opacity = '0'; }, 3000);
+                }
             } else {
                 console.log("Successfully synced Vehicle Data to Azure DB.");
+                if (syncInd) {
+                    syncInd.innerHTML = '<i class="fas fa-check-circle me-2"></i> נשמר בהצלחה';
+                    syncInd.style.background = '#16a34a'; // green
+                    setTimeout(() => { syncInd.style.opacity = '0'; }, 2000);
+                }
             }
         } catch (e) {
             console.error("Azure DB Sync failed (network error):", e);
+            if (syncInd) {
+                syncInd.innerHTML = '<i class="fas fa-wifi me-2"></i> התנתקות מהשרת, הנתונים ישמרו כשהחיבור יחזור';
+                syncInd.style.background = '#f59e0b'; // orange
+                setTimeout(() => { syncInd.style.opacity = '0'; }, 3000);
+            }
         }
     } while (pendingSync);
     
