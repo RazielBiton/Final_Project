@@ -218,19 +218,7 @@ window.updateTreatment = function () {
         document.getElementById('editTreatmentForm').reset();
     };
 
-    if (tFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            if (typeof compressImage === 'function') {
-                window.compressImage(e.target.result, 800, 0.7, finishUpdate);
-            } else {
-                finishUpdate(e.target.result); // Fallback
-            }
-        };
-        reader.readAsDataURL(tFile);
-    } else {
-        finishUpdate(null);
-    }
+    finishUpdate(currentBase64TreatmentInvoice || null);
 }
 
 let _cachedUserLocation = null; // Cache last known precise location
