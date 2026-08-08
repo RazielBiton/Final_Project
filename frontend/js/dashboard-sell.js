@@ -87,7 +87,7 @@ window.generateStickerQR = async function () {
     if (qrContainer) qrContainer.innerHTML = '';
 
     const host = window.location.origin + window.location.pathname.replace('dashboard.html', '');
-    const landingUrl = `${host}public_report.html?id=${currentCar.id}`;
+    const landingUrl = `${host}public_report.html?id=${currentCar.id}&v=${new Date().getTime()}`;
 
     new QRCode(qrContainer, {
         text: landingUrl,
