@@ -413,46 +413,45 @@ window.openPrModal = function (src) {
 };
 
 /**
- * מחשבת באופן מקומי ציון אמינות (באחוזים 0-100) על בסיס נתוני הרכב הזמינים (היסטוריית טיפולים, ביטוח, תדלוקים ותוקף טסט).
- * פונקציה זו משמשת באופן נקודתי להצגה בדף הדו"ח הפומבי ללא צורך בקריאה נוספת לשרת במיוחד לשם החישוב.
+ * אלגוריתם שקלול מורכב (Health Score) הבוחן את רמת אמינות התיעוד ורמת התחזוקה של הרכב.
+ * מנקד את הרכב (עד 100) על סמך 5 פרמטרים מרכזיים: טיפולים מתועדים (30%), ביטוחים מקיפים וחובה (20%), תיעוד דלקים עקבי (20%), תוקף טסט (15%) והזנת קילומטראז' (15%).
+ * זהה לאלגוריתם המרכזי ב-dashboard-overview.js כדי להבטיח עקביות ציונים בכל הדפים.
  * 
  * @param {Object} car - אובייקט הרכב עליו מחושב ציון האמינות.
  * @returns {number} - ציון האמינות הכללי המחושב כמספר שלם.
  */
 function calculateLocalReliability(car) {
-    let score = 20;
+    let score = 0;
 
-    if (car.treatments && car.treatments.length > 0) {
-        let treatmentsScore = Math.min((car.treatments.length / 5) * 30, 30);
-        score += treatmentsScore;
-    }
+    const isDateFuture = (dateStr) => {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return !isNaN(d.getTime()) && d > new Date();
+    };
 
-    if (car.insurance) {
-        const hasComprehensive = car.insurance.type === 'מקיף';
-        const hasThirdParty = car.insurance.type === "צד ג'";
-        if (hasComprehensive || hasThirdParty) {
-            score += Math.min(25, 25);
-        }
-    }
+    // 1. טיפולים מתועדים עם קבלה (30%)
+    const treatmentsWithInvoice = (car.treatments || []).filter(t => t.invoice).length;
+    score += Math.min(treatmentsWithInvoice / 5, 1) * 30;
 
-    if (car.fuelLog && car.fuelLog.length > 0) {
-        let fuelScore = Math.min((car.fuelLog.length / 5) * 15, 15);
-        score += fuelScore;
-    }
+    // 2. ביטוח חובה + מקיף/צד ג' (20%)
+    const insObj = car.insurance || {};
+    const hasMandatory = insObj.mandatory?.date && isDateFuture(insObj.mandatory.date) && insObj.mandatory.file;
+    const hasCompOrThird = (insObj.comprehensive?.date && isDateFuture(insObj.comprehensive.date) && insObj.comprehensive.file)
+        || (insObj.thirdparty?.date && isDateFuture(insObj.thirdparty.date) && insObj.thirdparty.file);
+    if (hasMandatory) score += 10;
+    if (hasCompOrThird) score += 10;
 
-    if (car.testDate && car.testDate !== 'אין נתונים') {
-        const dParts = car.testDate.split('/');
-        let d = null;
-        if (dParts.length === 3) {
-            d = new Date(dParts[2], dParts[1] - 1, dParts[0]);
-        } else if (dParts.length === 2) {
-            d = new Date(dParts[1], dParts[0] - 1, 1);
-        }
+    // 3. תיעוד תדלוקים (20%)
+    const fuelCount = (car.fuelLog || []).length;
+    score += Math.min(fuelCount / 5, 1) * 20;
 
-        if (d && d >= new Date()) {
-            score += 10;
-        }
-    }
+    // 4. טסט בתוקף (15%)
+    const testDone = !!(car.testDate && isDateFuture(car.testDate));
+    if (testDone) score += 15;
+
+    // 5. קילומטראז' מעודכן (15%)
+    const kmDone = !!(car.km && car.km > 0);
+    if (kmDone) score += 15;
 
     return Math.round(score);
 }
