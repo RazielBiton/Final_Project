@@ -59,6 +59,13 @@ function showError(msg) {
  * @returns {void}
  */
 function renderPublicReport(car) {
+    // === קריאת הגדרות שקיפות מהמוכר ===
+    const s = car.sellSettings || {};
+    const showTreatments = s.showTreatments !== false;
+    const showCosts = s.showCosts !== false;
+    const showInsurance = s.showInsurance !== false;
+    const showAccidents = s.showAccidents !== false;
+
     const brand = car.brandHeb || car.brand || 'רכב לא ידוע';
     const logoSrc = car.logo || 'images/logos/default.png';
     const year = car.year || '';
@@ -95,14 +102,20 @@ function renderPublicReport(car) {
         relText.style.color = relColor;
     }
 
-    let totalExpenses = 0;
-    if (car.treatments) car.treatments.forEach(t => { if (t.cost) totalExpenses += parseFloat(t.cost); });
-    if (car.insurance) {
-        Object.values(car.insurance).forEach(ins => {
-            if (ins && ins.cost) totalExpenses += parseFloat(ins.cost);
-        });
+    // === הסתרת/הצגת השקעה ברכב לפי showCosts ===
+    const expensesSection = document.getElementById('pr-section-expenses');
+    if (!showCosts) {
+        if (expensesSection) expensesSection.style.display = 'none';
+    } else {
+        let totalExpenses = 0;
+        if (car.treatments) car.treatments.forEach(t => { if (t.cost) totalExpenses += parseFloat(t.cost); });
+        if (car.insurance) {
+            Object.values(car.insurance).forEach(ins => {
+                if (ins && ins.cost) totalExpenses += parseFloat(ins.cost);
+            });
+        }
+        document.getElementById('pr-expenses').textContent = '₪' + totalExpenses.toLocaleString();
     }
-    document.getElementById('pr-expenses').textContent = '₪' + totalExpenses.toLocaleString();
 
     document.getElementById('pr-hp').textContent = car.horsePower || '--';
     document.getElementById('pr-engine').textContent = car.engineVolume || '--';
@@ -123,101 +136,156 @@ function renderPublicReport(car) {
         });
     }
 
-    const treatments = car.treatments || [];
-    const tContainer = document.getElementById('pr-treatments-timeline');
+    // === סקציית טיפולים - הסתרה מלאה אם showTreatments === false ===
+    const treatmentsSection = document.getElementById('pr-section-treatments');
+    if (!showTreatments) {
+        if (treatmentsSection) treatmentsSection.style.display = 'none';
+    } else {
+        const treatments = car.treatments || [];
+        const tContainer = document.getElementById('pr-treatments-timeline');
 
-    if (treatments.length > 0) {
-        treatments.sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (treatments.length > 0) {
+            treatments.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        let html = '<div class="pr-timeline">';
-        treatments.forEach(t => {
-            let displayDate = formatCleanDate(t.date);
+            let html = '<div class="pr-timeline">';
+            treatments.forEach(t => {
+                let displayDate = formatCleanDate(t.date);
 
-            let verifiedHtml = t.invoice ?
-                `<div class="verified-badge shadow-sm"><i class="fas fa-check-circle me-1"></i> טיפול מאומת</div>` : '';
+                let verifiedHtml = t.invoice ?
+                    `<div class="verified-badge shadow-sm"><i class="fas fa-check-circle me-1"></i> טיפול מאומת</div>` : '';
 
-            let costHtml = t.cost ? `<div class="badge bg-light text-danger border px-2 py-1"><i class="fas fa-shekel-sign me-1"></i> ${parseFloat(t.cost).toLocaleString()}</div>` : '';
+                // הצגת עלות רק אם showCosts מופעל
+                let costHtml = '';
+                if (showCosts && t.cost) {
+                    costHtml = `<div class="badge bg-light text-danger border px-2 py-1"><i class="fas fa-shekel-sign me-1"></i> ${parseFloat(t.cost).toLocaleString()}</div>`;
+                }
 
-            html += `
-                <div class="pr-timeline-item">
-                    <div class="pr-timeline-dot"></div>
-                    <div class="pr-timeline-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-secondary small fw-bold"><i class="far fa-calendar-alt me-1"></i> ${displayDate}</span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary border"><i class="fas fa-tachometer-alt me-1 text-primary"></i> ק"מ: ${t.km ? t.km.toLocaleString() : '-'}</span>
-                        </div>
-                        <h6 class="fw-bold text-dark m-0 mb-1" style="font-size: 1.05rem;">${t.type || t.name || 'טיפול תחזוקה'}</h6>
-                        <div class="text-muted small"><i class="fas fa-wrench me-1"></i> מוסך מבצע: ${t.garage || 'לא צוין'}</div>
-                        <div class="d-flex gap-2 flex-wrap mt-3">
-                            ${costHtml}
-                            ${verifiedHtml}
+                // כפתור צפייה בקבלה אם קיים invoice
+                let receiptHtml = '';
+                if (t.invoice) {
+                    const isPdf = typeof t.invoice === 'string' && t.invoice.startsWith('data:application/pdf');
+                    const icon = isPdf ? 'fa-file-pdf' : 'fa-receipt';
+                    receiptHtml = `<div class="badge bg-info bg-opacity-10 text-info border px-2 py-1 pr-receipt-btn" style="cursor: pointer;" data-invoice-index="${treatments.indexOf(t)}" data-is-pdf="${isPdf}"><i class="fas ${icon} me-1"></i> צפה בקבלה</div>`;
+                }
+
+                html += `
+                    <div class="pr-timeline-item">
+                        <div class="pr-timeline-dot"></div>
+                        <div class="pr-timeline-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small fw-bold"><i class="far fa-calendar-alt me-1"></i> ${displayDate}</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border"><i class="fas fa-tachometer-alt me-1 text-primary"></i> ק"מ: ${t.km ? t.km.toLocaleString() : '-'}</span>
+                            </div>
+                            <h6 class="fw-bold text-dark m-0 mb-1" style="font-size: 1.05rem;">${t.type || t.name || 'טיפול תחזוקה'}</h6>
+                            <div class="text-muted small"><i class="fas fa-wrench me-1"></i> מוסך מבצע: ${t.garage || 'לא צוין'}</div>
+                            <div class="d-flex gap-2 flex-wrap mt-3">
+                                ${costHtml}
+                                ${verifiedHtml}
+                                ${receiptHtml}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        tContainer.innerHTML = html;
-    } else {
-        tContainer.innerHTML = getEmptyStateHTML('fa-tools', 'אין טיפולים מתועדים', 'לא נמצאו רשומות על טיפולי מוסך במערכת.');
+                `;
+            });
+            html += '</div>';
+            tContainer.innerHTML = html;
+
+            // הוספת מאזיני לחיצה לכפתורי צפייה בקבלה (Event Delegation)
+            tContainer.querySelectorAll('.pr-receipt-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const idx = parseInt(this.dataset.invoiceIndex);
+                    const isPdf = this.dataset.isPdf === 'true';
+                    const invoiceData = treatments[idx]?.invoice;
+                    if (!invoiceData) return;
+                    if (isPdf) {
+                        window.open(invoiceData, '_blank');
+                    } else {
+                        openPrModal(invoiceData);
+                    }
+                });
+            });
+        } else {
+            tContainer.innerHTML = getEmptyStateHTML('fa-tools', 'אין טיפולים מתועדים', 'לא נמצאו רשומות על טיפולי מוסך במערכת.');
+        }
     }
 
-    const iContainer = document.getElementById('pr-insurance-data');
-    if (car.insurance && typeof car.insurance === 'object' && Object.keys(car.insurance).length > 0) {
-        let html = '<div class="d-flex flex-column gap-3">';
-        const insTypeNames = {
-            'mandatory': 'ביטוח חובה',
-            'comprehensive': 'ביטוח מקיף',
-            'thirdParty': "ביטוח צד ג'"
-        };
-        for (let type in car.insurance) {
-            const insData = car.insurance[type];
-            if (!insData || (!insData.company && !insData.date)) continue;
+    // === סקציית ביטוח - הסתרה מלאה אם showInsurance === false ===
+    const insuranceSection = document.getElementById('pr-section-insurance');
+    if (!showInsurance) {
+        if (insuranceSection) insuranceSection.style.display = 'none';
+    } else {
+        const iContainer = document.getElementById('pr-insurance-data');
+        if (car.insurance && typeof car.insurance === 'object' && Object.keys(car.insurance).length > 0) {
+            let html = '<div class="d-flex flex-column gap-3">';
+            const insTypeNames = {
+                'mandatory': 'ביטוח חובה',
+                'comprehensive': 'ביטוח מקיף',
+                'thirdParty': "ביטוח צד ג'"
+            };
+            for (let type in car.insurance) {
+                const insData = car.insurance[type];
+                if (!insData || (!insData.company && !insData.date)) continue;
 
-            let docsBtn = insData.invoice ? `<a href="${insData.invoice}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2"><i class="fas fa-file-contract me-1"></i> צפה בפוליסה</a>` : '';
-            html += `
-                <div class="pr-event-card" style="border-left: 4px solid var(--pr-accent);">
-                    <div>
-                        <h6 class="fw-bold mb-1 fs-5"><i class="fas fa-shield-alt text-primary me-2"></i> ${insData.company || 'חברת ביטוח לא צוינה'}</h6>
-                        <div class="text-muted small mb-3">סוג פוליסה: <strong class="text-dark">${insTypeNames[type] || type}</strong></div>
-                        <div class="d-flex gap-3 small flex-wrap">
-                            <div class="badge bg-light text-dark border"><i class="far fa-calendar-check text-success me-1"></i> תוקף: ${formatCleanDate(insData.date)}</div>
-                            ${insData.policyNum ? `<div class="badge bg-light text-dark border"><i class="fas fa-hashtag text-primary me-1"></i> פוליסה: ${insData.policyNum}</div>` : ''}
-                        </div>
-                    </div>
-                    <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-md-end">
+                let docsBtn = insData.invoice ? `<a href="${insData.invoice}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2"><i class="fas fa-file-contract me-1"></i> צפה בפוליסה</a>` : '';
+                
+                // הצגת עלות רק אם showCosts מופעל
+                let costBlock = '';
+                if (showCosts) {
+                    costBlock = `
                         <div class="fs-4 fw-bold text-danger mb-1">₪${insData.cost ? parseFloat(insData.cost).toLocaleString() : '0'}</div>
                         <span class="text-muted small mb-2">עלות שנתית</span>
-                        ${docsBtn}
+                    `;
+                }
+
+                html += `
+                    <div class="pr-event-card" style="border-left: 4px solid var(--pr-accent);">
+                        <div>
+                            <h6 class="fw-bold mb-1 fs-5"><i class="fas fa-shield-alt text-primary me-2"></i> ${insData.company || 'חברת ביטוח לא צוינה'}</h6>
+                            <div class="text-muted small mb-3">סוג פוליסה: <strong class="text-dark">${insTypeNames[type] || type}</strong></div>
+                            <div class="d-flex gap-3 small flex-wrap">
+                                <div class="badge bg-light text-dark border"><i class="far fa-calendar-check text-success me-1"></i> תוקף: ${formatCleanDate(insData.date)}</div>
+                                ${insData.policyNum ? `<div class="badge bg-light text-dark border"><i class="fas fa-hashtag text-primary me-1"></i> פוליסה: ${insData.policyNum}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-md-end">
+                            ${costBlock}
+                            ${docsBtn}
+                        </div>
                     </div>
-                </div>
-            `;
-        }
-        html += '</div>';
-        if (html === '<div class="d-flex flex-column gap-3"></div>') {
-            iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
+                `;
+            }
+            html += '</div>';
+            if (html === '<div class="d-flex flex-column gap-3"></div>') {
+                iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
+            } else {
+                iContainer.innerHTML = html;
+            }
         } else {
-            iContainer.innerHTML = html;
+            iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
         }
-    } else {
-        iContainer.innerHTML = getEmptyStateHTML('fa-file-contract', 'אין מידע ביטוחי', 'לא הוזנו פוליסות ביטוח לרכב זה.');
     }
 
+    // === סקציית קנסות - הסתרת עלויות אם showCosts === false ===
     const reports = car.reports || [];
     const rContainer = document.getElementById('pr-reports-data');
     if (reports.length > 0) {
         let html = ``;
         reports.forEach(r => {
+            let costBlock = '';
+            if (showCosts) {
+                costBlock = `
+                    <div class="text-md-end mt-3 mt-md-0">
+                        <div class="fs-5 fw-bold text-danger">₪${r.amount ? parseFloat(r.amount).toLocaleString() : '-'}</div>
+                        <div class="text-muted small">לתשלום</div>
+                    </div>`;
+            }
             html += `
             <div class="pr-event-card warning">
                 <div>
                     <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle text-warning me-2"></i> ${r.title || r.type || 'דוח עבירת תנועה'}</h6>
                     <div class="text-muted small"><i class="far fa-calendar-alt me-1"></i> תאריך: ${formatCleanDate(r.date)}</div>
                 </div>
-                <div class="text-md-end mt-3 mt-md-0">
-                    <div class="fs-5 fw-bold text-danger">₪${r.amount ? parseFloat(r.amount).toLocaleString() : '-'}</div>
-                    <div class="text-muted small">לתשלום</div>
-                </div>
+                ${costBlock}
             </div>`;
         });
         rContainer.innerHTML = html;
@@ -225,6 +293,7 @@ function renderPublicReport(car) {
         rContainer.innerHTML = getEmptyStateHTML('fa-check-circle text-success', 'רכב נקי מדוחות', 'לא נמצאו דוחות תנועה או חניה מתועדים.', true);
     }
 
+    // === סקציית תדלוקים - הסתרת עלויות אם showCosts === false ===
     const fuels = car.fuelLog || [];
     const fContainer = document.getElementById('pr-fuel-data');
     
@@ -249,19 +318,32 @@ function renderPublicReport(car) {
                 pricePerLtr = parseFloat(f.cost) / parseFloat(f.amount);
             }
 
+            // בלוק עלויות תדלוק - מוצג רק אם showCosts מופעל
+            let fuelCostBlock = '';
+            if (showCosts) {
+                fuelCostBlock = `
+                    <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-start align-items-md-end gap-2 gap-md-1">
+                        <div class="d-flex flex-wrap gap-2 mb-1">
+                            <div class="badge bg-light text-dark border"><span dir="ltr">${f.amount || '-'}</span> ${unitName}</div>
+                            <div class="badge bg-light text-primary border">₪<span dir="ltr">${pricePerLtr ? parseFloat(pricePerLtr).toFixed(2) : '-'}</span> ${unitPerName}</div>
+                        </div>
+                        <div class="fs-6 fw-bold"><span class="text-muted small fw-normal me-1">סה"כ: </span><span dir="ltr">₪${f.cost ? parseFloat(f.cost).toLocaleString() : '-'}</span></div>
+                    </div>`;
+            } else {
+                // בלי עלויות - מציגים רק כמות
+                fuelCostBlock = `
+                    <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-start align-items-md-end">
+                        <div class="badge bg-light text-dark border"><span dir="ltr">${f.amount || '-'}</span> ${unitName}</div>
+                    </div>`;
+            }
+
             html += `
             <div class="pr-event-card" style="border-left: 4px solid #cbd5e1;">
                 <div>
                     <h6 class="fw-bold mb-1"><i class="fas ${actionIcon} text-secondary me-2"></i> ${actionName}</h6>
                     <div class="text-muted small"><i class="far fa-calendar-alt me-1"></i> ${formatCleanDate(f.date)}</div>
                 </div>
-                <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-center align-items-start align-items-md-end gap-2 gap-md-1">
-                    <div class="d-flex flex-wrap gap-2 mb-1">
-                        <div class="badge bg-light text-dark border"><span dir="ltr">${f.amount || '-'}</span> ${unitName}</div>
-                        <div class="badge bg-light text-primary border">₪<span dir="ltr">${pricePerLtr ? parseFloat(pricePerLtr).toFixed(2) : '-'}</span> ${unitPerName}</div>
-                    </div>
-                    <div class="fs-6 fw-bold"><span class="text-muted small fw-normal me-1">סה"כ: </span><span dir="ltr">₪${f.cost ? parseFloat(f.cost).toLocaleString() : '-'}</span></div>
-                </div>
+                ${fuelCostBlock}
             </div>`;
         });
         html += `</div>`;
@@ -270,76 +352,88 @@ function renderPublicReport(car) {
         fContainer.innerHTML = getEmptyStateHTML(actionIcon, emptyStateTitle, emptyStateDesc);
     }
 
-    const acc = car.accidents || [];
-    const aContainer = document.getElementById('pr-accidents-data');
-    if (acc.length > 0) {
-        let html = ``;
-        acc.forEach(a => {
-            let thirdPartyHtml = '';
-            if (a.involvedVehicles && a.involvedVehicles.length > 0) {
-                let vList = '';
-                a.involvedVehicles.forEach(v => {
-                    vList += `
-                        <div class="d-flex align-items-center gap-2 mt-2 bg-light p-2 rounded border">
-                            <div class="badge bg-white text-dark border p-1"><i class="fas fa-car text-secondary"></i></div>
-                            <div>
-                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">${v.title || 'רכב מעורב'}</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">מ"ר: <span class="badge bg-warning text-dark border border-warning px-1 rounded-1">${v.plate || '-'}</span> | ${v.color || '-'} | ${v.year || '-'}</div>
+    // === סקציית תאונות - הסתרה מלאה אם showAccidents === false ===
+    const accidentsSection = document.getElementById('pr-section-accidents');
+    if (!showAccidents) {
+        if (accidentsSection) accidentsSection.style.display = 'none';
+    } else {
+        const acc = car.accidents || [];
+        const aContainer = document.getElementById('pr-accidents-data');
+        if (acc.length > 0) {
+            let html = ``;
+            acc.forEach(a => {
+                let thirdPartyHtml = '';
+                if (a.involvedVehicles && a.involvedVehicles.length > 0) {
+                    let vList = '';
+                    a.involvedVehicles.forEach(v => {
+                        vList += `
+                            <div class="d-flex align-items-center gap-2 mt-2 bg-light p-2 rounded border">
+                                <div class="badge bg-white text-dark border p-1"><i class="fas fa-car text-secondary"></i></div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.85rem;">${v.title || 'רכב מעורב'}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">מ"ר: <span class="badge bg-warning text-dark border border-warning px-1 rounded-1">${v.plate || '-'}</span> | ${v.color || '-'} | ${v.year || '-'}</div>
+                                </div>
                             </div>
+                        `;
+                    });
+                    thirdPartyHtml = `
+                        <div class="mt-3 border-top pt-2">
+                            <div class="text-danger small fw-bold"><i class="fas fa-file-contract me-1"></i> צד ג' / מעורבים</div>
+                            ${vList}
                         </div>
                     `;
-                });
-                thirdPartyHtml = `
-                    <div class="mt-3 border-top pt-2">
-                        <div class="text-danger small fw-bold"><i class="fas fa-file-contract me-1"></i> צד ג' / מעורבים</div>
-                        ${vList}
+                }
+
+                let imagesHtml = '';
+                if (a.images && a.images.length > 0) {
+                    let imgTags = '';
+                    a.images.forEach(img => {
+                        imgTags += `<img src="${img}" class="rounded border shadow-sm" style="width: 70px; height: 70px; object-fit: cover; cursor: zoom-in;" onclick="openPrModal('${img}')">`;
+                    });
+                    imagesHtml = `
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            ${imgTags}
+                        </div>
+                    `;
+                }
+
+                const isHandledHtml = (a.isHandled || a.status === 'handled')
+                    ? `<div class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check-circle me-1"></i> טופל ותוקן</div>`
+                    : `<div class="badge bg-warning bg-opacity-10 text-warning border border-warning"><i class="fas fa-clock me-1"></i> פתוח / בטיפול</div>`;
+
+                // הצגת עלות תאונה רק אם showCosts מופעל
+                let costVal = a.cost || a.repairCost || a.damageCost || null;
+                let accidentCostHtml = '';
+                if (showCosts) {
+                    accidentCostHtml = `
+                        <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-end align-items-start align-items-md-end ms-md-4" style="min-width: 120px;">
+                            <div class="fs-5 fw-bold text-danger">₪${costVal ? parseFloat(costVal).toLocaleString() : '-'}</div>
+                            <div class="text-muted small">עלות משוערת</div>
+                        </div>`;
+                }
+
+                html += `
+                <div class="pr-event-card danger">
+                    <div class="w-100">
+                        <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
+                            <h6 class="fw-bold mb-0 fs-5"><i class="fas fa-car-crash text-danger me-2"></i> ${a.title || 'תאונה / נזק מדווח'}</h6>
+                            ${isHandledHtml}
+                        </div>
+                        <div class="text-muted small mb-2"><i class="far fa-calendar-alt me-1"></i> תאריך: ${formatCleanDate(a.date)}</div>
+                        
+                        <p class="text-muted mb-0 mt-2 small" style="white-space: pre-wrap;">${a.description || 'לא הוזן פירוט נזק.'}</p>
+                        
+                        ${thirdPartyHtml}
+                        ${imagesHtml}
                     </div>
-                `;
-            }
-
-            let imagesHtml = '';
-            if (a.images && a.images.length > 0) {
-                let imgTags = '';
-                a.images.forEach(img => {
-                    imgTags += `<img src="${img}" class="rounded border shadow-sm" style="width: 70px; height: 70px; object-fit: cover; cursor: zoom-in;" onclick="openPrModal('${img}')">`;
-                });
-                imagesHtml = `
-                    <div class="mt-3 d-flex flex-wrap gap-2">
-                        ${imgTags}
-                    </div>
-                `;
-            }
-
-            const isHandledHtml = (a.isHandled || a.status === 'handled')
-                ? `<div class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check-circle me-1"></i> טופל ותוקן</div>`
-                : `<div class="badge bg-warning bg-opacity-10 text-warning border border-warning"><i class="fas fa-clock me-1"></i> פתוח / בטיפול</div>`;
-
-            let costVal = a.cost || a.repairCost || a.damageCost || null;
-
-            html += `
-            <div class="pr-event-card danger">
-                <div class="w-100">
-                    <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
-                        <h6 class="fw-bold mb-0 fs-5"><i class="fas fa-car-crash text-danger me-2"></i> ${a.title || 'תאונה / נזק מדווח'}</h6>
-                        ${isHandledHtml}
-                    </div>
-                    <div class="text-muted small mb-2"><i class="far fa-calendar-alt me-1"></i> תאריך: ${formatCleanDate(a.date)}</div>
                     
-                    <p class="text-muted mb-0 mt-2 small" style="white-space: pre-wrap;">${a.description || 'לא הוזן פירוט נזק.'}</p>
-                    
-                    ${thirdPartyHtml}
-                    ${imagesHtml}
-                </div>
-                
-                <div class="text-md-end mt-3 mt-md-0 d-flex flex-column justify-content-end align-items-start align-items-md-end ms-md-4" style="min-width: 120px;">
-                    <div class="fs-5 fw-bold text-danger">₪${costVal ? parseFloat(costVal).toLocaleString() : '-'}</div>
-                    <div class="text-muted small">עלות משוערת</div>
-                </div>
-            </div>`;
-        });
-        aContainer.innerHTML = html;
-    } else {
-        aContainer.innerHTML = getEmptyStateHTML('fa-shield-check text-success', 'רכב נקי מתאונות', 'לא נמצאו דיווחים על תאונות או פגיעות פח במערכת.', true);
+                    ${accidentCostHtml}
+                </div>`;
+            });
+            aContainer.innerHTML = html;
+        } else {
+            aContainer.innerHTML = getEmptyStateHTML('fa-shield-check text-success', 'רכב נקי מתאונות', 'לא נמצאו דיווחים על תאונות או פגיעות פח במערכת.', true);
+        }
     }
 
     setTimeout(() => {
