@@ -240,25 +240,22 @@
 <div id="pdf-export-container">
     <div id="pdf-content" class="pdf-document">
 
-        <!-- תגית הדוח (Badge) -->
-        <div class="pdf-badge-row">
-            <span class="pdf-official-badge">OFFICIAL CERTIFICATE</span>
-        </div>
-
-        <!-- כותרת עליונה של הדוח (PDF Header) -->
-        <div class="pdf-header">
-            <img id="pdf-logo" class="pdf-logo" src="" alt="Logo" style="display:none;">
+        <!-- כותרת עליונה של הדוח - סרגל מותג כהה (PDF Top Brand Bar) -->
+        <div class="pdf-topbar">
+            <img id="pdf-logo" class="pdf-topbar-logo" src="" alt="Logo" style="display:none;">
             <div class="pdf-header-text">
+                <span class="pdf-official-badge">OFFICIAL CERTIFICATE</span>
                 <h1 class="pdf-title">דוח<span style="unicode-bidi:plaintext"> </span>רכב<span
                         style="unicode-bidi:plaintext"> </span>למכירה<span style="unicode-bidi:plaintext">
-                    </span>שקיפות<span style="unicode-bidi:plaintext"> </span>מלאה</h1>
+                    </span>&bull;<span style="unicode-bidi:plaintext"> </span>שקיפות<span
+                        style="unicode-bidi:plaintext"> </span>מלאה</h1>
                 <p id="pdf-subtitle" class="pdf-subtitle"></p>
             </div>
         </div>
 
         <!-- טקסט המוכר בדוח (PDF Seller Pitch) -->
         <div id="pdf-seller-pitch-container" class="pdf-seller-pitch" style="display:none;">
-            <span class="pdf-pitch-icon">"</span>
+            <span class="pdf-pitch-label">דבר<span style="unicode-bidi:plaintext"> </span>המוכר</span>
             <p id="pdf-seller-pitch-text" class="pdf-pitch-text"></p>
         </div>
 
@@ -307,10 +304,10 @@
         <!-- אזור תוכן דינמי בדוח (Tables & Gallery) -->
         <div id="pdf-dynamic-content"></div>
 
-        <!-- כותרת תחתונה של הדוח (PDF Footer) -->
+        <!-- כותרת תחתונה של הדוח (PDF Footer) - התוכן מוזרק בזמן ההפקה עם עטיפות RTL בטוחות -->
         <div class="pdf-footer">
             <div id="pdf-footer-time"></div>
-            <div>הופק באמצעות מערכת ניהול הרכב של <span class="ltr-text">EasyCare</span> &copy; 2026</div>
+            <div id="pdf-footer-brand"></div>
         </div>
 
     </div>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node /private/tmp/claude-501/-Users-mymac-Desktop-Data-science------------------------html5up-helios-Final-Project/e0ae689e-2c42-4bf3-b271-13a09aad136a/scratchpad/pdftest/build_test.js)",
+      "Skill(browser-automation)",
+      "Skill(browser-automation:*)"
+    ]
+  }
+}

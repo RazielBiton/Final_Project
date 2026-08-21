@@ -25,10 +25,10 @@
 ========================================= */
 .pdf-document {
     width: 794px;
-    padding: 40px 44px;
+    padding: 36px 40px;
     background: #ffffff;
     font-family: 'Assistant', Arial, sans-serif;
-    color: #111827;
+    color: #0f172a;
     box-sizing: border-box;
 /* כיווניות ויישור טקסט מוחלט לעברית (RTL) לאורך כל המסמך */
     direction: rtl;
@@ -60,12 +60,16 @@
 .pdf-section,
 .pdf-specs-grid,
 .pdf-seller-pitch,
-/* =========================================
-טבלאות נתונים (Tables)
-========================================= */
+.pdf-topbar,
 .pdf-table-container {
     page-break-inside: avoid;
     break-inside: avoid;
+}
+
+/* גלריית התמונות ארוכה מעמוד בודד ולכן מותרת בשבירה - כל תמונה בנפרד מוגנת */
+.pdf-gallery-section {
+    page-break-inside: auto;
+    break-inside: auto;
 }
 
 tr {
@@ -78,72 +82,65 @@ h3 {
     break-after: avoid;
 }
 
-/* =========================================
-כותרת תחתונה של מסמך הייצוא (Footer)
-========================================= */
 .pdf-footer {
     page-break-before: avoid;
     break-before: avoid;
 }
 
 /* =========================================
-תגיות סטטוס (Badges)
-========================================= */
-.pdf-badge-row {
-    text-align: right;
-    margin-bottom: 8px;
-}
-
-.pdf-official-badge {
-    display: inline-block;
-    background: #111827;
-    color: #ffffff;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    padding: 4px 10px;
-    border-radius: 2px;
-}
-
-/* =========================================
-כותרת עליונה (Header)
+כותרת עליונה - סרגל מותג כהה (Top Brand Bar)
 ========================================= */
 /* שימוש בהצפה (Float) במקום מודל גמיש (Flex) כדי למנוע תקלות כיווניות בספריית המרת ה-PDF */
-.pdf-header {
-    overflow: hidden; 
-    border-bottom: 2px solid #111827;
-    padding-bottom: 16px;
-    margin-bottom: 28px;
+.pdf-topbar {
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 26px 30px;
+    overflow: hidden;
+    margin-bottom: 26px;
     direction: rtl;
 }
 
-.pdf-logo {
-    /* הצפת הלוגו לימין (הפיזי) כדי להתאים לתחילת קריאה בעברית (RTL) במקום לשמאל */
-    float: right; 
-    height: 50px;
+/* הלוגו מוצף לצד שמאל הפיזי, על גבי כרטיס לבן כדי שיבלוט על הרקע הכהה */
+.pdf-topbar-logo {
+    float: left;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    height: 46px;
     width: auto;
     object-fit: contain;
-    margin-left: 20px; 
+    margin-right: 16px;
 }
 
 .pdf-header-text {
     direction: rtl;
     text-align: right;
-    
+}
+
+.pdf-official-badge {
+    display: inline-block;
+    background: #2563eb;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
 }
 
 .pdf-title {
     font-size: 26px;
     font-weight: 800;
     margin: 0 0 6px 0;
-    color: #111827;
+    color: #ffffff;
     line-height: 1.2;
 }
 
 .pdf-subtitle {
     font-size: 14px;
-    color: #4B5563;
+    color: #cbd5e1;
     margin: 0;
     font-weight: 600;
 }
@@ -154,53 +151,51 @@ h3 {
 .pdf-seller-pitch {
     width: 100%;
     box-sizing: border-box;
-    background: #F9FAFB;
-    /* הגדרת גבול מודגש בצד ימין כהתאמה לשפה העברית במקום בצד שמאל כמקובל בעיצוב באנגלית */
-    border-right: 4px solid #111827;
-    border-left: none;
-    padding: 20px 24px 20px 16px;
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 28px;
-    position: relative;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    /* פס הדגשה בצד ימין כהתאמה לכיוון הקריאה בעברית */
+    border-right: 4px solid #2563eb;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 26px;
     direction: rtl;
     text-align: right;
 }
 
-.pdf-pitch-icon {
-    position: absolute;
-    top: 6px;
-    right: 14px;
-    font-size: 52px;
-    color: #E5E7EB;
-    line-height: 1;
-    font-family: Georgia, 'Times New Roman', serif;
+.pdf-pitch-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: #2563eb;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
 }
 
 .pdf-pitch-text {
     margin: 0;
-    font-size: 15px;
-    color: #111827;
+    font-size: 14px;
+    color: #1e293b;
     line-height: 1.7;
     font-weight: 600;
-    position: relative;
-    z-index: 2;
-    padding-right: 44px; 
 }
 
 /* =========================================
 כותרות אזורים פנימיים (Section Titles)
 ========================================= */
 .pdf-section-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
-    color: #111827;
+    color: #0f172a;
     margin: 0 0 12px 0;
-    padding-bottom: 8px;
+    padding-right: 12px;
+    /* פס כחול מודגש בצד ימין של הכותרת - חתימה עיצובית אחידה לכל האזורים */
+    border-right: 4px solid #2563eb;
     display: block;
     width: 100%;
+    box-sizing: border-box;
     text-align: right;
     direction: rtl;
-    border-bottom: 2px solid #F3F4F6;
+    line-height: 1.3;
 }
 
 /* =========================================
@@ -210,49 +205,57 @@ h3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 26px;
     /* סידור אוטומטי של פריטי הרשת בהתאם לכיווניות העברית - מימין לשמאל */
-    direction: rtl; 
+    direction: rtl;
 }
 
 .pdf-spec-item {
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     padding: 12px 14px;
-    background: #FAFAFA;
+    background: #f8fafc;
     direction: rtl;
     text-align: right;
 }
 
 .pdf-spec-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    color: #6B7280;
+    color: #64748b;
     margin-bottom: 5px;
     display: block;
-    text-transform: uppercase;
     letter-spacing: 0.4px;
-    font-family: Arial, sans-serif; 
 }
 
 .pdf-spec-value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
-    color: #111827;
-    line-height: 1.2;
+    color: #0f172a;
+    line-height: 1.25;
 }
 
 /* =========================================
 מעטפת אזורים (Section Wrapper)
 ========================================= */
 .pdf-section {
-    margin-bottom: 28px;
+    margin-bottom: 26px;
     direction: rtl;
     text-align: right;
 }
 
 .pdf-table-container {
-    margin-bottom: 28px;
+    margin-bottom: 26px;
+}
+
+/* =========================================
+טבלאות נתונים (Tables)
+========================================= */
+/* מסגרת מעוגלת סביב כל טבלה לקבלת מראה כרטיס נקי */
+.pdf-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .pdf-table {
@@ -263,27 +266,29 @@ h3 {
 }
 
 .pdf-table thead tr {
-    background: #F9FAFB;
-    border-bottom: 2px solid #E5E7EB;
+    background: #0f172a;
 }
 
 .pdf-table th {
-    color: #6B7280;
+    color: #ffffff;
     font-weight: 700;
     font-size: 11px;
-    padding: 10px 14px;
+    padding: 9px 14px;
     text-align: right;
     letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-family: Arial, sans-serif;
 }
 
 .pdf-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid #F3F4F6;
-    font-size: 14px;
-    color: #111827;
+    padding: 9px 14px;
+    border-bottom: 1px solid #eef2f7;
+    font-size: 12.5px;
+    color: #1e293b;
     text-align: right;
+}
+
+/* פסי זברה עדינים להקלה על קריאת שורות */
+.pdf-table tbody tr:nth-child(even) {
+    background: #f8fafc;
 }
 
 .pdf-table tbody tr:last-child td {
@@ -292,45 +297,78 @@ h3 {
 
 .pdf-table td.cost-cell {
     font-weight: 800;
-    color: #111827;
+    color: #2563eb;
+    white-space: nowrap;
+}
+
+/* שורת סיכום (סה"כ) בתחתית טבלה */
+.pdf-table tfoot td {
+    background: #eff6ff;
+    border-top: 2px solid #dbeafe;
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 12.5px;
+    padding: 9px 14px;
+}
+
+/* =========================================
+תגיות סטטוס (Status Pills)
+========================================= */
+.pdf-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.pdf-pill-green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.pdf-pill-red {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 /* =========================================
 גלריית תמונות (Gallery)
 ========================================= */
-.pdf-gallery-section {
-    page-break-before: auto;
-}
-
 .pdf-gallery-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    margin-top: 10px;
+    margin-top: 4px;
 }
 
 .pdf-gallery-item {
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #e2e8f0;
     page-break-inside: avoid;
     break-inside: avoid;
 }
 
 .pdf-gallery-item img {
     width: 100%;
-    height: 185px;
+    height: 200px;
     object-fit: cover;
     display: block;
 }
 
+/* =========================================
+כותרת תחתונה של מסמך הייצוא (Footer)
+========================================= */
 .pdf-footer {
     text-align: center;
-    margin-top: 24px;
+    margin-top: 26px;
     padding-top: 14px;
-    border-top: 1px solid #E5E7EB;
-    color: #9CA3AF;
-    font-size: 11px;
-    line-height: 1.7;
+    border-top: 1px solid #e2e8f0;
+    color: #94a3b8;
+    font-size: 10.5px;
+    line-height: 1.8;
     direction: rtl;
 }

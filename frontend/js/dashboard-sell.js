@@ -159,8 +159,67 @@ window.generateStickerQR = async function () {
     }
 };
 
+/* =========================================================
+   פונקציות עזר לרינדור טקסט עברי בדוח ה-PDF.
+   ספריית ההמרה (html2canvas) "בולעת" רווחים ומערבבת סדר מילים בטקסט עברי (RTL),
+   ולכן כל מילה נעטפת ב-span מבודד (unicode-bidi:plaintext) - כך כל מילה מרונדרת
+   כיחידה עצמאית והרווחים, הסדר וסימני הפיסוק נשמרים במקומם הנכון.
+   ========================================================= */
+
+const PDF_SPACE = '<span style="unicode-bidi:plaintext"> </span>';
+
+function pdfEscapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/** עוטפת טקסט עברי (או מעורב) כך שישרוד את רינדור html2canvas ללא הדבקת מילים. */
+function pdfHeb(str, fallback = '-') {
+    if (str === null || str === undefined || String(str).trim() === '') return fallback;
+    return String(str).trim().split(/\s+/)
+        .map(w => `<span style="unicode-bidi:plaintext">${pdfEscapeHtml(w)}</span>`)
+        .join(PDF_SPACE);
+}
+
+/** עוטפת ערך שמאל-לימין (מספרים, תאריכים, לוחיות רישוי) במעטפת LTR מבודדת. */
+function pdfLtr(str, fallback = '-') {
+    if (str === null || str === undefined || String(str).trim() === '') return fallback;
+    return `<span dir="ltr">${pdfEscapeHtml(String(str).trim())}</span>`;
+}
+
+/** מרנדרת סכום כספי עם סימן שקל בגופן תקין ובכיווניות נכונה. */
+function pdfMoney(value) {
+    const num = parseFloat(value);
+    if (!num) return '-';
+    return `<span dir="ltr">${num.toLocaleString('he-IL', { maximumFractionDigits: 2 })}</span>&nbsp;<span class="nis">&#8362;</span>`;
+}
+
+/** מרנדרת תגית סטטוס צבעונית (ירוק לחיובי, אדום לשלילי). */
+function pdfPill(text, isPositive) {
+    return `<span class="pdf-pill ${isPositive ? 'pdf-pill-green' : 'pdf-pill-red'}">${pdfHeb(text)}</span>`;
+}
+
+/** בונה אזור טבלה שלם בדוח: כותרת מעוצבת, כותרות עמודות, שורות ושורת סיכום אופציונלית. */
+function pdfSection(title, headers, rowsHtml, footHtml = '') {
+    const ths = headers.map(h => `<th>${pdfHeb(h)}</th>`).join('');
+    return `
+    <div class="pdf-section pdf-table-container">
+        <h3 class="pdf-section-title">${pdfHeb(title)}</h3>
+        <div class="pdf-table-wrap">
+            <table class="pdf-table">
+                <thead><tr>${ths}</tr></thead>
+                <tbody>${rowsHtml}</tbody>
+                ${footHtml}
+            </table>
+        </div>
+    </div>`;
+}
+
 /**
- * פונקציית הליבה במודול זה: מפיקה, על בסיס נתוני הרכב וההגדרות שנשמרו, דוח רכב רשמי ומהודר בפורמט PDF ("דוח פרימיום"). הפונקציה בונה דינמית טבלאות HTML עבור טיפולים, פוליסות ביטוח, היסטוריית תאונות וצריכת דלק, ולאחר מכן ממירה אותם פיזית לקובץ PDF הניתן לשמירה וחלוקה לקונים עתידיים.
+ * פונקציית הליבה במודול זה: מפיקה, על בסיס נתוני הרכב וההגדרות שנשמרו, דוח רכב רשמי ומהודר בפורמט PDF ("דוח פרימיום"). הפונקציה בונה דינמית טבלאות HTML עבור טיפולים, פוליסות ביטוח, היסטוריית תאונות, צריכת דלק וקנסות, ולאחר מכן ממירה אותם פיזית לקובץ PDF הניתן לשמירה וחלוקה לקונים עתידיים. כל אזור בדוח נשלט על ידי מתגי השקיפות שבדף המכירה.
  */
 window.generateFullPDFReport = async function () {
     if (!currentCar) return;
@@ -174,12 +233,14 @@ window.generateFullPDFReport = async function () {
     await window.saveSellSettings();
 
     const s = currentCar.sellSettings || {};
+    const showCosts = s.showCosts !== false;
     const fmt = window.formatDate ? window.formatDate.bind(window) : (d => d || '-');
-
-    const NIS = '<span class="nis">&#8362;</span>'; // ₪ via HTML entity + Arial class
+    const fmtDate = d => pdfLtr(fmt(d));
 
     document.getElementById('pdf-subtitle').innerHTML =
-        `${currentCar.brandHeb || currentCar.brand || ''} ${currentCar.model || ''} &bull; מספר&nbsp;רישוי:&nbsp;${currentCar.licensePlate || ''}`;
+        pdfHeb(`${currentCar.brandHeb || currentCar.brand || ''} ${currentCar.model || ''}`, '') +
+        `${PDF_SPACE}&bull;${PDF_SPACE}` +
+        pdfHeb('מספר רישוי:') + '&nbsp;' + pdfLtr(currentCar.licensePlate, '');
 
     const validLogo = currentCar.logo
         && !currentCar.logo.includes('ui-avatars.com')
@@ -198,25 +259,26 @@ window.generateFullPDFReport = async function () {
     if (pitchContainer) {
         const hasPitch = s.sellerComment && s.sellerComment.trim().length > 0;
         if (hasPitch) {
-            document.getElementById('pdf-seller-pitch-text').innerText = s.sellerComment;
+            document.getElementById('pdf-seller-pitch-text').innerHTML =
+                String(s.sellerComment).split('\n').map(line => pdfHeb(line, '')).join('<br>');
             pitchContainer.style.display = 'block';
         } else {
             pitchContainer.style.display = 'none';
         }
     }
 
-    document.getElementById('pdf-metric-year').innerText = currentCar.year || '-';
-    document.getElementById('pdf-metric-km').innerText =
-        currentCar.km ? parseInt(currentCar.km).toLocaleString('he-IL') + ' ק"מ' : '0 ק"מ';
-    document.getElementById('pdf-metric-test').innerText = fmt(currentCar.testDate) || '-';
-    document.getElementById('pdf-spec-model').innerText = currentCar.model || '-';
-    document.getElementById('pdf-spec-color').innerText = currentCar.color || '-';
-    document.getElementById('pdf-spec-engine').innerText =
-        currentCar.engineVolume ? currentCar.engineVolume + ' סמ"ק' : '-';
-    document.getElementById('pdf-spec-hp').innerText =
-        currentCar.horsePower ? currentCar.horsePower + ' כ"ס' : '-';
-    document.getElementById('pdf-spec-fuel').innerText = currentCar.fuelType || '-';
-    document.getElementById('pdf-spec-hand').innerText = s.hand || currentCar.hand || '1';
+    document.getElementById('pdf-metric-year').innerHTML = pdfLtr(currentCar.year);
+    document.getElementById('pdf-metric-km').innerHTML =
+        pdfLtr(currentCar.km ? parseInt(currentCar.km).toLocaleString('he-IL') : '0') + PDF_SPACE + pdfHeb('ק"מ');
+    document.getElementById('pdf-metric-test').innerHTML = fmtDate(currentCar.testDate);
+    document.getElementById('pdf-spec-model').innerHTML = pdfHeb(currentCar.model);
+    document.getElementById('pdf-spec-color').innerHTML = pdfHeb(currentCar.color);
+    document.getElementById('pdf-spec-engine').innerHTML =
+        currentCar.engineVolume ? pdfLtr(currentCar.engineVolume) + PDF_SPACE + pdfHeb('סמ"ק') : '-';
+    document.getElementById('pdf-spec-hp').innerHTML =
+        currentCar.horsePower ? pdfLtr(currentCar.horsePower) + PDF_SPACE + pdfHeb('כ"ס') : '-';
+    document.getElementById('pdf-spec-fuel').innerHTML = pdfHeb(currentCar.fuelType);
+    document.getElementById('pdf-spec-hand').innerHTML = pdfLtr(s.hand || currentCar.hand || '1');
 
     let html = '';
 
@@ -225,131 +287,88 @@ window.generateFullPDFReport = async function () {
             .slice()
             .sort((a, b) => new Date(b.date) - new Date(a.date));
         if (trs.length > 0) {
-            html += `
-            <div class="pdf-section pdf-table-container">
-                <h3 class="pdf-section-title">היסטוריית<span style="unicode-bidi:plaintext"> </span>טיפולים<span style="unicode-bidi:plaintext"> </span>ותחזוקה</h3>
-                <table class="pdf-table">
-                    <thead><tr>
-                        <th>תאריך</th>
-                        <th>תיאור הטיפול</th>
-                        <th>מוסך מבצע</th>
-                        <th>ק"מ</th>
-                        ${s.showCosts !== false ? '<th>עלות</th>' : ''}
-                    </tr></thead>
-                    <tbody>`;
+            let totalCost = 0;
+            let rows = '';
             trs.forEach(t => {
-                html += `<tr>
-                    <td><span dir="ltr">${fmt(t.date)}</span></td>
-                    <td style="font-weight:700;">${t.name || t.type || '-'}</td>
-                    <td>${t.garage || '-'}</td>
-                    <td><span dir="ltr">${t.km ? parseInt(t.km).toLocaleString('he-IL') : '-'}</span></td>
-                    ${s.showCosts !== false
-                        ? `<td class="cost-cell">${t.cost
-                            ? `<span dir="ltr">${parseInt(t.cost).toLocaleString('he-IL')}</span>&nbsp;${NIS}`
-                            : '-'}</td>`
-                        : ''}
+                totalCost += parseFloat(t.cost) || 0;
+                rows += `<tr>
+                    <td>${fmtDate(t.date)}</td>
+                    <td style="font-weight:700;">${pdfHeb(t.name || t.type)}</td>
+                    <td>${pdfHeb(t.garage)}</td>
+                    <td>${pdfLtr(t.km ? parseInt(t.km).toLocaleString('he-IL') : '')}</td>
+                    ${showCosts ? `<td class="cost-cell">${pdfMoney(t.cost)}</td>` : ''}
                 </tr>`;
             });
-            html += `</tbody></table></div>`;
+            const foot = (showCosts && totalCost > 0)
+                ? `<tfoot><tr><td colspan="4">${pdfHeb('סה"כ השקעה מתועדת בטיפולים')}</td><td class="cost-cell">${pdfMoney(totalCost)}</td></tr></tfoot>`
+                : '';
+            html += pdfSection(
+                'היסטוריית טיפולים ותחזוקה',
+                ['תאריך', 'תיאור הטיפול', 'מוסך מבצע', 'ק"מ', ...(showCosts ? ['עלות'] : [])],
+                rows, foot
+            );
         }
     }
 
     if (s.showInsurance !== false) {
         const ins = currentCar.insurance || {};
-        const hasIns = (ins.mandatory && ins.mandatory.company)
-            || (ins.comprehensive && ins.comprehensive.company)
-            || (ins.thirdparty && ins.thirdparty.company);
+        const insRow = (label, data) => {
+            if (!data || !data.company) return '';
+            return `<tr>
+                <td style="font-weight:700;">${pdfHeb(label)}</td>
+                <td>${pdfHeb(data.company)}</td>
+                <td>${fmtDate(data.date)}</td>
+                ${showCosts ? `<td class="cost-cell">${pdfMoney(data.cost)}</td>` : ''}
+            </tr>`;
+        };
 
-        if (hasIns) {
-            html += `
-            <div class="pdf-section pdf-table-container">
-                <h3 class="pdf-section-title">סטטוס<span style="unicode-bidi:plaintext"> </span>ביטוחי<span style="unicode-bidi:plaintext"> </span>ומיגון</h3>
-                <table class="pdf-table">
-                    <thead><tr>
-                        <th>סוג ביטוח</th>
-                        <th>חברה מבטחת</th>
-                        <th>תוקף עד</th>
-                        ${s.showCosts !== false ? '<th>פרמיה שנתית</th>' : ''}
-                    </tr></thead>
-                    <tbody>`;
-
-            function insRow(label, data) {
-                if (!data || !data.company) return '';
-                const costTd = s.showCosts !== false
-                    ? `<td class="cost-cell">${data.cost
-                        ? `<span dir="ltr">${parseInt(data.cost).toLocaleString('he-IL')}</span>&nbsp;${NIS}`
-                        : '-'}</td>`
-                    : '';
-                return `<tr>
-                    <td>${label}</td>
-                    <td>${data.company}</td>
-                    <td><span dir="ltr">${fmt(data.date)}</span></td>
-                    ${costTd}
-                </tr>`;
-            }
-
-            html += insRow('חובה', ins.mandatory);
-            html += insRow('מקיף', ins.comprehensive);
-            if (!(ins.comprehensive && ins.comprehensive.company)) {
-                html += insRow("צד ג'", ins.thirdparty);
-            }
-            html += `</tbody></table></div>`;
+        let rows = insRow('חובה', ins.mandatory) + insRow('מקיף', ins.comprehensive);
+        if (!(ins.comprehensive && ins.comprehensive.company)) {
+            rows += insRow("צד ג'", ins.thirdparty);
+        }
+        if (rows) {
+            html += pdfSection(
+                'סטטוס ביטוחי ומיגון',
+                ['סוג ביטוח', 'חברה מבטחת', 'תוקף עד', ...(showCosts ? ['פרמיה שנתית'] : [])],
+                rows
+            );
         }
     }
 
     if (s.showAccidents !== false) {
         const accs = currentCar.accidents || [];
         if (accs.length > 0) {
-            html += `
-            <div class="pdf-section pdf-table-container">
-                <h3 class="pdf-section-title">דוח<span style="unicode-bidi:plaintext"> </span>חריגים<span style="unicode-bidi:plaintext"> </span>ונזקים</h3>
-                <table class="pdf-table">
-                    <thead><tr>
-                        <th>תאריך</th>
-                        <th>תיאור הנזק</th>
-                        ${s.showCosts !== false ? '<th>עלות תיקון</th>' : ''}
-                        <th>סטטוס</th>
-                    </tr></thead>
-                    <tbody>`;
+            let rows = '';
             accs.forEach(a => {
-                const repCost = a.repairCost || a.cost;
-                html += `<tr>
-                    <td><span dir="ltr">${fmt(a.date)}</span></td>
-                    <td style="font-weight:700;">${a.title || 'נזק מתועד'}</td>
-                    ${s.showCosts !== false
-                        ? `<td class="cost-cell">${repCost
-                            ? `<span dir="ltr">${parseInt(repCost).toLocaleString('he-IL')}</span>&nbsp;${NIS}`
-                            : '-'}</td>`
-                        : ''}
-                    <td>${a.isHandled ? 'טופל' : 'טרם טופל'}</td>
+                rows += `<tr>
+                    <td>${fmtDate(a.date)}</td>
+                    <td style="font-weight:700;">${pdfHeb(a.title || 'נזק מתועד')}</td>
+                    ${showCosts ? `<td class="cost-cell">${pdfMoney(a.repairCost || a.cost)}</td>` : ''}
+                    <td>${pdfPill(a.isHandled ? 'טופל' : 'טרם טופל', !!a.isHandled)}</td>
                 </tr>`;
             });
-            html += `</tbody></table></div>`;
+            html += pdfSection(
+                'דוח חריגים ונזקים',
+                ['תאריך', 'תיאור הנזק', ...(showCosts ? ['עלות תיקון'] : []), 'סטטוס'],
+                rows
+            );
         }
     }
 
-    if (s.showCosts !== false) {
+    if (s.showFuelLogs !== false) {
         const fuels = currentCar.fuelLog || [];
         if (fuels.length > 0) {
             const ft = currentCar.fuelType || '';
             const isElectric = ft.includes('חשמל') || ft.includes('Electric');
             const isHybrid = ft.includes('היבריד') || ft.includes('פלאג') || ft.includes('Hybrid');
-            const unitName = isElectric ? 'קוט״ש' : 'ליטר';
+            const unitName = isElectric ? 'קוט"ש' : 'ליטר';
+            const amountHeader = isElectric ? 'קוט"ש' : 'ליטרים';
             const historyTitle = isElectric
-                ? 'היסטוריית<span style="unicode-bidi:plaintext"> </span>טעינות'
-                : (isHybrid ? 'היסטוריית<span style="unicode-bidi:plaintext"> </span>תדלוקים<span style="unicode-bidi:plaintext"> </span>וטעינות' : 'היסטוריית<span style="unicode-bidi:plaintext"> </span>תדלוקים');
+                ? 'היסטוריית טעינות'
+                : (isHybrid ? 'היסטוריית תדלוקים וטעינות' : 'היסטוריית תדלוקים');
 
-            html += `
-            <div class="pdf-section pdf-table-container">
-                <h3 class="pdf-section-title">${historyTitle}</h3>
-                <table class="pdf-table">
-                    <thead><tr>
-                        <th>תאריך</th>
-                        <th>כמות &#40;${unitName}&#41;</th>
-                        <th>מחיר ל${unitName}</th>
-                        <th>סה"כ</th>
-                    </tr></thead>
-                    <tbody>`;
+            let totalFuelCost = 0;
+            let rows = '';
             fuels.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(f => {
                 let ppl = null;
                 if (f.pricePerLiter) {
@@ -357,26 +376,56 @@ window.generateFullPDFReport = async function () {
                 } else if (f.cost && f.amount && parseFloat(f.amount) > 0) {
                     ppl = parseFloat(f.cost) / parseFloat(f.amount);
                 }
-                html += `<tr>
-                    <td><span dir="ltr">${fmt(f.date)}</span></td>
-                    <td><span dir="ltr">${f.amount ? parseFloat(f.amount).toLocaleString('he-IL') : '-'}</span></td>
-                    <td>${ppl ? `<span dir="ltr">${ppl.toFixed(2)}</span>&nbsp;${NIS}` : '-'}</td>
-                    <td class="cost-cell">${f.cost ? `<span dir="ltr">${parseFloat(f.cost).toLocaleString('he-IL')}</span>&nbsp;${NIS}` : '-'}</td>
+                totalFuelCost += parseFloat(f.cost) || 0;
+                rows += `<tr>
+                    <td>${fmtDate(f.date)}</td>
+                    <td>${pdfLtr(f.amount ? parseFloat(f.amount).toLocaleString('he-IL') : '')}</td>
+                    ${showCosts ? `<td>${pdfMoney(ppl)}</td><td class="cost-cell">${pdfMoney(f.cost)}</td>` : ''}
                 </tr>`;
             });
-            html += `</tbody></table></div>`;
+            const foot = (showCosts && totalFuelCost > 0)
+                ? `<tfoot><tr><td colspan="3">${pdfHeb('סה"כ הוצאות אנרגיה מתועדות')}</td><td class="cost-cell">${pdfMoney(totalFuelCost)}</td></tr></tfoot>`
+                : '';
+            html += pdfSection(
+                historyTitle,
+                ['תאריך', amountHeader, ...(showCosts ? [`מחיר ל${unitName}`, 'סה"כ'] : [])],
+                rows, foot
+            );
+        }
+    }
+
+    if (s.showFines !== false) {
+        const fines = currentCar.reports || [];
+        if (fines.length > 0) {
+            let rows = '';
+            fines.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(r => {
+                const isPaid = (r.status === 'paid' || r.isHandled === true);
+                rows += `<tr>
+                    <td>${fmtDate(r.date)}</td>
+                    <td style="font-weight:700;">${pdfHeb(r.typeVal || r.offenseType || 'דוח תנועה')}</td>
+                    <td>${pdfHeb(r.location)}</td>
+                    ${showCosts ? `<td class="cost-cell">${pdfMoney(r.amount)}</td>` : ''}
+                    <td>${pdfPill(isPaid ? 'שולם' : 'טרם שולם', isPaid)}</td>
+                </tr>`;
+            });
+            html += pdfSection(
+                'קנסות ודוחות',
+                ['תאריך', 'סוג העבירה', 'מיקום', ...(showCosts ? ['סכום'] : []), 'סטטוס'],
+                rows
+            );
         }
     }
 
     if (photos.length > 0) {
+        let items = '';
+        photos.forEach(src => {
+            items += `<div class="pdf-gallery-item"><img src="${src}" alt="Car" crossorigin="anonymous"></div>`;
+        });
         html += `
         <div class="pdf-section pdf-gallery-section">
-            <h3 class="pdf-section-title">גלריית<span style="unicode-bidi:plaintext"> </span>תמונות<span style="unicode-bidi:plaintext"> </span>הרכב</h3>
-            <div class="pdf-gallery-grid">`;
-        photos.forEach(src => {
-            html += `<div class="pdf-gallery-item"><img src="${src}" alt="Car" crossorigin="anonymous"></div>`;
-        });
-        html += `</div></div>`;
+            <h3 class="pdf-section-title">${pdfHeb('גלריית תמונות הרכב')}</h3>
+            <div class="pdf-gallery-grid">${items}</div>
+        </div>`;
     }
 
     document.getElementById('pdf-dynamic-content').innerHTML = html;
@@ -385,7 +434,11 @@ window.generateFullPDFReport = async function () {
     const dateStr = now.toLocaleDateString('he-IL');
     const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('pdf-footer-time').innerHTML =
-        `הופק ב-<span class="ltr-text">EasyCare</span> | <span class="ltr-text">${dateStr} &bull; ${timeStr}</span>`;
+        pdfHeb('הופק בתאריך') + '&nbsp;<span class="ltr-text">' + dateStr + '</span>&nbsp;' +
+        pdfHeb('בשעה') + '&nbsp;<span class="ltr-text">' + timeStr + '</span>';
+    document.getElementById('pdf-footer-brand').innerHTML =
+        pdfHeb('הופק באמצעות מערכת ניהול הרכב') +
+        '&nbsp;<span class="ltr-text">EasyCare</span>&nbsp;<span dir="ltr">&copy; ' + now.getFullYear() + '</span>';
 
     const content = document.getElementById('pdf-content');
     const container = document.getElementById('pdf-export-container');
@@ -404,10 +457,10 @@ window.generateFullPDFReport = async function () {
     const opt = {
         margin: [10, 10, 10, 10],
         filename: `EasyCare_Report_${currentCar.licensePlate}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: { type: 'jpeg', quality: 0.98 },
         pagebreak: { mode: ['css', 'legacy'] },
         html2canvas: {
-            scale: 2,
+            scale: 3,
             useCORS: true,
             allowTaint: false,
             letterRendering: true,
