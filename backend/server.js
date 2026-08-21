@@ -1178,6 +1178,40 @@ app.get('/api/vehicles/sync/:id', async (req, res) => {
  * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
  * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
  */
+/**
+ * מעדכנת אך ורק את עמודת הגדרות המכירה (SellSettings) של רכב ספציפי, ללא סנכרון מלא של כל נתוני הרכב.
+ * נועדה לשמירה מהירה של מתגי החשיפה ומלל המוכר מדף המכירה (Sell & Trade-In), שם אין צורך להעלות מחדש את הגלריה והמסמכים הכבדים.
+ * @param {express.Request} req - אובייקט הבקשה, כולל מזהה הרכב (Params) ואובייקט sellSettings בגוף הבקשה (Body).
+ * @param {express.Response} res - אובייקט התשובה שדרכו מוחזר המידע ללקוח (Client).
+ * @returns {Promise<void>} - מבטיח החזרת סיום ריצה או קוד סטטוס מתאים.
+ * @throws {Error} - זורקת שגיאה המחזירה קוד 500 או הודעת שגיאה מסודרת למשתמש על גבי JSON.
+ */
+app.post('/api/vehicles/:id/sell-settings', async (req, res) => {
+    try {
+        const vehicleId = parseInt(req.params.id);
+        const pool = await poolPromise;
+
+        const result = await pool.request()
+            .input('Id', sql.Int, vehicleId)
+            .input('UserId', sql.Int, req.userId)
+            .input('SellSettings', sql.NVarChar(sql.MAX), req.body.sellSettings ? JSON.stringify(req.body.sellSettings) : null)
+            .query('UPDATE Vehicles SET SellSettings=@SellSettings, UpdatedAt=GETDATE() WHERE Id=@Id AND UserId=@UserId AND IsDeleted=0');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(403).json({ error: 'Access denied or vehicle deleted' });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(`❌ SellSettings update error for Vehicle ${req.params.id}:`, err);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to save sell settings',
+            details: err.message
+        });
+    }
+});
+
 app.post('/api/vehicles/sync/:id', async (req, res) => {
     let transaction;
     try {

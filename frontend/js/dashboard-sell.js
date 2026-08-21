@@ -72,10 +72,32 @@ window.saveSellSettings = async function () {
     currentCar.sellSettings.sellerComment = tComment ? tComment.value.trim() : "";
     currentCar.sellSettings.hand = tHand ? tHand.value : (currentCar.hand || "1");
 
-    if (window.saveToLocalStorage) {
-        await window.saveToLocalStorage();
+    // עדכון הזיכרון המקומי (sessionStorage) כמו בסנכרון המלא, אך ללא העלאת כל נתוני הרכב
+    const carIndex = savedCars.findIndex(c => parseInt(c.id) === parseInt(currentCar.id));
+    if (carIndex !== -1) {
+        savedCars[carIndex] = currentCar;
+        sessionStorage.setItem('userCars', JSON.stringify(savedCars));
     }
-    console.log("Sell settings saved to DB: ", currentCar.sellSettings);
+
+    try {
+        const userId = sessionStorage.getItem('userId') || '1';
+        const resp = await fetch(`/api/vehicles/${currentCar.id}/sell-settings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'userid': userId
+            },
+            body: JSON.stringify({ sellSettings: currentCar.sellSettings })
+        });
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            console.error("Sell settings sync failed:", errData.details || errData.error || resp.status);
+        } else {
+            console.log("Sell settings saved to DB: ", currentCar.sellSettings);
+        }
+    } catch (e) {
+        console.error("Sell settings sync failed (network error):", e);
+    }
 };
 
 /**
