@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const dashboardContainer = document.getElementById('dashboardContent');
 
-        const fetchPromises = sections.map(view => fetch(`components/dashboard/${view}.html`).then(res => res.text()));
+        const fetchPromises = sections.map(view => fetch(`components/dashboard/${view}.html`, { cache: 'no-store' }).then(res => res.text()));
 
         const htmlParts = await Promise.all(fetchPromises);
 
