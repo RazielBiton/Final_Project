@@ -5,6 +5,8 @@
  * @version 1.0.0
  */
 
+const { DateTime } = require("mssql");
+
 /**
  * פונקציית הליבה לטעינת מסך תמונת המצב (Overview). מאגדת ומחשבת את הנתונים מכלל המודולים במערכת (קילומטראז', הוצאות מכלל הסוגים, מועד טסט, מפרט טכני ורמות אמינות) ומזריקה אותם למדדי ה-KPI הראשיים בממשק המשתמש.
  */
@@ -73,7 +75,7 @@ window.loadOverview = function () {
 
     const statusEl = document.getElementById('kpi-status');
     if (statusEl) {
-        const hasProblem = currentCar.year < 2010 || !currentCar.testDate;
+        const hasProblem = DateTime.now().year - currentCar.year > 5;
         statusEl.textContent = hasProblem ? 'דרוש טיפול' : 'תקין';
     }
 
